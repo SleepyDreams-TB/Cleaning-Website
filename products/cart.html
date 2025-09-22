@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cart - Sparkle Clean</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-cover bg-center bg-no-repeat bg-fixed text-gray-800"
+  style="background-image: url('../assets/cleaningbg.jpg');">
+
+  <!-- Header -->
+  <header class="bg-black shadow p-4 flex justify-between items-center">
+    <h1 class="text-pink-600 font-bold">Sparkle Clean</h1>
+    <nav>
+      <a href="welcomePage.html" class="mr-4 text-pink-600">Home</a>
+      <a href="services.html" class="mr-4 text-pink-600">Services</a>
+      <a href="About-Us.html" class="mr-4 text-pink-600">About Us</a>
+      <a href="ContactUs.html" class="mr-4 text-pink-600">Contact</a>
+      <a href="productsPage.html" class="mr-4 text-pink-600">Back to Products</a>
+    </nav>
+  </header>
+
+  <!-- Cart Section -->
+  <main class="container mx-auto py-12 px-4">
+    <h2 class="text-3xl font-bold text-center mb-8">Your Cart</h2>
+
+    <!-- Cart Items -->
+    <div id="cart-items" class="space-y-4">
+      <!-- Cart items will be added here by JavaScript -->
+    </div>
+
+    <!-- Total -->
+    <div class="mt-6 text-right text-xl font-bold">
+      Total: R<span id="total-price">0</span>
+    </div>
+  </main>
+
+  <script>
+    // Simple cart data for demonstration
+    const cart = [
+      { name: "Handy Andy Soap", price: 19 },
+      { name: "Sparkle Mop", price: 49 },
+      { name: "Cleaning Spray", price: 25 }
+    ];
+
+    const cartItemsContainer = document.getElementById("cart-items");
+    const totalPriceElement = document.getElementById("total-price");
+
+    let total = 0;
+
+    // Add cart items to the page
+    cart.forEach(item => {
+      const itemDiv = document.createElement("div");
+      itemDiv.className = "bg-white p-4 rounded shadow flex justify-between items-center";
+      itemDiv.innerHTML = `
+        <span>${item.name}</span>
+        <span>R${item.price}</span>
+      `;
+      cartItemsContainer.appendChild(itemDiv);
+      total += item.price;
+    });
+
+    // Update total price
+    totalPriceElement.textContent = total;
+  </script>
+
+</body>
+
+</html>

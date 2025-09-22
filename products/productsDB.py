@@ -4,7 +4,7 @@ from fastapi import FastAPI, Form
 from typing import Union
 from bson import json_util
 import json
-
+from bson.objectid import ObjectId
 # Initialize FastAPI
 app = FastAPI()
 
@@ -50,20 +50,21 @@ async def create_product(
 @app.get("/products/")
 async def get_all_products():
     try:
-        # Fetch all products from MongoDB
-        all_products = list(products.find({}))
-        # Convert ObjectId to string for JSON serialization (BSON to JSON to Py dict)
-        return json.loads(json_util.dumps(all_products))
+        all_products = []
+        
+        for product in products.find():
+            product["_id"] = str(product["_id"])
+            all_products.append(product)
+        return all_products
     except Exception as e:
         return {"error": str(e)}
 
 @app.get("/products/{id}")
 async def get_product(id: str):
     try:
-        from bson.objectid import ObjectId
         product = products.find_one({"_id": ObjectId(id)})
         if product:
-            return json.loads(json_util.dumps(product))
+            product["_id"] = str(product["_id"])
         return {"message": "Product not found"}
     except Exception as e:
         return {"error": str(e)}

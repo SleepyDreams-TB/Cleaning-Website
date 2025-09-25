@@ -14,11 +14,7 @@
   <header class="bg-black shadow p-4 flex justify-between items-center">
     <h1 class="text-pink-600 font-bold">Sparkle Clean</h1>
     <nav>
-      <a href="welcomePage.html" class="mr-4 text-pink-600">Home</a>
-      <a href="services.html" class="mr-4 text-pink-600">Services</a>
-      <a href="About-Us.html" class="mr-4 text-pink-600">About Us</a>
-      <a href="ContactUs.html" class="mr-4 text-pink-600">Contact</a>
-      <a href="cart.html" class="mr-4 text-pink-600">Cart</a>
+      <div id="navbar-container"></div>
     </nav>
   </header>
 
@@ -60,7 +56,12 @@
           document.querySelectorAll('.add-to-cart-btn').forEach(button => {
             button.addEventListener('click', () => {
               const productId = button.getAttribute('data-id');
-              addToCart(productId, checkoutCart);
+              const product = products.find(p => p._id === productId);
+              if (product) {
+                addToCart(product);
+              } else {
+                console.error("Product not found for ID:", productId);
+              }
             });
           });
         } catch (error) {
@@ -73,5 +74,14 @@
     </script>
   </section>
 </body>
+<script>
+  async function loadNavbar() {
+    const response = await fetch('../navbar.html'); // path to navbar file
+    const navbarHTML = await response.text();
+    document.getElementById('navbar-container').innerHTML = navbarHTML;
+  }
+
+  document.addEventListener('DOMContentLoaded', loadNavbar);
+</script>
 
 </html>

@@ -69,6 +69,46 @@ async def get_product(id: str):
     except Exception as e:
         return {"error": str(e)}
 
+@app.put("/products/update/{id}")
+async def update_product(
+    id: str,
+    name: Union[str, None] = Form(None),
+    price: Union[float, None] = Form(None),
+    description: Union[str, None] = Form(None),
+    category: Union[int, None] = Form(None),
+    image_url: Union[str, None] = Form(None)
+):
+    try:
+        update_data = {}
+        if name is not None:
+            update_data["name"] = name
+        if price is not None:
+            update_data["price"] = price
+        if description is not None:
+            update_data["description"] = description
+        if category is not None:
+            update_data["category"] = category
+        if image_url is not None:
+            update_data["image_url"] = image_url
+        
+        result = products.update_one({"_id": ObjectId(id)}, {"$set": update_data})
+        
+        if result.matched_count:
+            return {"message": "Product updated successfully"}
+        return {"message": "Product not found"}
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.delete("/products/delete/{id}")
+async def delete_product(id: str):
+    try:
+        result = products.delete_one({"_id": ObjectId(id)})
+        if result.deleted_count:
+            return {"message": "Product deleted successfully"}
+        return {"message": "Product not found"}
+    except Exception as e:
+        return {"error": str(e)}
+    
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("productsDB:app", host="127.0.0.1", port=8000, reload=True)

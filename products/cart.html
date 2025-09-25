@@ -15,11 +15,11 @@
   <header class="bg-black shadow p-4 flex justify-between items-center">
     <h1 class="text-pink-600 font-bold">Sparkle Clean</h1>
     <nav>
-      <a href="welcomePage.html" class="mr-4 text-pink-600">Home</a>
-      <a href="services.html" class="mr-4 text-pink-600">Services</a>
-      <a href="About-Us.html" class="mr-4 text-pink-600">About Us</a>
-      <a href="ContactUs.html" class="mr-4 text-pink-600">Contact</a>
-      <a href="productsPage.html" class="mr-4 text-pink-600">Back to Products</a>
+      <a href="../welcomePage.html" class="mr-4 text-pink-600">Home</a>
+      <a href="../services.html" class="mr-4 text-pink-600">Services</a>
+      <a href="../About-Us.html" class="mr-4 text-pink-600">About Us</a>
+      <a href="../ContactUs.html" class="mr-4 text-pink-600">Contact</a>
+      <a href="/products/productsPage.html" class="mr-4 text-pink-600">Back to Products</a>
     </nav>
   </header>
 
@@ -36,16 +36,25 @@
     <div class="mt-6 text-right text-xl font-bold">
       Total: R<span id="total-price">0</span>
     </div>
+
+    <div class="text-right mt-6">
+      <button id="clear-cart" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+        Clear Cart
+      </button>
+    </div>
+
+    <div class="text-right mt-6">
+      <button id="cart-checkout" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        Proceed to checkout</button>
+    </div>
+
   </main>
 
-  <script>
+  <script type="module">
     // Simple cart data for demonstration
-    const cart = [
-      { name: "Handy Andy Soap", price: 19 },
-      { name: "Sparkle Mop", price: 49 },
-      { name: "Cleaning Spray", price: 25 }
-    ];
+    import { getCart, clearCart, createPayment } from "./cart.js"
 
+    const cart = getCart()
     const cartItemsContainer = document.getElementById("cart-items");
     const totalPriceElement = document.getElementById("total-price");
 
@@ -56,15 +65,45 @@
       const itemDiv = document.createElement("div");
       itemDiv.className = "bg-white p-4 rounded shadow flex justify-between items-center";
       itemDiv.innerHTML = `
-        <span>${item.name}</span>
-        <span>R${item.price}</span>
+        <span>${item.name} x ${item.quantity}</span>
+        <span>R${item.price * item.quantity}</span>
       `;
       cartItemsContainer.appendChild(itemDiv);
       total += item.price;
     });
 
+
     // Update total price
     totalPriceElement.textContent = total;
+
+    const clearCartBtn = document.getElementById("clear-cart");
+
+    clearCartBtn.addEventListener("click", () => {
+
+      localStorage.removeItem("checkoutCart");
+
+      const cartItemsContainer = document.getElementById("cart-items");
+      cartItemsContainer.innerHTML = `<p class="text-center text-gray-500">Your cart is empty.</p>`;
+
+      const totalPriceElement = document.getElementById("total-price");
+      totalPriceElement.textContent = "0";
+
+      alert("Cart has been cleared!");
+    });
+
+    const checkoutBtn = document.getElementById("cart-checkout");
+
+    checkoutBtn.addEventListener("click", () => {
+
+      let amount = total;
+      let payment_type = "eftx"
+      let merchant_reference = "TESTREF1"
+      console.log(amount, payment_type, merchant_reference)
+      createPayment(payment_type, amount, merchant_reference)
+      window.location.href = "checkout/bankSelect.html";
+
+    });
+
   </script>
 
 </body>

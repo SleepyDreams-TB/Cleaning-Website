@@ -9,16 +9,12 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-gray-50 text-gray-800">
-
-  <!-- Header -->
+<body class="bg-cover bg-center bg-no-repeat bg-fixed text-gray-800"
+  style="background-image: url('../assets/cleaningbg.jpg');">
   <header class="bg-black shadow p-4 flex justify-between items-center">
     <h1 class="text-pink-600 font-bold">Sparkle Clean</h1>
     <nav>
-      <a href="welcomePage.html" class="mr-4 text-pink-600">Home</a>
-      <a href="services.html" class="mr-4 text-pink-600">Services</a>
-      <a href="About-Us.html" class="mr-4 text-pink-600">About Us</a>
-      <a href="ContactUs.html" class="mr-4 text-pink-600">Contact</a>
+      <div id="navbar-container"></div>
     </nav>
   </header>
 
@@ -49,5 +45,14 @@
   </footer>
 
 </body>
+<script>
+  async function loadNavbar() {
+    const response = await fetch('../navbar.html'); // path to navbar file
+    const navbarHTML = await response.text();
+    document.getElementById('navbar-container').innerHTML = navbarHTML;
+  }
+
+  document.addEventListener('DOMContentLoaded', loadNavbar);
+</script>
 
 </html>

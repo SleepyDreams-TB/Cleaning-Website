@@ -1,0 +1,33 @@
+// cart.js
+
+export function getCart() {
+  return JSON.parse(localStorage.getItem("checkoutCart")) || [];
+}
+
+export function clearCart() {
+  localStorage.removeItem("checkoutCart");
+}
+
+export async function createPayment(payment_type, amount, reference) {
+  try {
+    const res = await fetch('http://localhost:3000/api/payment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        payment_type,
+        amount,
+        merchant_reference: reference
+      })
+    });
+
+    const data = await res.json();
+    console.log('Payment created:', data);
+
+    clearCart();
+    // Redirect to the hosted Callpay payment page
+    window.location.href = data.url;
+  } catch (error) {
+    console.error('Error creating payment:', error);
+    alert('Payment failed. Please try again.');
+  }
+}

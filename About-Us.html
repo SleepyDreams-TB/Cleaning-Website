@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <link rel="icon" href="wipe.ico" type="image/x-icon">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sparkle Cleaning Services</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-cover bg-center bg-no-repeat bg-fixed text-gray-800"
+  style="background-image: url('../assets/cleaningbg.jpg');">
+  <header class="bg-black shadow p-4 flex justify-between items-center">
+    <h1 class="text-pink-600 font-bold">Sparkle Clean</h1>
+    <nav>
+      <div id="navbar-container"></div>
+    </nav>
+  </header>
+
+  <section class="text-center py-16 bg-gray-100">
+    <h3 class="text-2xl font-semibold mb-4">Book Your Cleaning Today!</h3>
+    <p class="mb-6">Contact us for a free quote or to schedule your first clean.</p>
+    <a href="ContactUs.html" class="bg-pink-600 text-white py-2 px-4 rounded hover:bg-pink-700">
+      Contact Us
+    </a>
+  </section>
+
+  <section>
+    <h3 class="text-2xl font-semibold text-center mb-8">Why Choose Sparkle Clean?</h3>
+    <ul class="list-disc list-inside max-w-3xl mx-auto text-center">
+      <li>Experienced and professional cleaners</li>
+      <li>Eco-friendly cleaning products</li>
+      <li>Flexible scheduling options</li>
+      <li>100% satisfaction guarantee</li>
+    </ul>
+
+    <br>
+    <b>Contact us for a free quote or to book your first clean!</b>
+  </section>
+
+  <!-- Footer -->
+  <footer class="text-center text-sm py-6 bg-gray-100">
+    © 2025 Sparkle Clean. All rights reserved.
+  </footer>
+
+</body>
+<script>
+  async function loadNavbar() {
+    const response = await fetch('../navbar.html'); // path to navbar file
+    const navbarHTML = await response.text();
+    document.getElementById('navbar-container').innerHTML = navbarHTML;
+  }
+
+  document.addEventListener('DOMContentLoaded', loadNavbar);
+</script>
+
+</html>

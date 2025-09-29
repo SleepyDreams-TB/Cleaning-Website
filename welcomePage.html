@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <link rel="icon" href="/Cleaning-Website/assets/wipe.ico" type="image/x-icon">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sparkle Cleaning Services</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-cover bg-center bg-no-repeat bg-fixed text-gray-800"
+  style="background-image: url('../assets/cleaningbg.jpg');">
+  <header class="bg-black shadow p-4 flex justify-between items-center">
+    <h1 class="text-pink-600 font-bold">Sparkle Clean</h1>
+    <nav>
+      <div id="navbar-container"></div>
+    </nav>
+  </header>
+
+  <section class="text-center py-20 bg-pink-100mx-auto">
+    <h2 class="text-4xl font-bold mb-4">Professional Cleaning Services</h2>
+    <p class="mb-6">Trusted, affordable, and available 7 days a week</p>
+    <a href="ContactUs.html" class="bg-pink-600 text-white py-2 px-4 rounded hover:bg-pink-700">
+      Book Now
+    </a>
+  </section>
+  <section class="text-center py-20 bg-pink-100mx-auto">
+    <h2 class="text-4xl font-bold mb-4">Explore our range of professional cleaning services tailored</h2>
+    <h2 class="text-3xl font-bold mb-4"> to your needs.</h2>
+
+    <a href="services.html" class="bg-pink-600 text-white py-2 px-4 rounded hover:bg-pink-700">
+      View our Services
+    </a>
+  </section>
+
+  <section id="services" class="py-16 max-w-5xl mx-auto">
+    <h3 class="text-2xl font-semibold text-center mb-8">Our Services</h3>
+    <div class="grid sm:grid-cols-3 gap-6">
+      <div class="relative group rounded overflow-hidden shadow-lg transition duration-300 transform hover:scale-105">
+        <div class="absolute inset-0 bg-cover bg-center transition duration-300"
+          style="background-image: url('assets/house.png');">
+        </div>
+        <div class="relative p-6 m-4 bg-white/60 backdrop-blur-sm rounded shadow-sm">
+          <div class="bg-white p-6 shadow rounded">
+            <h4 class="text-xl font-bold mb-2">Residential Cleaning</h4>
+            <p>Weekly, bi-weekly, or one-time deep cleans for homes and apartments.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="relative group rounded overflow-hidden shadow-lg transition duration-300 transform hover:scale-105">
+        <div class="absolute inset-0 bg-cover bg-center transition duration-300"
+          style="background-image: url('assets/office.png');">
+        </div>
+        <div class="relative p-6 m-4 bg-white/60 backdrop-blur-sm rounded shadow-sm">
+          <div class="bg-white p-6 shadow rounded">
+            <h4 class="text-xl font-bold mb-2">Office Cleaning</h4>
+            <p>Keep your workspace clean and productive with regular service.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="relative group rounded overflow-hidden shadow-lg transition duration-300 transform hover:scale-105">
+        <div class="absolute inset-0 bg-cover bg-center transition duration-300"
+          style="background-image: url('assets/moving.jpg');">
+          <div class="relative p-6 m-4 bg-white/60 backdrop-blur-sm rounded shadow-sm">
+            <div class="bg-white p-6 shadow rounded">
+              <h4 class="text-xl font-bold mb-2">Move-In/Out</h4>
+              <p>This deep-clean service is perfect before moving into a new place or handing back keys to a landlord.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <section id="services" class="py-16 max-w-5xl mx-auto"></section>
+        <div class="grid md:grid-cols-3 gap-6">
+
+          <footer class="text-center text-sm py-6 bg-gray-100">
+            © 2025 Sparkle Clean. All rights reserved.
+          </footer>
+
+</body>
+<script>
+  async function loadNavbar() {
+    const response = await fetch('/Cleaning-Website/navbar.html'); // path to navbar file
+    const navbarHTML = await response.text();
+    document.getElementById('navbar-container').innerHTML = navbarHTML;
+  }
+
+  document.addEventListener('DOMContentLoaded', loadNavbar);
+</script>
+
+</html>

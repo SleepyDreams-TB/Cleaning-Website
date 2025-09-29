@@ -25,7 +25,7 @@ products = db["products"]
 
 @app.get("/")
 def root():
-    return {"message": "Welcome to the Products API"}
+    return {"message": " to the Products API"}
 
 @app.post("/products/create/")
 async def create_product(

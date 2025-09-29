@@ -2,12 +2,11 @@
 <html lang="en">
 
 <head>
-  <link rel="icon" href="assets/wipe.ico" type="image/x-icon">
+  <link rel="icon" href="/Cleaning-Website/assets/wipe.ico" type="image/x-icon">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sparkle Cleaning Services</title>
   <script src="https://cdn.tailwindcss.com"></script>
-
 </head>
 
 <body class="bg-cover bg-center bg-no-repeat bg-fixed text-gray-800"
@@ -84,7 +83,7 @@
 </body>
 <script>
   async function loadNavbar() {
-    const response = await fetch('../navbar.html'); // path to navbar file
+    const response = await fetch('/Cleaning-Website/navbar.html'); // path to navbar file
     const navbarHTML = await response.text();
     document.getElementById('navbar-container').innerHTML = navbarHTML;
   }

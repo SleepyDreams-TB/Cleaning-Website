@@ -3,7 +3,7 @@ from pymongo import MongoClient
 from fastapi import FastAPI, Form
 from typing import Union
 from bson import json_util
-import json
+import os
 from bson.objectid import ObjectId
 # Initialize FastAPI
 app = FastAPI()
@@ -111,4 +111,11 @@ async def delete_product(id: str):
     
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("productsDB:app", host="127.0.0.1", port=8000, reload=True)
+    import os
+
+    uvicorn.run(
+        "productsDB:app",          # module name : FastAPI app
+        host="0.0.0.0",
+        port=int(os.environ.get("PORT", 8000)),  # use Render’s dynamic port
+        reload=True                # optional, remove in production
+    )

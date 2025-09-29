@@ -1,4 +1,3 @@
-// cart.js
 
 export function getCart() {
   return JSON.parse(localStorage.getItem("checkoutCart")) || [];
@@ -24,7 +23,6 @@ export async function createPayment(payment_type, amount, reference) {
     console.log('Payment created:', data);
 
     clearCart();
-    // Redirect to the hosted Callpay payment page
     window.location.href = data.url;
   } catch (error) {
     console.error('Error creating payment:', error);

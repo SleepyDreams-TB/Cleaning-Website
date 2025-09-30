@@ -5,6 +5,8 @@ from typing import Union
 from bson import json_util
 import json
 from bson.objectid import ObjectId
+import ssl
+import sys
 # Initialize FastAPI
 app = FastAPI()
 
@@ -22,6 +24,11 @@ app.add_middleware(
 client = MongoClient('mongodb+srv://SleepyDreams:saRqSb7xoc1cI1DO@kingburgercluster.ktvavv3.mongodb.net/?retryWrites=true&w=majority')
 db = client["cleaning_website"]
 products = db["products"]
+
+@app.on_event("startup")
+def check_ssl():
+    print("Python version:", sys.version)
+    print("OpenSSL version:", ssl.OPENSSL_VERSION)
 
 @app.get("/")
 def root():

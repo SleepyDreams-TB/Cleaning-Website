@@ -21,14 +21,21 @@ app.add_middleware(
 
 
 # MongoDB setup
-client = MongoClient('mongodb+srv://SleepyDreams:saRqSb7xoc1cI1DO@kingburgercluster.ktvavv3.mongodb.net/?retryWrites=true&w=majority')
+client = MongoClient('mongodb+srv://SleepyDreams:saRqSb7xoc1cI1DO@kingburgercluster.ktvavv3.mongodb.net/?retryWrites=true&w=majority', tls=True,
+    tlsAllowInvalidCertificates=False)
 db = client["cleaning_website"]
 products = db["products"]
 
-@app.on_event("startup")
-def check_ssl():
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     print("Python version:", sys.version)
     print("OpenSSL version:", ssl.OPENSSL_VERSION)
+    yield
+
+app = FastAPI(lifespan=lifespan)
+
 
 @app.get("/")
 def root():

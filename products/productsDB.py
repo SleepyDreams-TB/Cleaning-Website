@@ -2,41 +2,40 @@ from fastapi.middleware.cors import CORSMiddleware
 from pymongo import MongoClient
 from fastapi import FastAPI, Form
 from typing import Union
-from bson import json_util
-import json
-from bson.objectid import ObjectId
+from bson import ObjectId
 import ssl
 import sys
-# Initialize FastAPI
-app = FastAPI()
-
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],        # Which origins are allowed. "*" = all.
-    allow_credentials=True,     # If cookies/authorization headers are allowed in cross-site requests.
-    allow_methods=["*"],        # Which HTTP methods (GET, POST, PUT, DELETE, etc.) are allowed.
-    allow_headers=["*"],        # Which request headers are allowed.
-)
-
-
-# MongoDB setup
-client = MongoClient('mongodb+srv://SleepyDreams:saRqSb7xoc1cI1DO@kingburgercluster.ktvavv3.mongodb.net/?retryWrites=true&w=majority', tls=True,
-    tlsAllowInvalidCertificates=False)
-db = client["cleaning_website"]
-products = db["products"]
-
 from contextlib import asynccontextmanager
 
+# Lifespan context for startup/shutdown
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("Python version:", sys.version)
     print("OpenSSL version:", ssl.OPENSSL_VERSION)
     yield
 
+# Single FastAPI instance
 app = FastAPI(lifespan=lifespan)
 
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
+# MongoDB setup
+client = MongoClient(
+    "mongodb+srv://SleepyDreams:saRqSb7xoc1cI1DO@kingburgercluster.ktvavv3.mongodb.net/?retryWrites=true&w=majority",
+    tls=True,
+    tlsAllowInvalidCertificates=False
+)
+db = client["cleaning_website"]
+products = db["products"]
+
+# Routes
 @app.get("/")
 def root():
     return {"message": "Welcome to the Products API"}
@@ -65,7 +64,6 @@ async def create_product(
 async def get_all_products():
     try:
         all_products = []
-        
         for product in products.find():
             product["_id"] = str(product["_id"])
             all_products.append(product)
@@ -79,6 +77,7 @@ async def get_product(id: str):
         product = products.find_one({"_id": ObjectId(id)})
         if product:
             product["_id"] = str(product["_id"])
+            return product
         return {"message": "Product not found"}
     except Exception as e:
         return {"error": str(e)}
@@ -106,7 +105,6 @@ async def update_product(
             update_data["image_url"] = image_url
         
         result = products.update_one({"_id": ObjectId(id)}, {"$set": update_data})
-        
         if result.matched_count:
             return {"message": "Product updated successfully"}
         return {"message": "Product not found"}
@@ -122,7 +120,7 @@ async def delete_product(id: str):
         return {"message": "Product not found"}
     except Exception as e:
         return {"error": str(e)}
-    
+
 if __name__ == "__main__":
     import uvicorn
     import os

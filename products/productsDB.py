@@ -125,4 +125,6 @@ async def delete_product(id: str):
     
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("productsDB:app", host="127.0.0.1", port=8000, reload=True)
+    import os
+    port = int(os.environ.get("PORT", 10000))
+    uvicorn.run("products.productsDB:app", host="0.0.0.0", port=port)

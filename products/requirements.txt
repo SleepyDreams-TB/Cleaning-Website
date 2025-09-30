@@ -2,3 +2,4 @@ fastapi==0.118.0
 uvicorn==0.37.0
 pymongo==4.15.1
 python-multipart==0.0.6
+bson==0.5.10

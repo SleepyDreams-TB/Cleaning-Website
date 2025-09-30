@@ -1,6 +1,23 @@
-
 export function getCart() {
   return JSON.parse(localStorage.getItem("checkoutCart")) || [];
+}
+
+export function saveCart(cart) {
+  localStorage.setItem("checkoutCart", JSON.stringify(cart));
+}
+
+export function addToCart(product) {
+  const cart = getCart();
+  const existingItem = cart.find(item => item._id === product._id);
+
+  if (existingItem) {
+    existingItem.quantity += 1;
+  } else {
+    cart.push({ ...product, quantity: 1 });
+  }
+
+  saveCart(cart);
+  alert(`${product.name} added to cart!`);
 }
 
 export function clearCart() {

@@ -7,7 +7,6 @@ import ssl
 import sys
 from contextlib import asynccontextmanager
 
-# Lifespan context for startup/shutdown
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("Python version:", sys.version)
@@ -39,6 +38,10 @@ products = db["products"]
 @app.get("/")
 def root():
     return {"message": "Welcome to the Products API"}
+
+@app.get("/health")
+def health_check():
+    return {"status": "alive"}
 
 @app.post("/products/create/")
 async def create_product(

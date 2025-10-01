@@ -7,7 +7,10 @@ import ssl
 import sys
 from contextlib import asynccontextmanager
 from pydantic import BaseModel
+from callpayV2_Token import generate_callpay_token
 import httpx
+
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -131,29 +134,39 @@ class PaymentRequest(BaseModel):
     amount: float
     reference: str
 
+
 CALLPAY_API_URL = "https://services.callpay.com/api/v2/payment-key"
+AUTH_TOKEN = "YOUR_TOKEN_HERE"
+ORG_ID = "YOUR_ORG_ID_HERE"
 
 @app.post("/api/create-payment")
 async def create_payment(payment: PaymentRequest):
+    # Get current credentials dynamically for each request
+    callpay_creds = generate_callpay_token()
+
     payload = {
-        "payment_type": payment.payment_type,
         "amount": payment.amount,
-        "merchant_reference": payment.reference
+        "merchant_reference": payment.reference,
+        "payment_type": payment.payment_type
+    }
+
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "auth-token": callpay_creds["Token"],
+        "org-id": callpay_creds["org_id"],
+        "timestamp": callpay_creds["timestamp"]
     }
 
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.post(
-                CALLPAY_API_URL,
-                data=payload,  # <-- send as form-encoded
-                headers={"Content-Type": "application/x-www-form-urlencoded"}
-            )
-            response.raise_for_status()
+            response = await client.post(CALLPAY_API_URL, data=payload, headers=headers)
+            
+            # Debug logs
+            print("Status code:", response.status_code)
+            print("Response headers:", response.headers)
+            print("Raw response:", repr(response.text))
 
-            # Log raw response
-            print("Callpay raw response:", response.text)
-
-            # Safely parse JSON if any
+            # Safely parse JSON if present
             try:
                 data = response.json()
             except Exception:
@@ -166,7 +179,7 @@ async def create_payment(payment: PaymentRequest):
     except httpx.HTTPStatusError as e:
         raise HTTPException(status_code=e.response.status_code, detail=f"API error: {e.response.text}")
 
-    
+
 if __name__ == "__main__":
     import uvicorn
     import os

@@ -26,21 +26,19 @@ export function clearCart() {
 
 export async function createPayment(payment_type, amount, reference) {
   try {
-    const res = await fetch('https://services.callpay.com/api/v2/payment-key', {
+    const res = await fetch('/api/create-payment', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        payment_type,
-        amount,
-        merchant_reference: reference
-      })
+      body: JSON.stringify({ payment_type, amount, reference })
     });
+
+    if (!res.ok) throw new Error('Payment API failed');
 
     const data = await res.json();
     console.log('Payment created:', data);
 
     clearCart();
-    window.location.href = data.url;
+    window.location.href = data.url; // redirect to Callpay hosted page
   } catch (error) {
     console.error('Error creating payment:', error);
     alert('Payment failed. Please try again.');

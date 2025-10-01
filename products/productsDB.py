@@ -145,12 +145,23 @@ async def create_payment(payment: PaymentRequest):
         async with httpx.AsyncClient() as client:
             response = await client.post(CALLPAY_API_URL, json=payload)
             response.raise_for_status()
-            data = response.json()
+            
+            # Log the raw response text
+            print("Callpay raw response:", response.text)
+            
+            # Try to parse JSON safely
+            try:
+                data = response.json()
+            except Exception:
+                data = {"raw_response": response.text}
+
             return data
+
     except httpx.RequestError as e:
         raise HTTPException(status_code=500, detail=f"Request failed: {e}")
     except httpx.HTTPStatusError as e:
         raise HTTPException(status_code=e.response.status_code, detail=f"API error: {e.response.text}")
+
     
 if __name__ == "__main__":
     import uvicorn

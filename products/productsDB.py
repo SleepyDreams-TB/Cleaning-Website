@@ -1,11 +1,13 @@
 from fastapi.middleware.cors import CORSMiddleware
 from pymongo import MongoClient
-from fastapi import FastAPI, Form
+from fastapi import FastAPI, Form, HTTPException
 from typing import Union
 from bson import ObjectId
 import ssl
 import sys
 from contextlib import asynccontextmanager
+from pydantic import BaseModel
+import httpx
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -124,6 +126,32 @@ async def delete_product(id: str):
     except Exception as e:
         return {"error": str(e)}
 
+class PaymentRequest(BaseModel):
+    payment_type: str
+    amount: float
+    reference: str
+
+CALLPAY_API_URL = "https://services.callpay.com/api/v2/payment-key"
+
+@app.post("/api/create-payment")
+async def create_payment(payment: PaymentRequest):
+    payload = {
+        "payment_type": payment.payment_type,
+        "amount": payment.amount,
+        "merchant_reference": payment.reference
+    }
+
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(CALLPAY_API_URL, json=payload)
+            response.raise_for_status()
+            data = response.json()
+            return data
+    except httpx.RequestError as e:
+        raise HTTPException(status_code=500, detail=f"Request failed: {e}")
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=e.response.status_code, detail=f"API error: {e.response.text}")
+    
 if __name__ == "__main__":
     import uvicorn
     import os

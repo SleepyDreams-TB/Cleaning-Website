@@ -25,7 +25,7 @@ export function clearCart() {
 }
 export async function createPayment(payment_type, amount, reference) {
   try {
-    const res = await fetch('/api/create-payment', {
+    const res = await fetch('https://api.kingburger.site/api/create-payment', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ payment_type, amount, reference })

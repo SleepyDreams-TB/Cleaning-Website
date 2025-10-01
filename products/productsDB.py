@@ -7,7 +7,7 @@ import ssl
 import sys
 from contextlib import asynccontextmanager
 from pydantic import BaseModel
-from callpayV2_Token import generate_callpay_token
+from .callpayV2_Token import generate_callpay_token
 import httpx
 
 @asynccontextmanager

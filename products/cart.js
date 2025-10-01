@@ -31,28 +31,34 @@ export async function createPayment(payment_type, amount, reference) {
       body: JSON.stringify({ payment_type, amount, reference })
     });
 
-    // Read the response as text first
     const text = await res.text();
     console.log("Raw response from backend:", text);
 
-    // Safely parse JSON
     let data;
     try {
       data = text ? JSON.parse(text) : {};
     } catch (err) {
-      console.error("Failed to parse JSON:", err);
+      console.warn("Failed to parse JSON, using raw text instead.");
       data = { raw_response: text };
     }
 
     console.log('Payment created:', data);
 
-    clearCart(); // your existing function
+    clearCart();
 
-    // Redirect only if Callpay returned a URL
+    // Redirect if URL exists
     if (data.url) {
       window.location.href = data.url;
+    } else if (data.raw_response) {
+      // Optional: parse URL from raw text if backend returned it as string
+      const urlMatch = data.raw_response.match(/https?:\/\/\S+/);
+      if (urlMatch) {
+        window.location.href = urlMatch[0];
+      } else {
+        alert("Payment failed or no URL returned. Check console for raw response.");
+      }
     } else {
-      alert("Payment failed or no URL returned. Check console for raw response.");
+      alert("Payment failed. Check console for details.");
     }
 
   } catch (error) {
@@ -60,4 +66,5 @@ export async function createPayment(payment_type, amount, reference) {
     alert('Payment failed. Please try again.');
   }
 }
+
 

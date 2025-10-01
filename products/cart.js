@@ -10,7 +10,7 @@ export function clearCart() {
 
 export async function createPayment(payment_type, amount, reference) {
   try {
-    const res = await fetch('http://localhost:3000/api/payment', {
+    const res = await fetch('https://services.callpay.com/api/v2/payment-key', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

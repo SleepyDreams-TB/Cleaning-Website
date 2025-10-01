@@ -10,15 +10,12 @@ from pydantic import BaseModel
 from callpayV2_Token import generate_callpay_token
 import httpx
 
-
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("Python version:", sys.version)
     print("OpenSSL version:", ssl.OPENSSL_VERSION)
     yield
 
-# Single FastAPI instance
 app = FastAPI(lifespan=lifespan)
 
 # Add CORS middleware
@@ -39,7 +36,7 @@ client = MongoClient(
 db = client["cleaning_website"]
 products = db["products"]
 
-# Routes
+# Product routes
 @app.get("/")
 def root():
     return {"message": "Welcome to the Products API"}
@@ -100,6 +97,7 @@ async def update_product(
     image_url: Union[str, None] = Form(None)
 ):
     try:
+        # Explicitly build update_data
         update_data = {}
         if name is not None:
             update_data["name"] = name
@@ -111,13 +109,14 @@ async def update_product(
             update_data["category"] = category
         if image_url is not None:
             update_data["image_url"] = image_url
-        
+
         result = products.update_one({"_id": ObjectId(id)}, {"$set": update_data})
         if result.matched_count:
             return {"message": "Product updated successfully"}
         return {"message": "Product not found"}
     except Exception as e:
         return {"error": str(e)}
+
 
 @app.delete("/products/delete/{id}")
 async def delete_product(id: str):
@@ -129,19 +128,17 @@ async def delete_product(id: str):
     except Exception as e:
         return {"error": str(e)}
 
+# Payment
 class PaymentRequest(BaseModel):
     payment_type: str
     amount: float
     reference: str
 
-
 CALLPAY_API_URL = "https://services.callpay.com/api/v2/payment-key"
-AUTH_TOKEN = "YOUR_TOKEN_HERE"
-ORG_ID = "YOUR_ORG_ID_HERE"
 
 @app.post("/api/create-payment")
 async def create_payment(payment: PaymentRequest):
-    # Get current credentials dynamically for each request
+    # Generate fresh token and credentials for each request
     callpay_creds = generate_callpay_token()
 
     payload = {
@@ -160,13 +157,12 @@ async def create_payment(payment: PaymentRequest):
     try:
         async with httpx.AsyncClient() as client:
             response = await client.post(CALLPAY_API_URL, data=payload, headers=headers)
-            
+
             # Debug logs
             print("Status code:", response.status_code)
             print("Response headers:", response.headers)
             print("Raw response:", repr(response.text))
 
-            # Safely parse JSON if present
             try:
                 data = response.json()
             except Exception:
@@ -178,7 +174,6 @@ async def create_payment(payment: PaymentRequest):
         raise HTTPException(status_code=500, detail=f"Request failed: {e}")
     except httpx.HTTPStatusError as e:
         raise HTTPException(status_code=e.response.status_code, detail=f"API error: {e.response.text}")
-
 
 if __name__ == "__main__":
     import uvicorn

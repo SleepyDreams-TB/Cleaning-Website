@@ -143,17 +143,21 @@ async def create_payment(payment: PaymentRequest):
 
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.post(CALLPAY_API_URL, json=payload)
+            response = await client.post(
+                CALLPAY_API_URL,
+                data=payload,  # <-- send as form-encoded
+                headers={"Content-Type": "application/x-www-form-urlencoded"}
+            )
             response.raise_for_status()
-            
-            # Log the raw response text
+
+            # Log raw response
             print("Callpay raw response:", response.text)
-            
-            # Try to parse JSON safely
+
+            # Safely parse JSON if any
             try:
                 data = response.json()
             except Exception:
-                data = {"raw_response": response.text}
+                data = {"raw_response": response.text or "No content returned"}
 
             return data
 

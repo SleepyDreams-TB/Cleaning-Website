@@ -3,12 +3,24 @@ from pymongo import MongoClient
 from fastapi import FastAPI, Form, HTTPException
 from typing import Union
 from bson import ObjectId
+
 import ssl
 import sys
 from contextlib import asynccontextmanager
+
 from pydantic import BaseModel
 from .callpayV2_Token import generate_callpay_token
 import httpx
+
+import random
+
+
+letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
+numbers = ['2', '3', '4', '5', '6', '7', '8', '9']
+symbols = ['!', '#', '$', '%', '(', ')', '*', '+']
+cases = [0,0,1,1,2]
+
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -36,7 +48,27 @@ client = MongoClient(
 db = client["cleaning_website"]
 products = db["products"]
 
+#password
+@app.post("/password/{length}")
+async def generate_password(length: int):
+    try:
+        if length < 12 or length > 16:
+            return {"error": "Length must be between 12 and 16"}
+        password = ''
+
+        for _ in range(length):
+            case = random.choice(cases)
+            if case == 0:
+                password += random.choice(letters)
+            elif case == 1:
+                password += random.choice(numbers)
+            else:
+                password += random.choice(symbols)
+        return {"password": ''.join(password)}
+    except Exception as e:
+        return {"error": str(e)}
 # Product routes
+
 @app.get("/")
 def root():
     return {"message": "Welcome to the Products API"}
@@ -127,6 +159,8 @@ async def delete_product(id: str):
         return {"message": "Product not found"}
     except Exception as e:
         return {"error": str(e)}
+
+
 
 # Payment
 class PaymentRequest(BaseModel):

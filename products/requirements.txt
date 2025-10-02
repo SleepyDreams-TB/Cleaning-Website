@@ -4,3 +4,4 @@ pymongo==4.15.1
 python-multipart==0.0.6
 httpx==0.28.1
 pydantic==2.11.1
+passlib[bcrypt]==1.7.4

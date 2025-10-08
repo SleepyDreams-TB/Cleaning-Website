@@ -27,7 +27,7 @@
       })
       .catch(err => {
         console.log("User not logged in or token expired", err);
-        document.getElementById("username").innerText = "Guest";
+        document.getElementById("username").innerHTML = '(<a href="/login.html" class="text-pink-600 hover:underline">Login</a>)';
       });
   } else {
     document.getElementById("username").innerText = "Guest";

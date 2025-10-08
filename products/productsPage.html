@@ -74,14 +74,7 @@
     </script>
   </section>
 </body>
-<script>
-  async function loadNavbar() {
-    const response = await fetch('/navbar.html'); // path to navbar file
-    const navbarHTML = await response.text();
-    document.getElementById('navbar-container').innerHTML = navbarHTML;
-  }
+<script src="/navbar.js"></script>
 
-  document.addEventListener('DOMContentLoaded', loadNavbar);
-</script>
 
 </html>

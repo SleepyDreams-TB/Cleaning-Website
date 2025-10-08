@@ -164,7 +164,7 @@ def get_current_user(authorization: str = Header(...)):
 
 @app.get("/dashboard")
 async def dashboard(user=Depends(get_current_user)):
-    return {"message": f"Welcome, {user['firstName']}!"}
+    return {"loggedIn_User": f"Current Logged in User: {user['firstName']}!"}
 
 # --------- Product endpoints ---------
 @app.post("/products/create/")

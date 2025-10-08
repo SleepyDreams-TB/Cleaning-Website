@@ -9,28 +9,38 @@
     <a href="/products/cart.html" class="mr-4 text-pink-600 hover:underline">Cart</a>
   </div>
 </nav>
-<script>
-  const token = localStorage.getItem("jwt"); // JWT stored after login
-  if (token) {
-    fetch("http://api.kingburger.site/dashboard", {
-      headers: {
-        "Authorization": `Bearer ${token}`
-      }
-    })
-      .then(res => res.json())
-      .then(data => {
-        document.getElementById("username").innerText = data.loggedIn_User;
 
-        if (data.token) {
-          localStorage.setItem("jwt", data.token); // update token for sliding expiration
-        }
-      })
-      .catch(err => {
-        console.log("User not logged in or token expired", err);
-        document.getElementById("username").innerHTML = '(<a href="/login.html" class="text-pink-600 hover:underline">Login</a>)';
+<script>
+  async function updateNavbar() {
+    const usernameSpan = document.getElementById('username');
+    const token = localStorage.getItem('jwt');
+
+    if (!token) {
+      usernameSpan.innerHTML = 'Guest (<a href="/login.html" class="text-pink-600 hover:underline">Login</a>)';
+      return;
+    }
+
+    try {
+      const res = await fetch('https://api.kingburger.site/dashboard', {
+        headers: { 'Authorization': `Bearer ${token}` }
       });
-  } else {
-    document.getElementById("username").innerText = "Guest";
+
+      if (!res.ok) throw new Error('Unauthorized');
+
+      const data = await res.json();
+
+      usernameSpan.innerHTML = data.loggedIn_User;
+
+      // Update token if backend returns a refreshed one
+      if (data.token) {
+        localStorage.setItem('jwt', data.token);
+      }
+
+    } catch (err) {
+      console.log('User not logged in or token expired', err);
+      usernameSpan.innerHTML = 'Guest (<a href="/login.html" class="text-pink-600 hover:underline">Login</a>)';
+    }
   }
 
+  updateNavbar();
 </script>

@@ -26,11 +26,12 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(lifespan=lifespan)
+origins = ["https://kingburger.site"]
 
 # --------- CORS middleware ---------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["origins"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

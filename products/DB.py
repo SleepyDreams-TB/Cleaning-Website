@@ -119,7 +119,7 @@ def health_check():
 # --------- JWT ---------
 
 import jwt
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from fastapi.responses import JSONResponse
 
 SECRET_KEY = "hCZ*9R9E2v37Dq(%"
@@ -133,7 +133,7 @@ async def login(userName: str = Form(...), password: str = Form(...)):
 
     payload = {
         "user_id": str(user["_id"]),
-        "exp": datetime() + timedelta(hours=1)  # token expires in 1 hour
+        "exp": datetime.now(UTC) + timedelta(hours=1)  # token expires in 1 hour
     }
     token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 

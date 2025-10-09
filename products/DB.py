@@ -133,7 +133,7 @@ async def login(userName: str = Form(...), password: str = Form(...)):
 
     payload = {
         "user_id": str(user["_id"]),
-        "exp": datetime.utcnow() + timedelta(hours=1)  # token expires in 1 hour
+        "exp": datetime() + timedelta(hours=1)  # token expires in 1 hour
     }
     token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 

@@ -18,7 +18,7 @@ import jwt
 from datetime import datetime, timedelta, UTC
 import httpx
 
-from callpayV2_Token import generate_callpay_token  # Absolute import
+from .callpayV2_Token import generate_callpay_token  # Absolute import
 
 # --------- Helper constants ---------
 letters = list("abcdefghjklmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ")

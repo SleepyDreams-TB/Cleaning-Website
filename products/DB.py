@@ -1,5 +1,5 @@
 from fastapi.responses import JSONResponse
-from fastapi import Header, Depends, FastAPI, Form, HTTPException
+from fastapi import Header, Depends, FastAPI, Form, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from pymongo import MongoClient
@@ -73,6 +73,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Only allow these IPs
+IP_WHITELIST = {"54.72.191.28", "54.194.139.201"}
+
 # --------- MongoDB setup ---------
 client = MongoClient(
     "mongodb+srv://SleepyDreams:saRqSb7xoc1cI1DO@kingburgercluster.ktvavv3.mongodb.net/?retryWrites=true&w=majority",
@@ -93,6 +96,23 @@ def check_user_avail(userName: str, email: str):
 
 def get_user_by_username(username: str):
     return usersCleaningSite.find_one({"userName": username})
+
+
+def get_client_ip(request: Request) -> str:
+    """
+    Extract client IP from headers or fallback to peer IP.
+    """
+    xff = request.headers.get("x-forwarded-for")
+    if xff:
+        # Take the first IP in the X-Forwarded-For list
+        return xff.split(",")[0].strip()
+
+    xrip = request.headers.get("x-real-ip")
+    if xrip:
+        return xrip.strip()
+
+    # fallback: immediate peer IP
+    return request.client.host if request.client else "unknown"
 
 # --------- Registration ---------
 @app.post("/register/")
@@ -295,6 +315,19 @@ async def create_payment(payment: PaymentRequest):
         raise HTTPException(status_code=500, detail=f"Request failed: {e}")
     except httpx.HTTPStatusError as e:
         raise HTTPException(status_code=e.response.status_code, detail=f"API error: {e.response.text}")
+
+# --------- Webhook endpoint ---------
+
+@app.post("/webhook")
+async def webhook(request: Request):
+    client_ip = get_client_ip(request)
+    if client_ip not in IP_WHITELIST:
+        raise HTTPException(status_code=403, detail=f"Forbidden IP: {client_ip}")
+
+    body = await request.body()
+    print(f"Webhook received from {client_ip}: {body[:500]}")  # truncate long payloads
+
+    return JSONResponse({"status": "ok", "client_ip": client_ip})
 
 # --------- Run server ---------
 if __name__ == "__main__":

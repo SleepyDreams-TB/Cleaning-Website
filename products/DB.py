@@ -10,11 +10,11 @@ from contextlib import asynccontextmanager
 from pydantic import BaseModel, EmailStr
 import httpx
 import random
-from passlib.hash import bcrypt
 from fastapi.responses import JSONResponse
 import jwt
 from datetime import datetime, timedelta, UTC
 from fastapi import Header, Depends
+from passlib.hash import argon2
 
 # --------- Helper constants ---------
 letters = list("abcdefghjklmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ")
@@ -35,6 +35,24 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 print("✅ FastAPI app loaded")
+
+
+# --------- Password generator ---------
+@app.post("/password/{length}")
+async def generate_password(length: int):
+    if length < 12 or length > 16:
+        return {"error": "Length must be between 12 and 16"}
+
+    password = ""
+    for _ in range(length):
+        case = random.choice(cases)
+        if case == 0:
+            password += random.choice(letters)
+        elif case == 1:
+            password += random.choice(numbers)
+        else:
+            password += random.choice(symbols)
+    return {"password": password}
 
 # --------- CORS middleware ---------
 origins = ["https://kingburger.site"]
@@ -81,10 +99,8 @@ async def register(
         if check_user_avail(userName, email):
             return JSONResponse(content={"error": "Username or email already exists"}, status_code=400)
 
-        # Truncate password to 72 bytes for bcrypt
-        max_bytes = 72
-        encoded_pw = password.encode("utf-8")[:max_bytes]  # truncate bytes
-        hashed_pw = bcrypt.hash(encoded_pw.decode("utf-8", "ignore"))
+        hashed_pw = argon2.hash(password)
+        argon2.verify(password, hashed_pw)
 
         result = usersCleaningSite.insert_one({
             "firstName": firstName,
@@ -125,7 +141,7 @@ ALGORITHM = "HS256"
 @app.post("/login/")
 async def login(userName: str = Form(...), password: str = Form(...)):
     user = usersCleaningSite.find_one({"userName": userName})
-    if not user or not bcrypt.verify(password, user["password"]):
+    if not user or not argon2.verify(password, user["password"]):
         return JSONResponse(content={"error": "Invalid credentials"}, status_code=401)
 
     payload = {

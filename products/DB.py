@@ -8,15 +8,23 @@ import ssl
 import sys
 from contextlib import asynccontextmanager
 from pydantic import BaseModel, EmailStr
-from .callpayV2_Token import generate_callpay_token
 import httpx
 import random
 from passlib.hash import bcrypt
+from fastapi.responses import JSONResponse
+import jwt
+from datetime import datetime, timedelta, UTC
+from fastapi import Header, Depends
 
+# --------- Helper constants ---------
 letters = list("abcdefghjklmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ")
 numbers = list("23456789")
 symbols = list("!#$%()*+")
 cases = [0, 0, 1, 1, 2]
+
+SECRET_KEY = "hCZ*9R9E2v37Dq(%"
+ALGORITHM = "HS256"
+CALLPAY_API_URL = "https://services.callpay.com/api/v2/payment-key"
 
 # --------- FastAPI lifespan ---------
 @asynccontextmanager
@@ -26,9 +34,10 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(lifespan=lifespan)
-origins = ["https://kingburger.site"]
+print("✅ FastAPI app loaded")
 
 # --------- CORS middleware ---------
+origins = ["https://kingburger.site"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -49,7 +58,6 @@ usersCleaningSite = db["usersCleaningSite"]
 
 # --------- Helper functions ---------
 def check_user_avail(userName: str, email: str):
-    """Check if a user exists by username or email"""
     try:
         user = usersCleaningSite.find_one({"$or": [{"userName": userName}, {"email": email}]})
         return user is not None
@@ -69,11 +77,11 @@ async def register(
     password: str = Form(...),
     cellNum: Union[str, None] = Form(None)
 ):
-    if check_user_avail(userName, email):
-        return {"error": "Username or email already exists"}
-
-    hashed_pw = bcrypt.hash(password)
     try:
+        if check_user_avail(userName, email):
+            return JSONResponse(content={"error": "Username or email already exists"}, status_code=400)
+
+        hashed_pw = bcrypt.hash(password)
         result = usersCleaningSite.insert_one({
             "firstName": firstName,
             "lastName": lastName,
@@ -84,28 +92,13 @@ async def register(
         })
 
         if usersCleaningSite.find_one({"_id": result.inserted_id}):
-            return {"message": "User created successfully", "id": str(result.inserted_id)}
-        return {"error": "User insertion failed"}
+            return JSONResponse(content={"message": "User created successfully", "id": str(result.inserted_id)}, status_code=201)
+
+        return JSONResponse(content={"error": "User insertion failed"}, status_code=500)
 
     except Exception as e:
-        return {"error": str(e)}
+        return JSONResponse(content={"error": f"Server error: {str(e)}"}, status_code=500)
 
-# --------- Password generator ---------
-@app.post("/password/{length}")
-async def generate_password(length: int):
-    if length < 12 or length > 16:
-        return {"error": "Length must be between 12 and 16"}
-
-    password = ""
-    for _ in range(length):
-        case = random.choice(cases)
-        if case == 0:
-            password += random.choice(letters)
-        elif case == 1:
-            password += random.choice(numbers)
-        else:
-            password += random.choice(symbols)
-    return {"password": password}
 
 # --------- Basic routes ---------
 @app.get("/")

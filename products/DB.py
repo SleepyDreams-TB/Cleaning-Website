@@ -114,7 +114,8 @@ async def register(
             "userName": userName,
             "email": email,
             "password": hashed_pw,
-            "cellNum": cellNum
+            "cellNum": cellNum,
+            "created_at": datetime.now(UTC)
         })
 
         if usersCleaningSite.find_one({"_id": result.inserted_id}):
@@ -137,9 +138,7 @@ def health_check():
 
 # --------- JWT ---------
 
-import jwt
-from datetime import datetime, timedelta, UTC
-from fastapi.responses import JSONResponse
+
 
 SECRET_KEY = "hCZ*9R9E2v37Dq(%"
 ALGORITHM = "HS256"
@@ -201,7 +200,8 @@ async def create_product(
             "price": price,
             "description": description,
             "category": category,
-            "image_url": image_url
+            "image_url": image_url,
+            "created_at": datetime.now(UTC)
         })
         return {"message": "Product created successfully", "id": str(result.inserted_id)}
     except Exception as e:

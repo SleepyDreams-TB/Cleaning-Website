@@ -1,6 +1,5 @@
 from fastapi.responses import JSONResponse
-from fastapi import Header, Depends
-from fastapi import FastAPI, Form, HTTPException
+from fastapi import Header, Depends, FastAPI, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from pymongo import MongoClient
@@ -15,12 +14,11 @@ from passlib.hash import argon2
 import ssl
 import sys
 import random
-
 import jwt
 from datetime import datetime, timedelta, UTC
-from .callpayV2_Token import generate_callpay_token
 import httpx
 
+from callpayV2_Token import generate_callpay_token  # Absolute import
 
 # --------- Helper constants ---------
 letters = list("abcdefghjklmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ")
@@ -42,26 +40,12 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 print("✅ FastAPI app loaded")
 
-
-# --------- Password generator ---------
-@app.post("/password/{length}")
-async def generate_password(length: int):
-    if length < 12 or length > 16:
-        return {"error": "Length must be between 12 and 16"}
-
-    password = ""
-    for _ in range(length):
-        case = random.choice(cases)
-        if case == 0:
-            password += random.choice(letters)
-        elif case == 1:
-            password += random.choice(numbers)
-        else:
-            password += random.choice(symbols)
-    return {"password": password}
-
 # --------- CORS middleware ---------
-origins = ["https://kingburger.site"]
+origins = [
+    "https://kingburger.site",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173"
+]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -106,7 +90,6 @@ async def register(
             return JSONResponse(content={"error": "Username or email already exists"}, status_code=400)
 
         hashed_pw = argon2.hash(password)
-        argon2.verify(password, hashed_pw)
 
         result = usersCleaningSite.insert_one({
             "firstName": firstName,
@@ -126,7 +109,6 @@ async def register(
     except Exception as e:
         return JSONResponse(content={"error": f"Server error: {str(e)}"}, status_code=500)
 
-
 # --------- Basic routes ---------
 @app.get("/")
 def root():
@@ -136,13 +118,7 @@ def root():
 def health_check():
     return {"status": "alive"}
 
-# --------- JWT ---------
-
-
-
-SECRET_KEY = "hCZ*9R9E2v37Dq(%"
-ALGORITHM = "HS256"
-
+# --------- JWT Login ---------
 @app.post("/login/")
 async def login(userName: str = Form(...), password: str = Form(...)):
     user = usersCleaningSite.find_one({"userName": userName})
@@ -155,15 +131,9 @@ async def login(userName: str = Form(...), password: str = Form(...)):
     }
     token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
-    response = JSONResponse(content={"message": "Login successful", "token": token})
-    return response
-
+    return JSONResponse(content={"message": "Login successful", "token": token, "user": {"firstName": user["firstName"]}})
 
 # --------- Get Current User ---------
-
-
-from fastapi import Header, HTTPException, Depends
-
 def get_current_user(authorization: str = Header(...)):
     if not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Invalid auth header")
@@ -276,8 +246,6 @@ class PaymentRequest(BaseModel):
     amount: float
     reference: str
 
-CALLPAY_API_URL = "https://services.callpay.com/api/v2/payment-key"
-
 @app.post("/api/create-payment")
 async def create_payment(payment: PaymentRequest):
     callpay_creds = generate_callpay_token()
@@ -311,5 +279,4 @@ if __name__ == "__main__":
     import uvicorn
     import os
     port = int(os.environ.get("PORT", 10000))
-    uvicorn.run("products.DB:app", host="0.0.0.0", port=port)
-
+    uvicorn.run("products.DB:app", host="0.0.0.0", port=port, reload=True)

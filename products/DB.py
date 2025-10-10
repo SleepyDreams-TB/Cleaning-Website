@@ -181,7 +181,8 @@ async def create_product(
     price: float = Form(...),
     description: Union[str, None] = Form(None),
     category: int = Form(0),
-    image_url: Union[str, None] = Form(None)
+    image_url: Union[str, None] = Form(None),
+    user=Depends(get_current_user)
 ):
     try:
         result = products.insert_one({
@@ -197,7 +198,7 @@ async def create_product(
         return {"error": str(e)}
 
 @app.get("/products/")
-async def get_all_products():
+async def get_all_products(user=Depends(get_current_user)):
     try:
         all_products = []
         for product in products.find():
@@ -208,7 +209,7 @@ async def get_all_products():
         return {"error": str(e)}
 
 @app.get("/products/{id}")
-async def get_product(id: str):
+async def get_product(id: str, user=Depends(get_current_user)):
     try:
         product = products.find_one({"_id": ObjectId(id)})
         if product:
@@ -227,7 +228,8 @@ async def update_product(
     price: Union[float, None] = Form(None),
     description: Union[str, None] = Form(None),
     category: Union[int, None] = Form(None),
-    image_url: Union[str, None] = Form(None)
+    image_url: Union[str, None] = Form(None),
+    user=Depends(get_current_user)
 ):
     try:
         update_data = {k: v for k, v in {
@@ -248,7 +250,7 @@ async def update_product(
         return {"error": str(e)}
 
 @app.delete("/products/delete/{id}")
-async def delete_product(id: str):
+async def delete_product(id: str, user=Depends(get_current_user)):
     try:
         result = products.delete_one({"_id": ObjectId(id)})
         if result.deleted_count:

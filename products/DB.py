@@ -273,7 +273,8 @@ async def create_payment(payment: PaymentRequest):
     payload = {
         "amount": payment.amount,
         "merchant_reference": payment.reference,
-        "payment_type": payment.payment_type
+        "payment_type": payment.payment_type, 
+        "notify_url": "https://webhook.site/d599cdd2-9513-40e4-9851-7e1600628618",
     }
     headers = {
         "Content-Type": "application/x-www-form-urlencoded",

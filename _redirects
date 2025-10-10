@@ -1,0 +1,5 @@
+# Serve all HTML files at clean URLs
+/*           /:splat.html   200
+
+# Optional: redirect any .html URL to the clean URL
+/*.html      /:splat       301

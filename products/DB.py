@@ -18,13 +18,15 @@ import jwt
 from datetime import datetime, timedelta, UTC
 import httpx
 
-from .callpayV2_Token import generate_callpay_token  # Absolute import
+from .callpayV2_Token import generate_callpay_token
 
 # --------- Helper constants ---------
 
 SECRET_KEY = "hCZ*9R9E2v37Dq(%"
 ALGORITHM = "HS256"
 CALLPAY_API_URL = "https://services.callpay.com/api/v2/payment-key"
+# Only allow these IPs
+IP_WHITELIST = {"54.72.191.28", "54.194.139.201"}
 
 # --------- FastAPI lifespan ---------
 @asynccontextmanager
@@ -36,28 +38,6 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 print("✅ FastAPI app loaded")
 
-# --------- Password generator setup --------- (Prior to Cors middleware to avoid issues)
-letters = list("abcdefghjklmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ")
-numbers = list("23456789")
-symbols = list("!#$%()*+")
-cases = [0, 0, 1, 1, 2]  # 0 = letter, 1 = number, 2 = symbol
-
-@app.post("/password/{length}")
-async def generate_password(length: int):
-    if length < 12 or length > 16:
-        return {"error": "Length must be between 12 and 16"}
-
-    password = ""
-    for _ in range(length):
-        case = random.choice(cases)
-        if case == 0:
-            password += random.choice(letters)
-        elif case == 1:
-            password += random.choice(numbers)
-        else:
-            password += random.choice(symbols)
-
-    return {"password": password}
 
 # --------- CORS middleware ---------
 origins = [
@@ -73,8 +53,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Only allow these IPs
-IP_WHITELIST = {"54.72.191.28", "54.194.139.201"}
+
+
+
 
 # --------- MongoDB setup ---------
 client = MongoClient(
@@ -85,6 +66,8 @@ client = MongoClient(
 db = client["cleaning_website"]
 products = db["products"]
 usersCleaningSite = db["usersCleaningSite"]
+
+
 
 # --------- Helper functions ---------
 def check_user_avail(userName: str, email: str):
@@ -113,6 +96,29 @@ def get_client_ip(request: Request) -> str:
 
     # fallback: immediate peer IP
     return request.client.host if request.client else "unknown"
+
+# --------- Password generator setup ---------
+letters = list("abcdefghjklmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ")
+numbers = list("23456789")
+symbols = list("!#$%()*+")
+cases = [0, 0, 1, 1, 2]  # 0 = letter, 1 = number, 2 = symbol
+
+@app.post("/password/{length}")
+async def generate_password(length: int):
+    if length < 12 or length > 16:
+        return {"error": "Length must be between 12 and 16"}
+
+    password = ""
+    for _ in range(length):
+        case = random.choice(cases)
+        if case == 0:
+            password += random.choice(letters)
+        elif case == 1:
+            password += random.choice(numbers)
+        else:
+            password += random.choice(symbols)
+
+    return {"password": password}
 
 # --------- Registration ---------
 @app.post("/register/")

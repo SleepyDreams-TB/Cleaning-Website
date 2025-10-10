@@ -81,8 +81,10 @@ async def register(
         if check_user_avail(userName, email):
             return JSONResponse(content={"error": "Username or email already exists"}, status_code=400)
 
-        # Truncate to 72 bytes for bcrypt
-        hashed_pw = bcrypt.hash(password[:72])
+        # Truncate password to 72 bytes for bcrypt
+        max_bytes = 72
+        encoded_pw = password.encode("utf-8")[:max_bytes]  # truncate bytes
+        hashed_pw = bcrypt.hash(encoded_pw.decode("utf-8", "ignore"))
 
         result = usersCleaningSite.insert_one({
             "firstName": firstName,

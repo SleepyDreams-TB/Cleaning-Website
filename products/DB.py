@@ -198,7 +198,7 @@ async def create_product(
         return {"error": str(e)}
 
 @app.get("/products/")
-async def get_all_products(user=Depends(get_current_user)):
+async def get_all_products():
     try:
         all_products = []
         for product in products.find():

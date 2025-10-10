@@ -1,13 +1,8 @@
 document.addEventListener('DOMContentLoaded', async () => {
-  const navbarContainer = document.getElementById('navbar-container');
-
-  // Load navbar HTML
-  const response = await fetch('/navbar.html');
-  const navbarHTML = await response.text();
-  navbarContainer.innerHTML = navbarHTML;
-
   const usernameSpan = document.getElementById('username');
   const token = localStorage.getItem('jwt');
+
+  if (!usernameSpan) return;
 
   if (!token) {
     usernameSpan.innerHTML = 'Guest (<a href="/login.html" class="text-pink-600 hover:underline">Login</a>)';
@@ -22,12 +17,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!res.ok) throw new Error('Unauthorized');
 
     const data = await res.json();
-    usernameSpan.innerHTML = data.loggedIn_User;
+    usernameSpan.textContent = data.loggedIn_User || 'Welcome!';
 
-    // Optional: refresh token
-    if (data.token) localStorage.setItem('jwt', data.token);
   } catch (err) {
     console.log('User not logged in or token expired', err);
     usernameSpan.innerHTML = 'Guest (<a href="/login.html" class="text-pink-600 hover:underline">Login</a>)';
+    localStorage.removeItem('jwt'); // remove invalid token
   }
 });

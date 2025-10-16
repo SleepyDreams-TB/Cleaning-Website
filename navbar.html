@@ -6,4 +6,16 @@
   <a href="/ContactUs" class="mr-4 text-pink-600 hover:underline">Contact</a>
   <a href="/products/productsPage" class="mr-4 text-pink-600 hover:underline">Products</a>
   <a href="/products/cart" class="mr-4 text-pink-600 hover:underline">Cart</a>
+  <a onclick="logout()" class="mr-4 text-pink-600 hover:underline">Logout</a>
 </nav>
+
+<script>
+function logout() {
+  if (confirm("Are you sure you want to log out?")) {
+    localStorage.removeItem('jwt');
+    window.location.href = '/login';
+  }
+}
+
+
+</script>

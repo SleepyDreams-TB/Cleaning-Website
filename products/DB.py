@@ -183,6 +183,12 @@ async def login(userName: str = Form(...), password: str = Form(...)):
 
     return JSONResponse(content={"message": "Login successful", "token": token, "user": {"firstName": user["firstName"]}})
 
+
+@app.post("/logout/")
+async def logout():
+    return {"message": "Logout successful (client should discard the token)"}
+
+
 # --------- Get Current User ---------
 def get_current_user(authorization: str = Header(...)):
     if not authorization.startswith("Bearer "):

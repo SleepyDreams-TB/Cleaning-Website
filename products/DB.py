@@ -42,7 +42,7 @@ print("✅ FastAPI app loaded")
 # --------- CORS middleware ---------
 origins = [
     "https://kingburger.site",
-    "http://localhost:5173",
+    "https://cleaning-website-static-site.onrender.com",
     "http://127.0.0.1:5173"
 ]
 app.add_middleware(

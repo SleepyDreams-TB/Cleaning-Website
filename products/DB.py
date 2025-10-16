@@ -80,6 +80,11 @@ def check_user_avail(userName: str, email: str):
 def get_user_by_username(username: str):
     return usersCleaningSite.find_one({"userName": username})
 
+def get_user_by_id(userID: str):
+    try:
+        return usersCleaningSite.find_one({"_id": ObjectId(userID)})
+    except InvalidId:
+        return None
 
 def get_client_ip(request: Request) -> str:
     """
@@ -196,9 +201,23 @@ def get_current_user(authorization: str = Header(...)):
     except jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
 
+
 @app.get("/dashboard")
 async def dashboard(user=Depends(get_current_user)):
-    return {"loggedIn_User": f"Current Logged in User: {user['firstName']}!"}
+    return {"loggedIn_User": f"Current Logged in User: {user['firstName']}! UserID: {str(user['_id'])}"}
+
+# ----------User endpoints ----------
+@app.get("/users/{id}")
+async def get_user(id: str, user=Depends(get_current_user)):
+    try:
+        user_data = get_user_by_id(id)
+        if user_data:
+            user_data["_id"] = str(user_data["_id"])
+            del user_data["password"]
+            return user_data
+        return {"error": "User not found"}
+    except Exception as e:
+        return {"error": str(e)}
 
 # --------- Product endpoints ---------
 @app.post("/products/create/")

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <link rel="icon" href="wipe.ico" type="image/x-icon">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sparkle Cleaning Services</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-cover bg-center bg-no-repeat bg-fixed text-gray-800"
+  style="background-image: url('../assets/cleaningbg.jpg');">
+  <header class="bg-black shadow p-4 flex justify-between items-center">
+    <h1 class="text-pink-600 font-bold">Sparkle Clean</h1>
+    <nav>
+      <div id="navbar-container"></div>
+    </nav>
+  </header>
+
+  <label>Username:</label>
+  <input type="text" id="username" /><br>
+
+  <label>First Name:</label>
+  <input type="text" id="fname" /><br>
+
+  <label>Last Name:</label>
+  <input type="text" id="lname" /><br>
+
+  <label>Email:</label>
+  <input type="email" id="email" /><br>
+
+  <label>Cell Number:</label>
+  <input type="text" id="cellnumber" /><br>
+
+  <label>Created Date:</label>
+  <input type="text" id="createdDate" readonly /><br>
+  </div>
+</body>
+
+<script>
+  const userId =
+
+    async function fetchUser() {
+      try {
+        const response = await fetch(`https://api.kingburger.site/api/users/${userId}`);
+        const user = await response.json();
+
+        document.getElementById("username").value = user.username || "";
+        document.getElementById("fname").value = user.fname || "";
+        document.getElementById("lname").value = user.lname || "";
+        document.getElementById("email").value = user.email || "";
+        document.getElementById("cellnumber").value = user.cellnumber || "";
+        document.getElementById("createdDate").value = user.createdDate || "";
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      }
+    }
+
+  fetchUser();
+</script>
+
+</html>

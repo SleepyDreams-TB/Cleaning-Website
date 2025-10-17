@@ -338,7 +338,7 @@ async def create_payment(payment: PaymentRequest):
 
     payload = {
         "amount": payment.amount,
-        "merchant_reference": f"PAY{datetime.now(UTC).strftime('%Y%m%d%H%M%S')}-{suffix}",
+        "merchant_reference": f"PAY-{datetime.now(UTC).strftime('%Y%m%d%H%M%S')}{suffix}",
         "payment_type": payment.payment_type, 
         "notify_url": "https://kingburger.site/webhook",
         "success_url": "https://kingburger.site/redirects/success",

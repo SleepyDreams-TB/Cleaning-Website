@@ -222,7 +222,7 @@ def get_current_user(authorization: str = Header(...)):
 
 @app.get("/dashboard")
 async def dashboard(user=Depends(get_current_user)):
-    return {"loggedIn_User": f"Current Logged in User: {user['firstName']}! UserID: {str(user['_id'])}"}
+    return {"loggedIn_User": f"{user['firstName']}!"}
 
 # ----------User endpoints ----------
 @app.get("/users/{id}")
@@ -337,7 +337,10 @@ async def create_payment(payment: PaymentRequest):
         "amount": payment.amount,
         "merchant_reference": payment.reference,
         "payment_type": payment.payment_type, 
-        "notify_url": "https://webhook.site/d599cdd2-9513-40e4-9851-7e1600628618",
+        "notify_url": "https://kingburger.site/webhook",
+        "success_url": "https://kingburger.site/redirects/success",
+        "error_url": "https://kingburger.site/redirects/failure",
+        "cancel_url": "https://kingburger.site/redirects/cancel"
     }
     headers = {
         "Content-Type": "application/x-www-form-urlencoded",

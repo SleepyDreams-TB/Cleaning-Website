@@ -30,12 +30,12 @@ IP_WHITELIST = {"54.72.191.28", "54.194.139.201"}
 
 # --------- FastAPI lifespan ---------
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI,):
     print("Python version:", sys.version)
     print("OpenSSL version:", ssl.OPENSSL_VERSION)
     yield
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(lifespan=lifespan, docs_url="/docs")
 print("✅ FastAPI app loaded")
 
 
@@ -312,7 +312,7 @@ async def update_product(
     except Exception as e:
         return {"error": str(e)}
 
-@app.delete("/products/delete/{id}")
+@app.delete("/products/delete/{id}", include_in_schema=False)
 async def delete_product(id: str, user=Depends(get_current_user)):
     try:
         result = products.delete_one({"_id": ObjectId(id)})
@@ -330,7 +330,7 @@ class PaymentRequest(BaseModel):
     amount: float
     reference: str
 
-@app.post("/api/create-payment")
+@app.post("/api/create-payment", include_in_schema=False)
 async def create_payment(payment: PaymentRequest):
     callpay_creds = generate_callpay_token()
     payload = {
@@ -364,7 +364,7 @@ async def create_payment(payment: PaymentRequest):
 
 # --------- Webhook endpoint ---------
 
-@app.post("/webhook")
+@app.post("/webhook", include_in_schema=False)
 async def webhook(request: Request):
     client_ip = get_client_ip(request)
     if client_ip not in IP_WHITELIST:

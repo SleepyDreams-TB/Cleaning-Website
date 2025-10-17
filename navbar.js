@@ -59,6 +59,6 @@ function showGuest(usernameSpan, profileLink, logoutLink) {
 export function reqLogin() {
   const token = localStorage.getItem('jwt');
   if (!token) {
-    window.location.href = '/401.html';
+    window.location.href = '/redirects/401.html';
   }
 }

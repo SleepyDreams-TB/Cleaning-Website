@@ -40,11 +40,10 @@
 
 <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
 <script type="module">
-  import { checkAuth } from '/auth.js';
-
-  const token = localStorage.getItem('jwt');
-  checkAuth(token); // redirects to 401 page if no token
+  import { reqLogin } from '/navbar.js';
+  reqLogin();
 </script>
+
 
 <script>
   (async () => {  // ' (async () => {})(); ' IIFE to allow async/await (IIFE = Immediately Invoked Function Expression)

@@ -102,6 +102,18 @@ def get_client_ip(request: Request) -> str:
     # fallback: immediate peer IP
     return request.client.host if request.client else "unknown"
 
+#----------Logger setup ----------
+import logging
+from pythonjsonlogger import jsonlogger
+
+webhook_log_handler = logging.FileHandler("webhook.log")
+webhook_formatter = jsonlogger.JsonFormatter('%(asctime)s %(levelname)s %(message)s')
+webhook_log_handler.setFormatter(webhook_formatter)
+
+webhook_logger = logging.getLogger("webhook_logger")
+webhook_logger.addHandler(webhook_log_handler)
+webhook_logger.setLevel(logging.INFO)
+
 # --------- Password generator setup ---------
 letters = list("abcdefghjklmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ")
 numbers = list("23456789")
@@ -353,11 +365,24 @@ async def create_payment(payment: PaymentRequest):
 async def webhook(request: Request):
     client_ip = get_client_ip(request)
     if client_ip not in IP_WHITELIST:
+        webhook_logger.warning({
+            "event": "forbidden_ip",
+            "client_ip": client_ip
+        })
         raise HTTPException(status_code=403, detail=f"Forbidden IP: {client_ip}")
 
-    body = await request.body()
-    print(f"Webhook received from {client_ip}: {body[:500]}")  # truncate long payloads
+    body_bytes = await request.body()
+    try:
+        payload = body_bytes.decode(errors="ignore")  # decode bytes to string
+    except Exception:
+        payload = str(body_bytes)
 
+    webhook_logger.info({
+        "event": "webhook_received",
+        "client_ip": client_ip,
+        "payload": payload
+    })
+    
     return JSONResponse({"status": "ok", "client_ip": client_ip})
 
 # --------- Run server ---------

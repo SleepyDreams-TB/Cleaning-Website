@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!res.ok) throw new Error('Unauthorized');
 
       const data = await res.json();
-      usernameSpan.innerText = `<span class="text-white">Logged in User: ${data.loggedIn_User || 'User'}</span>`;
+      usernameSpan.innerHTML = `<span class="text-white">Logged in User: ${data.loggedIn_User || 'User'}</span>`;
     } catch (err) {
       console.warn('Token invalid or user not logged in', err);
       showGuest(usernameSpan, profileLink, logoutLink);

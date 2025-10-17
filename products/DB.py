@@ -14,6 +14,7 @@ from passlib.hash import argon2
 import ssl
 import sys
 import random
+import string
 import jwt
 from datetime import datetime, timedelta, UTC
 import httpx
@@ -333,9 +334,11 @@ class PaymentRequest(BaseModel):
 @app.post("/api/create-payment", include_in_schema=False)
 async def create_payment(payment: PaymentRequest):
     callpay_creds = generate_callpay_token()
+    suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
+
     payload = {
         "amount": payment.amount,
-        "merchant_reference": payment.reference,
+        "merchant_reference": f"PAY-{datetime.now(UTC).strftime('%Y%m%d%H%M%S')}-{suffix}",
         "payment_type": payment.payment_type, 
         "notify_url": "https://kingburger.site/webhook",
         "success_url": "https://kingburger.site/redirects/success",

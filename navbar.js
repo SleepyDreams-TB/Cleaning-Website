@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // User is not logged in
     if (!token) {
-      usernameSpan.innerHTML = 'Guest (<a href="/login.html" class="text-pink-600 hover:underline">Login</a>)';
+      usernameSpan.innerHTML = '<span class="text-white">Guest</span> (<a href="/login.html" class="text-pink-600 hover:underline">Login</a>)';
       if (profileLink) profileLink.style.display = 'none';
       if (logoutLink) logoutLink.style.display = 'none';
       return;

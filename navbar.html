@@ -6,24 +6,34 @@
   <a href="/ContactUs" class="mr-4 text-pink-600 hover:underline">Contact</a>
   <a href="/products/productsPage" class="mr-4 text-pink-600 hover:underline">Products</a>
   <a href="/products/cart" class="mr-4 text-pink-600 hover:underline">Cart</a>
-  <a id="loginReg1" href="profile" class="mr-4 text-pink-600 hover:underline">Profile</a>
-  <a id="loginReg2" onclick="logout()" class="mr-4 text-pink-600 hover:underline">Logout</a>
+  <a id="profileLink" href="/profile" class="mr-4 text-pink-600 hover:underline">Profile</a>
+  <a id="logoutLink" class="mr-4 text-pink-600 hover:underline" style="cursor:pointer;">Logout</a>
 </nav>
 
 <script>
-function logout() {
-  if (confirm("Are you sure you want to log out?")) {
-    localStorage.removeItem('jwt');
-    window.location.href = '/login';
-  }
-}
 
-if (localStorage.getItem('jwt')) {
-  document.getElementById("loginReg1").style.display = "inline";
-  document.getElementById("loginReg2").style.display = "inline";
-  document.getElementById("username").innerText = "Logged in User:" + localStorage.getItem('username');
-} else {
-  document.getElementById("loginReg1").style.display = "none";
-  document.getElementById("loginReg2").style.display = "none";
-}
+  (async () => {
+    const token = localStorage.getItem("jwt");
+
+    if (!token) {
+      window.location.href = 'login.html';
+    }
+
+  })();
+
+  function logout() {
+    if (confirm("Are you sure you want to log out?")) {
+      localStorage.removeItem('jwt');
+      window.location.href = '/login';
+    }
+  }
+
+  if (localStorage.getItem('jwt')) {
+    document.getElementById("loginReg1").style.display = "inline";
+    document.getElementById("loginReg2").style.display = "inline";
+    document.getElementById("username").innerText = "Logged in User:" + localStorage.getItem('username');
+  } else {
+    document.getElementById("loginReg1").style.display = "none";
+    document.getElementById("loginReg2").style.display = "none";
+  }
 </script>

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>401 Unauthorized</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.2/dist/tailwind.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+  <div class="bg-white p-10 rounded-lg shadow-md text-center">
+    <h1 class="text-4xl font-bold text-red-600 mb-4">401 Unauthorized</h1>
+    <p class="mb-6">You do not have permission to access this page.</p>
+    <button onclick="goHome()" class="px-6 py-2 bg-pink-600 text-white rounded hover:bg-pink-700">
+      Go to Homepage
+    </button>
+  </div>
+
+  <script>
+    function goHome() {
+      window.location.href = '/index';
+    }
+  </script>
+</body>
+
+</html>

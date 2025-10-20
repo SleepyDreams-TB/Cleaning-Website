@@ -2,83 +2,94 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Profile</title>
-  <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
-  <script type="module" src="./profile.js" defer></script>
+  <link rel="icon" href="wipe.ico" type="image/x-icon">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sparkle Cleaning Services - Profile</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-gray-100 min-h-screen flex flex-col items-center p-4">
+<body class="bg-cover bg-center bg-no-repeat bg-fixed text-gray-800"
+  style="background-image: url('../assets/cleaningbg.jpg');">
 
-  <div id="navbar-container" class="w-full mb-6"></div>
+  <!-- Header -->
+  <header class="bg-black shadow p-4 flex justify-between items-center">
+    <h1 class="text-pink-600 font-bold">Sparkle Clean</h1>
+    <nav>
+      <div id="navbar-container"></div>
+    </nav>
+  </header>
 
-  <div class="bg-white shadow-md rounded-lg p-6 w-full max-w-lg">
-    <h1 class="text-2xl font-bold mb-4">My Profile</h1>
+  <main class="max-w-xl mx-auto mt-8 bg-white p-6 rounded shadow">
+    <h2 class="text-2xl font-bold mb-4">User Profile</h2>
 
-    <div class="mb-4 relative">
-      <label for="username" class="block text-gray-700 font-semibold mb-1">Username</label>
-      <input id="username" type="text" disabled
-        class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-500">
-      <button id="editUsernameBtn" class="absolute right-2 top-8 text-blue-500">✏️</button>
-      <p id="username-hint" class="text-sm mt-1"></p>
+    <!-- Username -->
+    <label>Username:</label>
+    <div class="flex items-center mb-2">
+      <input type="text" id="username" disabled class="border p-1 rounded flex-1" />
+      <button type="button" id="editUsernameBtn" class="ml-2 text-gray-600">✏️</button>
+    </div>
+    <p id="username-hint" class="text-sm text-gray-500 mb-4">Must be unique</p>
+
+    <!-- Password -->
+    <label>Password:</label>
+    <div class="flex items-center mb-2">
+      <input type="password" id="password" disabled class="border p-1 rounded flex-1" />
+      <button type="button" id="editPasswordBtn" class="ml-2 text-gray-600">✏️</button>
+    </div>
+    <p id="password-hint" class="text-sm text-gray-500 mb-4">
+      Must contain 1 lowercase, 1 uppercase, 1 number, 1 special character, min 12 chars
+    </p>
+
+    <!-- First Name -->
+    <label>First Name:</label>
+    <div class="flex items-center mb-2">
+      <input type="text" id="fname" disabled class="border p-1 rounded flex-1" />
+      <button type="button" id="editFnameBtn" class="ml-2 text-gray-600">✏️</button>
     </div>
 
-    <div class="mb-4 relative">
-      <label for="fname" class="block text-gray-700 font-semibold mb-1">First Name</label>
-      <input id="fname" type="text" disabled
-        class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-500">
-      <button id="editFnameBtn" class="absolute right-2 top-8 text-blue-500">✏️</button>
+    <!-- Last Name -->
+    <label>Last Name:</label>
+    <div class="flex items-center mb-2">
+      <input type="text" id="lname" disabled class="border p-1 rounded flex-1" />
+      <button type="button" id="editLnameBtn" class="ml-2 text-gray-600">✏️</button>
     </div>
 
-    <div class="mb-4 relative">
-      <label for="lname" class="block text-gray-700 font-semibold mb-1">Last Name</label>
-      <input id="lname" type="text" disabled
-        class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-500">
-      <button id="editLnameBtn" class="absolute right-2 top-8 text-blue-500">✏️</button>
+    <!-- Email -->
+    <label>Email:</label>
+    <div class="flex items-center mb-2">
+      <input type="email" id="email" disabled class="border p-1 rounded flex-1" />
+      <button type="button" id="editEmailBtn" class="ml-2 text-gray-600">✏️</button>
     </div>
 
-    <div class="mb-4 relative">
-      <label for="email" class="block text-gray-700 font-semibold mb-1">Email</label>
-      <input id="email" type="email" disabled
-        class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-500">
-      <button id="editEmailBtn" class="absolute right-2 top-8 text-blue-500">✏️</button>
+    <!-- Cell Number -->
+    <label>Cell Number:</label>
+    <div class="flex items-center mb-2">
+      <input type="text" id="cellnumber" disabled class="border p-1 rounded flex-1" />
+      <button type="button" id="editCellBtn" class="ml-2 text-gray-600">✏️</button>
     </div>
 
-    <div class="mb-4 relative">
-      <label for="cellnumber" class="block text-gray-700 font-semibold mb-1">Cell Number</label>
-      <input id="cellnumber" type="text" disabled
-        class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-500">
-      <button id="editCellBtn" class="absolute right-2 top-8 text-blue-500">✏️</button>
-    </div>
+    <!-- Created Date (readonly) -->
+    <label>Created Date:</label>
+    <input type="text" id="createdDate" readonly class="border p-1 rounded mb-4 w-full" />
 
-    <div class="mb-4">
-      <label for="password" class="block text-gray-700 font-semibold mb-1">Password</label>
-      <input id="password" type="password"
-        class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-500">
-      <p id="password-hint" class="text-sm mt-1"></p>
-    </div>
+    <!-- Update Button -->
+    <button id="updateBtn" class="bg-pink-600 text-white px-4 py-2 rounded mt-4 hover:bg-pink-700">Update
+      Profile</button>
+  </main>
 
-    <div class="mb-4">
-      <label for="createdDate" class="block text-gray-700 font-semibold mb-1">Account Created</label>
-      <input id="createdDate" type="text" disabled
-        class="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100 cursor-not-allowed">
-    </div>
-
-    <button id="updateBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Update Profile</button>
-  </div>
-
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
   <script type="module">
     import { enableField } from './profile.js';
 
     document.getElementById('editUsernameBtn')?.addEventListener('click', () => enableField('username'));
+    document.getElementById('editPasswordBtn')?.addEventListener('click', () => enableField('password'));
     document.getElementById('editFnameBtn')?.addEventListener('click', () => enableField('fname'));
     document.getElementById('editLnameBtn')?.addEventListener('click', () => enableField('lname'));
     document.getElementById('editEmailBtn')?.addEventListener('click', () => enableField('email'));
     document.getElementById('editCellBtn')?.addEventListener('click', () => enableField('cellnumber'));
   </script>
-
 </body>
 
 </html>

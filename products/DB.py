@@ -248,6 +248,8 @@ async def get_user(id: str, user=Depends(get_current_user)):
 @app.put("/users/update/{id}")
 async def update_user(
     id: str,
+    userName: Union[str, None] = Form(None),
+    password: Union[str, None] = Form(None),
     firstName: Union[str, None] = Form(None),
     lastName: Union[str, None] = Form(None),
     email: Union[EmailStr, None] = Form(None),
@@ -256,6 +258,8 @@ async def update_user(
 ):
     try:
         update_data = {k: v for k, v in {
+            "userName": userName,
+            "password": argon2.hash(password) if password else None,
             "firstName": firstName,
             "lastName": lastName,
             "email": email,

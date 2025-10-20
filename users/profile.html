@@ -80,16 +80,7 @@
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
-  <script type="module">
-    import { enableField } from './profile.js';
-
-    document.getElementById('editUsernameBtn')?.addEventListener('click', () => enableField('username'));
-    document.getElementById('editPasswordBtn')?.addEventListener('click', () => enableField('password'));
-    document.getElementById('editFnameBtn')?.addEventListener('click', () => enableField('fname'));
-    document.getElementById('editLnameBtn')?.addEventListener('click', () => enableField('lname'));
-    document.getElementById('editEmailBtn')?.addEventListener('click', () => enableField('email'));
-    document.getElementById('editCellBtn')?.addEventListener('click', () => enableField('cellnumber'));
-  </script>
+  <script type="module" src="./profile.js"></script>
 </body>
 
 </html>

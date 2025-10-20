@@ -6,7 +6,7 @@ let userId;
 const JWT = localStorage.getItem("jwt");
 if (!JWT) window.location.href = "../index.html";
 
-//Decode JWT and log
+// Decode JWT
 try {
   const payload = jwt_decode(JWT);
   userId = payload.user_id;
@@ -33,14 +33,13 @@ async function fetchUser() {
     const response = await fetch(`https://api.kingburger.site/users/${userId}`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${JWT}`,
-        'Content-Type': 'application/form-data'
+        'Authorization': `Bearer ${JWT}`
       }
     });
     if (!response.ok) throw new Error("Failed to fetch user");
     const user = await response.json();
 
-    // Populate fields with user data
+    // Populate fields
     document.getElementById("username").value = user.userName || "";
     document.getElementById("fname").value = user.firstName || "";
     document.getElementById("lname").value = user.lastName || "";
@@ -53,6 +52,7 @@ async function fetchUser() {
   }
 }
 fetchUser();
+
 // Enable field for editing
 export function enableField(fieldId) {
   const field = document.getElementById(fieldId);
@@ -60,15 +60,13 @@ export function enableField(fieldId) {
   field.focus();
 }
 
-// Attach enableField to buttons (no inline onclick)
-document.getElementById('editUsernameBtn')?.addEventListener('click', () => enableField('username'));
-document.getElementById('editFnameBtn')?.addEventListener('click', () => enableField('fname'));
-document.getElementById('editLnameBtn')?.addEventListener('click', () => enableField('lname'));
-document.getElementById('editEmailBtn')?.addEventListener('click', () => enableField('email'));
-document.getElementById('editCellBtn')?.addEventListener('click', () => enableField('cellnumber'));
-document.getElementById('editPasswordBtn')?.addEventListener('click', () => enableField('password'));
+// Attach edit buttons
+["Username", "Password", "Fname", "Lname", "Email", "Cell"].forEach(suffix => {
+  const btn = document.getElementById(`edit${suffix}Btn`);
+  if (btn) btn.addEventListener('click', () => enableField(suffix.toLowerCase()));
+});
 
-// Validate username availability
+// Username availability check
 async function checkUsernameAvailability() {
   const username = document.getElementById('username').value;
   const email = document.getElementById('email')?.value || "";
@@ -80,7 +78,6 @@ async function checkUsernameAvailability() {
       body: JSON.stringify({ username, email })
     });
     const data = await response.json();
-
     const hint = document.getElementById('username-hint');
     if (data.exists) {
       hint.textContent = "Username already taken";
@@ -94,7 +91,7 @@ async function checkUsernameAvailability() {
   }
 }
 
-// Validate password strength
+// Password validation
 function validatePassword() {
   const password = document.getElementById('password').value;
   const hint = document.getElementById('password-hint');
@@ -115,14 +112,13 @@ document.getElementById('password')?.addEventListener('input', validatePassword)
 
 // Update profile
 document.getElementById('updateBtn')?.addEventListener('click', async () => {
-
-  const formData = new FormData();
-  formData.append("userName", document.getElementById("username").value);
-  formData.append("password", document.getElementById("password").value);
-  formData.append("firstName", document.getElementById("fname").value);
-  formData.append("lastName", document.getElementById("lname").value);
-  formData.append("email", document.getElementById("email").value);
-  formData.append("cellNum", document.getElementById("cellnumber").value);
+  const data = new URLSearchParams();
+  data.append("userName", document.getElementById("username").value);
+  data.append("password", document.getElementById("password").value);
+  data.append("firstName", document.getElementById("fname").value);
+  data.append("lastName", document.getElementById("lname").value);
+  data.append("email", document.getElementById("email").value);
+  data.append("cellNum", document.getElementById("cellnumber").value);
 
   try {
     const response = await fetch(`https://api.kingburger.site/users/update/${userId}`, {
@@ -131,13 +127,12 @@ document.getElementById('updateBtn')?.addEventListener('click', async () => {
         'Authorization': `Bearer ${JWT}`,
         'Content-Type': 'application/x-www-form-urlencoded'
       },
-      body: formData
+      body: data.toString()
     });
 
     if (!response.ok) throw new Error("Failed to update user");
     alert("Profile updated successfully!");
 
-    // Disable fields again after update
     ["username", "password", "fname", "lname", "email", "cellnumber"].forEach(id => {
       document.getElementById(id).disabled = true;
     });

@@ -116,7 +116,7 @@ document.getElementById('password')?.addEventListener('input', validatePassword)
 // Update profile
 document.getElementById('updateBtn')?.addEventListener('click', async () => {
   try {
-    const response = await fetch(`https://api.kingburger.site/api/users/update/${userId}`, {
+    const response = await fetch(`https://api.kingburger.site/users/update/${userId}`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${JWT}`,

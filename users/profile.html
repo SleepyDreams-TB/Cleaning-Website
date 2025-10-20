@@ -2,83 +2,68 @@
 <html lang="en">
 
 <head>
-  <link rel="icon" href="wipe.ico" type="image/x-icon">
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sparkle Cleaning Services - Profile</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- JWT Decode CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
 </head>
 
-<body class="bg-cover bg-center bg-no-repeat bg-fixed text-gray-800"
-  style="background-image: url('../assets/cleaningbg.jpg');">
+<body>
+  <div id="navbar-container"></div>
 
-  <!-- Header -->
-  <header class="bg-black shadow p-4 flex justify-between items-center">
-    <h1 class="text-pink-600 font-bold">Sparkle Clean</h1>
-    <nav>
-      <div id="navbar-container"></div>
-    </nav>
-  </header>
+  <main class="profile-container">
+    <h1>My Profile</h1>
 
-  <main class="max-w-xl mx-auto mt-8 bg-white p-6 rounded shadow">
-    <h2 class="text-2xl font-bold mb-4">User Profile</h2>
+    <form id="profileForm">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input id="username" type="text" disabled>
+        <button type="button" id="editUsernameBtn">✏️</button>
+        <small id="username-hint"></small>
+      </div>
 
-    <!-- Username -->
-    <label>Username:</label>
-    <div class="flex items-center mb-2">
-      <input type="text" id="username" disabled class="border p-1 rounded flex-1" />
-      <button type="button" onclick="enableField('username')" class="ml-2 text-gray-600">✏️</button>
-    </div>
-    <p id="username-hint" class="text-sm text-gray-500 mb-4">Must be unique</p>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input id="password" type="password" disabled>
+        <button type="button" id="editPasswordBtn">✏️</button>
+        <small id="password-hint"></small>
+      </div>
 
-    <!-- Password -->
-    <label>Password:</label>
-    <div class="flex items-center mb-2">
-      <input type="password" id="password" disabled class="border p-1 rounded flex-1" />
-      <button type="button" onclick="enableField('password')" class="ml-2 text-gray-600">✏️</button>
-    </div>
-    <p id="password-hint" class="text-sm text-gray-500 mb-4">
-      Must contain 1 lowercase, 1 uppercase, 1 number, 1 special character, min 12 chars
-    </p>
+      <div class="form-group">
+        <label for="fname">First Name</label>
+        <input id="fname" type="text" disabled>
+        <button type="button" id="editFnameBtn">✏️</button>
+      </div>
 
-    <!-- First Name -->
-    <label>First Name:</label>
-    <div class="flex items-center mb-2">
-      <input type="text" id="fname" disabled class="border p-1 rounded flex-1" />
-      <button type="button" onclick="enableField('fname')" class="ml-2 text-gray-600">✏️</button>
-    </div>
+      <div class="form-group">
+        <label for="lname">Last Name</label>
+        <input id="lname" type="text" disabled>
+        <button type="button" id="editLnameBtn">✏️</button>
+      </div>
 
-    <!-- Last Name -->
-    <label>Last Name:</label>
-    <div class="flex items-center mb-2">
-      <input type="text" id="lname" disabled class="border p-1 rounded flex-1" />
-      <button type="button" onclick="enableField('lname')" class="ml-2 text-gray-600">✏️</button>
-    </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input id="email" type="email" disabled>
+        <button type="button" id="editEmailBtn">✏️</button>
+      </div>
 
-    <!-- Email -->
-    <label>Email:</label>
-    <div class="flex items-center mb-2">
-      <input type="email" id="email" disabled class="border p-1 rounded flex-1" />
-      <button type="button" onclick="enableField('email')" class="ml-2 text-gray-600">✏️</button>
-    </div>
+      <div class="form-group">
+        <label for="cellnumber">Cell Number</label>
+        <input id="cellnumber" type="tel" disabled>
+        <button type="button" id="editCellBtn">✏️</button>
+      </div>
 
-    <!-- Cell Number -->
-    <label>Cell Number:</label>
-    <div class="flex items-center mb-2">
-      <input type="text" id="cellnumber" disabled class="border p-1 rounded flex-1" />
-      <button type="button" onclick="enableField('cellnumber')" class="ml-2 text-gray-600">✏️</button>
-    </div>
+      <div class="form-group">
+        <label for="createdDate">Created At</label>
+        <input id="createdDate" type="text" disabled>
+      </div>
 
-    <!-- Created Date (readonly) -->
-    <label>Created Date:</label>
-    <input type="text" id="createdDate" readonly class="border p-1 rounded mb-4 w-full" />
-
-    <!-- Update Button -->
-    <button id="updateBtn" class="bg-pink-600 text-white px-4 py-2 rounded mt-4 hover:bg-pink-700">Update
-      Profile</button>
+      <button type="button" id="updateBtn">Update Profile</button>
+    </form>
   </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
   <script type="module" src="profile.js"></script>
 </body>
 

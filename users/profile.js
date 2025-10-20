@@ -32,9 +32,7 @@ async function fetchUser() {
   try {
     const response = await fetch(`https://api.kingburger.site/users/${userId}`, {
       method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${JWT}`
-      }
+      headers: { 'Authorization': `Bearer ${JWT}` }
     });
     if (!response.ok) throw new Error("Failed to fetch user");
     const user = await response.json();
@@ -67,28 +65,32 @@ export function enableField(fieldId) {
 });
 
 // Username availability check
+let usernameCheckTimeout;
 async function checkUsernameAvailability() {
-  const username = document.getElementById('username').value;
-  const email = document.getElementById('email')?.value || "";
+  clearTimeout(usernameCheckTimeout);
+  usernameCheckTimeout = setTimeout(async () => {
+    const username = document.getElementById('username').value;
+    const email = document.getElementById('email')?.value || "";
 
-  try {
-    const response = await fetch('/api/check_user_avail', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, email })
-    });
-    const data = await response.json();
-    const hint = document.getElementById('username-hint');
-    if (data.exists) {
-      hint.textContent = "Username already taken";
-      hint.style.color = "red";
-    } else {
-      hint.textContent = "Username is available";
-      hint.style.color = "green";
+    try {
+      const response = await fetch('/api/check_user_avail', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, email })
+      });
+      const data = await response.json();
+      const hint = document.getElementById('username-hint');
+      if (data.exists) {
+        hint.textContent = "Username already taken";
+        hint.style.color = "red";
+      } else {
+        hint.textContent = "Username is available";
+        hint.style.color = "green";
+      }
+    } catch (error) {
+      console.error("Error checking username:", error);
     }
-  } catch (error) {
-    console.error("Error checking username:", error);
-  }
+  }, 300);
 }
 
 // Password validation
@@ -114,7 +116,10 @@ document.getElementById('password')?.addEventListener('input', validatePassword)
 document.getElementById('updateBtn')?.addEventListener('click', async () => {
   const data = new URLSearchParams();
   data.append("userName", document.getElementById("username").value);
-  data.append("password", document.getElementById("password").value);
+
+  const password = document.getElementById("password").value;
+  if (password) data.append("password", password); // Only send if non-empty
+
   data.append("firstName", document.getElementById("fname").value);
   data.append("lastName", document.getElementById("lname").value);
   data.append("email", document.getElementById("email").value);
@@ -130,15 +135,23 @@ document.getElementById('updateBtn')?.addEventListener('click', async () => {
       body: data.toString()
     });
 
-    if (!response.ok) throw new Error("Failed to update user");
+    const resData = await response.json();
+    console.log("Update response:", resData);
+
+    if (!response.ok) throw new Error(resData.error || "Failed to update user");
+
     alert("Profile updated successfully!");
 
-    ["username", "password", "fname", "lname", "email", "cellnumber"].forEach(id => {
+    // Refresh input fields from backend response if available
+    ["username", "fname", "lname", "email", "cellnumber"].forEach(id => {
+      if (resData[id]) document.getElementById(id).value = resData[id];
       document.getElementById(id).disabled = true;
     });
+    document.getElementById("password").value = "";
+    document.getElementById("password").disabled = true;
 
   } catch (error) {
     console.error("Error updating profile:", error);
-    alert("Failed to update profile. Check console.");
+    alert(`Failed to update profile: ${error.message}`);
   }
 });

@@ -1,16 +1,22 @@
-// profile.js
-
 import { reqLogin } from '../navbar.js';
+import jwt_decode from 'jwt-decode'; // make sure this is installed
 reqLogin();
 
-// Global variable
+// Global variables
 let userId;
-let JWT = localStorage.getItem("jwt");
+const JWT = localStorage.getItem("jwt");
 if (!JWT) window.location.href = "../index.html";
 
-// Decode JWT to get userId
-const payload = jwt_decode(JWT);
-userId = payload.user_id;
+// Decode JWT and log
+try {
+  const payload = jwt_decode(JWT);
+  console.log("Decoded JWT payload:", payload);
+  userId = payload.user_id;
+  console.log("userId used in fetch:", userId);
+} catch (e) {
+  console.error("Failed to decode JWT:", e);
+  window.location.href = "../index.html";
+}
 
 // Load navbar
 async function loadNavbar() {
@@ -37,12 +43,12 @@ async function fetchUser() {
     if (!response.ok) throw new Error("Failed to fetch user");
     const user = await response.json();
 
-    // Populate fields
-    document.getElementById("username").value = user.username || "";
-    document.getElementById("fname").value = user.fname || "";
-    document.getElementById("lname").value = user.lname || "";
+    // Populate fields (match MongoDB field names)
+    document.getElementById("username").value = user.userName || "";
+    document.getElementById("fname").value = user.firstName || "";
+    document.getElementById("lname").value = user.lastName || "";
     document.getElementById("email").value = user.email || "";
-    document.getElementById("cellnumber").value = user.cellnumber || "";
+    document.getElementById("cellnumber").value = user.cellNum || "";
     document.getElementById("createdDate").value = user.created_at || "";
 
   } catch (error) {
@@ -113,12 +119,12 @@ document.getElementById('updateBtn').addEventListener('click', async () => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        username: document.getElementById("username").value,
+        userName: document.getElementById("username").value,
         password: document.getElementById("password").value,
-        fname: document.getElementById("fname").value,
-        lname: document.getElementById("lname").value,
+        firstName: document.getElementById("fname").value,
+        lastName: document.getElementById("lname").value,
         email: document.getElementById("email").value,
-        cellnumber: document.getElementById("cellnumber").value
+        cellNum: document.getElementById("cellnumber").value
       })
     });
 

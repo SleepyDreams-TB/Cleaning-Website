@@ -87,6 +87,7 @@ def get_user_by_id(userID: str):
     except InvalidId:
         return None
 
+#Used for Render webhook IP extraction for logging
 def get_client_ip(request: Request) -> str:
     """
     Extract client IP from headers or fallback to peer IP.

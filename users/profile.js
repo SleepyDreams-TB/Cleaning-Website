@@ -6,17 +6,15 @@ let userId;
 const JWT = localStorage.getItem("jwt");
 if (!JWT) window.location.href = "../index.html";
 
-/*  Decode JWT and log
+//Decode JWT and log
 try {
   const payload = jwt_decode(JWT);
-  console.log("Decoded JWT payload:", payload);
   userId = payload.user_id;
-  console.log("userId used in fetch:", userId);
 } catch (e) {
   console.error("Failed to decode JWT:", e);
   window.location.href = "../index.html";
 }
-*/
+
 // Load navbar
 async function loadNavbar() {
   try {

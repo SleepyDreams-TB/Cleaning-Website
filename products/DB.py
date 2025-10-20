@@ -103,6 +103,12 @@ def get_client_ip(request: Request) -> str:
     # fallback: immediate peer IP
     return request.client.host if request.client else "unknown"
 
+@app.post("/api/check_user_avail")
+async def api_check_user_avail(request: Request):
+    data = await request.json()
+    exists = check_user_avail(data.get("username", ""), data.get("email", ""))
+    return JSONResponse({"exists": exists})
+
 #----------Logger setup ----------
 import logging
 from pythonjsonlogger import jsonlogger
@@ -235,6 +241,32 @@ async def get_user(id: str, user=Depends(get_current_user)):
             del user_data["password"]
             return user_data
         return {"error": "User not found"}
+    except Exception as e:
+        return {"error": str(e)}
+    
+@app.put("/users/update/{id}")
+async def update_user(
+    id: str,
+    firstName: Union[str, None] = Form(None),
+    lastName: Union[str, None] = Form(None),
+    email: Union[EmailStr, None] = Form(None),
+    cellNum: Union[str, None] = Form(None),
+    user=Depends(get_current_user)
+):
+    try:
+        update_data = {k: v for k, v in {
+            "firstName": firstName,
+            "lastName": lastName,
+            "email": email,
+            "cellNum": cellNum
+        }.items() if v is not None}
+
+        result = usersCleaningSite.update_one({"_id": ObjectId(id)}, {"$set": update_data})
+        if result.matched_count:
+            return {"message": "User updated successfully"}
+        return {"error": "User not found"}
+    except InvalidId:
+        return {"error": "Invalid user ID"}
     except Exception as e:
         return {"error": str(e)}
 

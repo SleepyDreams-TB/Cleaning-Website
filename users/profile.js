@@ -1,5 +1,4 @@
 import { reqLogin } from '../navbar.js';
-import jwt_decode from 'jwt-decode'; // make sure this is installed
 reqLogin();
 
 // Global variables

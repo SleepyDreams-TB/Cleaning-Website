@@ -32,7 +32,7 @@ loadNavbar();
 // Fetch user data
 async function fetchUser() {
   try {
-    const response = await fetch(`https://api.kingburger.site/api/users/${userId}`, {
+    const response = await fetch(`https://api.kingburger.site/users/${userId}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${JWT}`,

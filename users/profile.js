@@ -40,7 +40,7 @@ async function fetchUser() {
     if (!response.ok) throw new Error("Failed to fetch user");
     const user = await response.json();
 
-    // Populate fields (match MongoDB field names)
+    // Populate fields with user data
     document.getElementById("username").value = user.userName || "";
     document.getElementById("fname").value = user.firstName || "";
     document.getElementById("lname").value = user.lastName || "";
@@ -129,7 +129,7 @@ document.getElementById('updateBtn')?.addEventListener('click', async () => {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${JWT}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/x-www-form-urlencoded'
       },
       body: formData
     });

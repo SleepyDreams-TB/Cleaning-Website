@@ -34,7 +34,7 @@ async function fetchUser() {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${JWT}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/form-data'
       }
     });
     if (!response.ok) throw new Error("Failed to fetch user");
@@ -115,6 +115,15 @@ document.getElementById('password')?.addEventListener('input', validatePassword)
 
 // Update profile
 document.getElementById('updateBtn')?.addEventListener('click', async () => {
+
+  const formData = new FormData();
+  formData.append("userName", document.getElementById("username").value);
+  formData.append("password", document.getElementById("password").value);
+  formData.append("firstName", document.getElementById("fname").value);
+  formData.append("lastName", document.getElementById("lname").value);
+  formData.append("email", document.getElementById("email").value);
+  formData.append("cellNum", document.getElementById("cellnumber").value);
+
   try {
     const response = await fetch(`https://api.kingburger.site/users/update/${userId}`, {
       method: 'PUT',
@@ -122,14 +131,7 @@ document.getElementById('updateBtn')?.addEventListener('click', async () => {
         'Authorization': `Bearer ${JWT}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        userName: document.getElementById("username").value,
-        password: document.getElementById("password").value,
-        firstName: document.getElementById("fname").value,
-        lastName: document.getElementById("lname").value,
-        email: document.getElementById("email").value,
-        cellNum: document.getElementById("cellnumber").value
-      })
+      body: formData
     });
 
     if (!response.ok) throw new Error("Failed to update user");

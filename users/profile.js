@@ -56,7 +56,7 @@ async function fetchUser() {
 }
 fetchUser();
 // Enable field for editing
-function enableField(fieldId) {
+export function enableField(fieldId) {
   const field = document.getElementById(fieldId);
   field.disabled = false;
   field.focus();

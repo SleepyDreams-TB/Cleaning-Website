@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
   fetchUser();
 
   // Enable field for editing
-  export function enableField(fieldId) {
+  function enableField(fieldId) {
     const field = document.getElementById(fieldId);
     if (field) {
       field.disabled = false;

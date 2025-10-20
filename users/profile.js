@@ -55,13 +55,20 @@ async function fetchUser() {
   }
 }
 fetchUser();
-
 // Enable field for editing
-export function enableField(fieldId) {
+function enableField(fieldId) {
   const field = document.getElementById(fieldId);
   field.disabled = false;
   field.focus();
 }
+
+// Attach enableField to buttons (no inline onclick)
+document.getElementById('editUsernameBtn')?.addEventListener('click', () => enableField('username'));
+document.getElementById('editFnameBtn')?.addEventListener('click', () => enableField('fname'));
+document.getElementById('editLnameBtn')?.addEventListener('click', () => enableField('lname'));
+document.getElementById('editEmailBtn')?.addEventListener('click', () => enableField('email'));
+document.getElementById('editCellBtn')?.addEventListener('click', () => enableField('cellnumber'));
+document.getElementById('editPasswordBtn')?.addEventListener('click', () => enableField('password'));
 
 // Validate username availability
 async function checkUsernameAvailability() {
@@ -105,13 +112,13 @@ function validatePassword() {
 }
 
 // Event listeners
-document.getElementById('username').addEventListener('input', checkUsernameAvailability);
-document.getElementById('password').addEventListener('input', validatePassword);
+document.getElementById('username')?.addEventListener('input', checkUsernameAvailability);
+document.getElementById('password')?.addEventListener('input', validatePassword);
 
 // Update profile
-document.getElementById('updateBtn').addEventListener('click', async () => {
+document.getElementById('updateBtn')?.addEventListener('click', async () => {
   try {
-    const response = await fetch(`https://api.kingburger.site/users/update/${userId}`, {
+    const response = await fetch(`https://api.kingburger.site/api/users/update/${userId}`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${JWT}`,

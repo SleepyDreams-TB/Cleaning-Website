@@ -1,6 +1,6 @@
 // profile.js
 
-import { reqLogin } from '/navbar.js';
+import { reqLogin } from '../navbar.js';
 reqLogin();
 
 // Global variable

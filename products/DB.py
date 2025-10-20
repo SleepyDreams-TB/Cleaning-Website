@@ -257,6 +257,10 @@ async def update_user(
     user=Depends(get_current_user)
 ):
     try:
+        # Log the incoming form data
+        print("Received update request:")
+        print(f"userName={userName}, password={password}, firstName={firstName}, lastName={lastName}, email={email}, cellNum={cellNum}")
+
         update_data = {k: v for k, v in {
             "userName": userName,
             "password": argon2.hash(password) if password else None,
@@ -266,14 +270,26 @@ async def update_user(
             "cellNum": cellNum
         }.items() if v is not None}
 
+        # Log what will be updated
+        print("Updating user with:", update_data)
+
         result = usersCleaningSite.update_one({"_id": ObjectId(id)}, {"$set": update_data})
+
         if result.matched_count:
-            return {"message": "User updated successfully"}
+            updated_user = get_user_by_id(id)
+            if updated_user:
+                updated_user["_id"] = str(updated_user["_id"])
+                del updated_user["password"]
+            print("Updated user:", updated_user)
+            return {"message": "User updated successfully", "updated_user": updated_user}
+
         return {"error": "User not found"}
     except InvalidId:
         return {"error": "Invalid user ID"}
     except Exception as e:
+        print("Error updating user:", str(e))
         return {"error": str(e)}
+
 
 # --------- Product endpoints ---------
 @app.post("/products/create/")

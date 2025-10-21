@@ -57,6 +57,7 @@
     import { getCart, clearCart, deleteCartItem, recalcTotal, createPayment } from "./cart.js";
 
     let cart = getCart();
+
     const cartContainer = document.getElementById("cart-items");
     const totalEl = document.getElementById("total-price");
     const orderModel = document.getElementById("orderModel");
@@ -65,6 +66,7 @@
     const cancelBtn = document.getElementById("cancel-order-btn");
     const checkoutBtn = document.getElementById("checkoutBtn");
 
+    // Render cart on page and attach delete buttons
     function renderCart() {
       cartContainer.innerHTML = "";
       if (cart.length === 0) {
@@ -72,17 +74,16 @@
       } else {
         cart.forEach(item => {
           const div = document.createElement("div");
-          div.className = "bg-white p-4 rounded shadow flex justify-between items-center";
+          div.className = "bg-white p-4 rounded shadow flex justify-between items-center gap-2";
           div.innerHTML = `
-            <span>${item.name} x ${item.quantity}</span>
-            <span>R${(item.price * item.quantity).toFixed(2)}</span>
-            <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-700">Delete</button>
-          `;
+        <span>${item.name} x ${item.quantity}</span>
+        <span>R${(item.price * item.quantity).toFixed(2)}</span>
+        <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-700">Delete</button>
+      `;
           const delBtn = div.querySelector("button");
           delBtn.addEventListener("click", () => {
             cart = deleteCartItem(item._id);
             renderCart();
-            totalEl.textContent = recalcTotal(cart).toFixed(2);
           });
           cartContainer.appendChild(div);
         });
@@ -97,10 +98,10 @@
       clearCart();
       cart = [];
       renderCart();
-      alert("Cart has been cleared!");
+      alert("Cart cleared!");
     });
 
-    // Show order summary
+    // Show order modal
     confirmBtn.addEventListener("click", () => {
       if (cart.length === 0) return alert("Cart is empty!");
       orderModel.classList.add("show");
@@ -110,7 +111,7 @@
         const div = document.createElement("div");
         div.className = "flex justify-between mb-2";
         div.innerHTML = `<span>${item.name} x ${item.quantity}</span>
-                         <span>R${(item.price * item.quantity).toFixed(2)}</span>`;
+                     <span>R${(item.price * item.quantity).toFixed(2)}</span>`;
         orderDetails.appendChild(div);
       });
 
@@ -122,19 +123,16 @@
 
     // Close modal
     cancelBtn.addEventListener("click", () => orderModel.classList.remove("show"));
-    orderModel.addEventListener("click", (e) => {
+    orderModel.addEventListener("click", e => {
       if (e.target === orderModel) orderModel.classList.remove("show");
     });
 
     // Checkout
     checkoutBtn.addEventListener("click", async () => {
-      try {
-        await createPayment("eft", recalcTotal(cart));
-      } catch (err) {
-        console.error(err);
-        alert("Failed to initiate payment.");
-      }
+      if (cart.length === 0) return alert("Cart is empty!");
+      await createPayment("eft", recalcTotal(cart));
     });
+
   </script>
 
   <script type="module" src="/navbar.js"></script>

@@ -16,32 +16,24 @@ export async function createPayment(payment_type, amount, reference) {
       body: JSON.stringify({ payment_type, amount, reference })
     });
 
-    // Read the response as text first
+    // Parse JSON safely
     const text = await res.text();
-    console.log("Raw response from backend:", text);
-
-    // Safely parse JSON
     let data;
     try {
       data = text ? JSON.parse(text) : {};
-    } catch (err) {
-      console.error("Failed to parse JSON:", err);
-      data = { raw_response: text };
+    } catch {
+      data = {};
     }
 
-    console.log('Payment created:', data);
+    clearCart();
 
-    clearCart(); // your existing function
-
-    // Redirect only if Callpay returned a URL
     if (data.url) {
       window.location.href = data.url;
     } else {
-      alert("Payment failed or no URL returned. Check console for raw response.");
+      alert("Payment failed. Please try again.");
     }
 
-  } catch (error) {
-    console.error('Error creating payment:', error);
+  } catch {
     alert('Payment failed. Please try again.');
   }
 }

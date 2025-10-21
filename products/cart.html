@@ -6,10 +6,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cart - Sparkle Clean</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/products/checkout.css">
 </head>
 
 <body class="bg-cover bg-center bg-no-repeat bg-fixed text-gray-800"
   style="background-image: url('../assets/cleaningbg.jpg');">
+
   <header class="bg-black shadow p-4 flex justify-between items-center">
     <h1 class="text-pink-600 font-bold">Sparkle Clean</h1>
     <nav>
@@ -17,24 +19,39 @@
     </nav>
   </header>
 
-
-  <!-- Cart Section -->
   <main class="container mx-auto py-12 px-4">
     <h2 class="text-3xl font-bold text-center mb-8">Your Cart</h2>
     <div id="cart-items" class="space-y-4"></div>
+
     <div class="mt-6 text-right text-xl font-bold">
       Total: R<span id="total-price">0</span>
     </div>
-    <div class="text-right mt-6">
+
+    <div class="text-right mt-6 space-x-2">
       <button id="clear-cart" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
         Clear Cart
       </button>
-    </div>
-    <div class="text-right mt-6">
-      <button id="cart-checkout" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-        Proceed to checkout</button>
+      <button id="confirm-order-btn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        Confirm Order
+      </button>
     </div>
   </main>
+
+  <!-- Order Summary Modal -->
+  <div id="orderModel" class="order-summary">
+    <div class="order-content">
+      <h2>Order Summary</h2>
+      <div id="order-details"></div>
+      <div class="mt-4 space-x-2">
+        <button id="checkoutBtn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+          Proceed to checkout
+        </button>
+        <button id="cancel-order-btn" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
 
   <script type="module">
     import { getCart, clearCart, createPayment } from "./cart.js";
@@ -42,10 +59,14 @@
     const cart = getCart();
     const cartItemsContainer = document.getElementById("cart-items");
     const totalPriceElement = document.getElementById("total-price");
+    const orderModel = document.getElementById("orderModel");
+    const orderDetails = document.getElementById("order-details");
+    const confirmOrderBtn = document.getElementById("confirm-order-btn");
+    const cancelOrderBtn = document.getElementById("cancel-order-btn");
+    const checkoutBtn = document.getElementById("checkoutBtn");
 
-    let digit_total = 0;
-
-    // Add cart items to the page
+    // Render cart items
+    let total = 0;
     cart.forEach(item => {
       const itemDiv = document.createElement("div");
       itemDiv.className = "bg-white p-4 rounded shadow flex justify-between items-center";
@@ -54,33 +75,52 @@
         <span>R${(item.price * item.quantity).toFixed(2)}</span>
       `;
       cartItemsContainer.appendChild(itemDiv);
-      digit_total += item.price * item.quantity;
+      total += item.price * item.quantity;
     });
-
-    const total = parseFloat(digit_total.toFixed(2));
-    totalPriceElement.textContent = total;
+    totalPriceElement.textContent = total.toFixed(2);
 
     // Clear cart
-    const clearCartBtn = document.getElementById("clear-cart");
-    clearCartBtn.addEventListener("click", () => {
+    document.getElementById("clear-cart").addEventListener("click", () => {
       clearCart();
       cartItemsContainer.innerHTML = `<p class="text-center text-gray-500">Your cart is empty.</p>`;
       totalPriceElement.textContent = "0";
       alert("Cart has been cleared!");
     });
 
-    // Checkout
-    const checkoutBtn = document.getElementById("cart-checkout");
-    checkoutBtn.addEventListener("click", () => {
-      let amount = total;
-      let payment_type = "eft";
-      let merchant_reference = "TESTREF1";
-      console.log(amount, payment_type, merchant_reference);
-      createPayment(payment_type, amount, merchant_reference);
+    // Show order summary
+    confirmOrderBtn.addEventListener("click", () => {
+      orderModel.classList.add("show");
+      orderDetails.innerHTML = "";
+
+      cart.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "flex justify-between mb-2";
+        div.innerHTML = `<span>${item.name} x ${item.quantity}</span>
+                         <span>R${(item.price * item.quantity).toFixed(2)}</span>`;
+        orderDetails.appendChild(div);
+      });
+
+      const totalDiv = document.createElement("div");
+      totalDiv.className = "flex justify-between font-bold mt-4";
+      totalDiv.innerHTML = `<span>Total:</span><span>R${total.toFixed(2)}</span>`;
+      orderDetails.appendChild(totalDiv);
     });
+
+    // Close modal
+    cancelOrderBtn.addEventListener("click", () => orderModel.classList.remove("show"));
+    orderModel.addEventListener("click", (e) => {
+      if (e.target === orderModel) orderModel.classList.remove("show");
+    });
+
+    // Checkout
+    checkoutBtn.addEventListener("click", () => {
+      createPayment("eft", total, "TESTREF1");
+    });
+
   </script>
 
+  <script type="module" src="/navbar.js"></script>
+
 </body>
-<script type="module" src="/navbar.js"></script>
 
 </html>

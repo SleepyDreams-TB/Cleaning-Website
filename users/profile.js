@@ -2,12 +2,10 @@ import { reqLogin } from '../navbar.js';
 reqLogin();
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Global variables
   let userId;
   const JWT = localStorage.getItem("jwt");
   if (!JWT) window.location.href = "../index.html";
 
-  // Decode JWT
   try {
     const payload = jwt_decode(JWT);
     userId = payload.user_id;
@@ -38,10 +36,8 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       if (!response.ok) throw new Error("Failed to fetch user");
       const user = await response.json();
+      console.log("Fetched user:", user);
 
-      console.log("Fetched user:", user); // log for verification
-
-      // Populate fields, including empty ones
       const fields = {
         username: user.userName || "",
         fname: user.firstName || "",
@@ -51,37 +47,45 @@ document.addEventListener('DOMContentLoaded', () => {
         createdDate: user.created_at || ""
       };
 
-      for (const [id, value] of Object.entries(fields)) {
+      Object.entries(fields).forEach(([id, value]) => {
         const el = document.getElementById(id);
         if (el) el.value = value;
-      }
-
+      });
     } catch (error) {
       console.error("Error fetching user:", error);
     }
   }
   fetchUser();
 
-  // Enable field for editing
+  // Enable editing
   function enableField(fieldId) {
     const field = document.getElementById(fieldId);
     if (field) {
       field.disabled = false;
       field.focus();
-      console.log("Enabled field:", fieldId);
     }
   }
 
-  // Attach edit buttons
-  ["Username", "Password", "Fname", "Lname", "Email", "Cell"].forEach(suffix => {
-    const btn = document.getElementById(`edit${suffix}Btn`);
-    if (btn) btn.addEventListener('click', () => enableField(suffix.toLowerCase()));
+  // Map edit buttons to fields
+  const editButtons = [
+    { btnId: "editUsernameBtn", fieldId: "username" },
+    { btnId: "editPasswordBtn", fieldId: "password" },
+    { btnId: "editFnameBtn", fieldId: "fname" },
+    { btnId: "editLnameBtn", fieldId: "lname" },
+    { btnId: "editEmailBtn", fieldId: "email" },
+    { btnId: "editCellBtn", fieldId: "cellnumber" }
+  ];
+
+  editButtons.forEach(item => {
+    const btn = document.getElementById(item.btnId);
+    if (btn) btn.addEventListener('click', () => enableField(item.fieldId));
   });
 
   // Username availability check
   async function checkUsernameAvailability() {
     const username = document.getElementById('username')?.value || "";
     const email = document.getElementById('email')?.value || "";
+    if (!username) return; // Skip if empty
 
     try {
       const response = await fetch('/api/check_user_avail', {
@@ -89,6 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, email })
       });
+      if (!response.ok) return;
       const data = await response.json();
       const hint = document.getElementById('username-hint');
       if (hint) {
@@ -105,7 +110,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const password = document.getElementById('password')?.value || "";
     const hint = document.getElementById('password-hint');
     const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{12,}$/;
-
     if (hint) {
       if (regex.test(password)) {
         hint.textContent = "Password is strong";
@@ -117,7 +121,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Event listeners
   document.getElementById('username')?.addEventListener('input', checkUsernameAvailability);
   document.getElementById('password')?.addEventListener('input', validatePassword);
 
@@ -127,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ["username", "password", "fname", "lname", "email", "cellnumber"].forEach(id => {
       const el = document.getElementById(id);
       if (el) {
-        let key = id === "username" ? "userName" : id === "cellnumber" ? "cellNum" : id;
+        const key = id === "username" ? "userName" : id === "cellnumber" ? "cellNum" : id;
         data.append(key, el.value || "");
       }
     });
@@ -153,6 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (el) el.disabled = true;
       });
 
+      // Refresh page after update
       window.location.reload();
 
     } catch (error) {

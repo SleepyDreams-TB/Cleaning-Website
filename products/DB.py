@@ -382,7 +382,6 @@ async def delete_product(id: str, user=Depends(get_current_user)):
 class PaymentRequest(BaseModel):
     payment_type: str
     amount: float
-    reference: str
 
 @app.post("/api/create-payment", include_in_schema=False)
 async def create_payment(payment: PaymentRequest):

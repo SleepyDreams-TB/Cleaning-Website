@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!response.ok) throw new Error('Failed to load navbar');
     navbarContainer.innerHTML = await response.text();
 
-    const usernameSpan = document.getElementById('username');
+    const usernameSpan = document.getElementById('userFname');
     const profileLink = document.getElementById('profileLink');
     const logoutLink = document.getElementById('logoutLink');
     const token = localStorage.getItem('jwt');

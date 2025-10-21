@@ -114,7 +114,7 @@ async def api_check_user_avail(request: Request):
 import logging
 from pythonjsonlogger import jsonlogger
 
-webhook_log_handler = logging.FileHandler("webhook.log")
+webhook_log_handler = logging.FileHandler("webhooks.log")
 webhook_formatter = jsonlogger.JsonFormatter('%(asctime)s %(levelname)s %(message)s')
 webhook_log_handler.setFormatter(webhook_formatter)
 
@@ -389,7 +389,7 @@ async def create_payment(payment: PaymentRequest):
     suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=3))
 
     payload = {
-        "amount": payment.amount,
+        "amount": f"{payment.amount:.2f}",
         "merchant_reference": f"PAY-{datetime.now(UTC).strftime('%Y%m%d%H%M%S')}{suffix}",
         "payment_type": payment.payment_type, 
         "notify_url": "https://kingburger.site/webhook",
@@ -407,6 +407,8 @@ async def create_payment(payment: PaymentRequest):
     try:
         async with httpx.AsyncClient() as client:
             response = await client.post(CALLPAY_API_URL, data=payload, headers=headers)
+            text = response.text
+            print("Callpay raw response:", text)
             try:
                 data = response.json()
             except Exception:

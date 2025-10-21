@@ -11,7 +11,6 @@ document.addEventListener('DOMContentLoaded', () => {
   try {
     const payload = jwt_decode(JWT);
     userId = payload.user_id;
-    console.log("Decoded JWT userId:", userId);
   } catch (e) {
     console.error("Failed to decode JWT:", e);
     window.location.href = "../index.html";
@@ -40,7 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       if (!response.ok) throw new Error("Failed to fetch user");
       const user = await response.json();
-      console.log("Fetched user:", user);
 
       // Populate fields
       const fields = {
@@ -69,7 +67,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (field) {
       field.disabled = false;
       field.focus();
-      console.log("Enabled field:", fieldId);
     }
   }
 

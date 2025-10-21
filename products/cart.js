@@ -1,3 +1,4 @@
+// ----- Cart storage & management -----
 export function getCart() {
   return JSON.parse(localStorage.getItem("checkoutCart")) || [];
 }
@@ -10,11 +11,8 @@ export function addToCart(product) {
   const cart = getCart();
   const existingItem = cart.find(item => item._id === product._id);
 
-  if (existingItem) {
-    existingItem.quantity += 1;
-  } else {
-    cart.push({ ...product, quantity: 1 });
-  }
+  if (existingItem) existingItem.quantity += 1;
+  else cart.push({ ...product, quantity: 1 });
 
   saveCart(cart);
   alert(`${product.name} added to cart!`);
@@ -23,48 +21,45 @@ export function addToCart(product) {
 export function clearCart() {
   localStorage.removeItem("checkoutCart");
 }
-export async function createPayment(payment_type, amount, reference) {
+
+// Delete single item by _id
+export function deleteCartItem(id) {
+  let cart = getCart();
+  cart = cart.filter(item => item._id !== id);
+  saveCart(cart);
+  return cart;
+}
+
+// Recalculate total price
+export function recalcTotal(cart) {
+  return cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+}
+
+// ----- Payment -----
+export async function createPayment(payment_type, amount) {
   try {
     const res = await fetch('https://api.kingburger.site/api/create-payment', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ payment_type, amount, reference })
+      body: JSON.stringify({ payment_type, amount })
     });
 
     const text = await res.text();
-    console.log("Raw response from backend:", text);
-
     let data;
-    try {
-      data = text ? JSON.parse(text) : {};
-    } catch (err) {
-      console.warn("Failed to parse JSON, using raw text instead.");
-      data = { raw_response: text };
-    }
-
-    console.log('Payment created:', data);
+    try { data = text ? JSON.parse(text) : {}; }
+    catch { data = { raw_response: text }; }
 
     clearCart();
 
-    // Redirect if URL exists
-    if (data.url) {
-      window.location.href = data.url;
-    } else if (data.raw_response) {
-      // Optional: parse URL from raw text if backend returned it as string
+    if (data.url) window.location.href = data.url;
+    else if (data.raw_response) {
       const urlMatch = data.raw_response.match(/https?:\/\/\S+/);
-      if (urlMatch) {
-        window.location.href = urlMatch[0];
-      } else {
-        alert("Payment failed or no URL returned. Check console for raw response.");
-      }
-    } else {
-      alert("Payment failed. Check console for details.");
-    }
+      if (urlMatch) window.location.href = urlMatch[0];
+      else alert("Payment failed. Check console for raw response.");
+    } else alert("Payment failed. Check console for details.");
 
-  } catch (error) {
-    console.error('Error creating payment:', error);
-    alert('Payment failed. Please try again.');
+  } catch (err) {
+    console.error("Payment error:", err);
+    alert("Payment failed. Please try again.");
   }
 }
-
-

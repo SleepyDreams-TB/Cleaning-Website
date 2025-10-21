@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
   try {
     const payload = jwt_decode(JWT);
     userId = payload.user_id;
+    console.log("Decoded JWT userId:", userId);
   } catch (e) {
     console.error("Failed to decode JWT:", e);
     window.location.href = "../index.html";
@@ -33,26 +34,26 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const response = await fetch(`https://api.kingburger.site/users/${userId}`, {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${JWT}`
-        }
+        headers: { 'Authorization': `Bearer ${JWT}` }
       });
       if (!response.ok) throw new Error("Failed to fetch user");
       const user = await response.json();
 
-      // Populate fields
+      console.log("Fetched user:", user); // log for verification
+
+      // Populate fields, including empty ones
       const fields = {
-        username: user.userName,
-        fname: user.firstName,
-        lname: user.lastName,
-        email: user.email,
-        cellnumber: user.cellNum,
-        createdDate: user.created_at
+        username: user.userName || "",
+        fname: user.firstName || "",
+        lname: user.lastName || "",
+        email: user.email || "",
+        cellnumber: user.cellNum || "",
+        createdDate: user.created_at || ""
       };
 
       for (const [id, value] of Object.entries(fields)) {
         const el = document.getElementById(id);
-        if (el) el.value = value || "";
+        if (el) el.value = value;
       }
 
     } catch (error) {
@@ -67,6 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (field) {
       field.disabled = false;
       field.focus();
+      console.log("Enabled field:", fieldId);
     }
   }
 
@@ -124,7 +126,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const data = new URLSearchParams();
     ["username", "password", "fname", "lname", "email", "cellnumber"].forEach(id => {
       const el = document.getElementById(id);
-      if (el) data.append(id === "username" ? "userName" : id === "cellnumber" ? "cellNum" : id, el.value);
+      if (el) {
+        let key = id === "username" ? "userName" : id === "cellnumber" ? "cellNum" : id;
+        data.append(key, el.value || "");
+      }
     });
 
     try {
@@ -136,6 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         body: data.toString()
       });
+
       const jsonResponse = await response.json();
       console.log("API response:", jsonResponse);
 
@@ -146,6 +152,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const el = document.getElementById(id);
         if (el) el.disabled = true;
       });
+
+      window.location.reload();
 
     } catch (error) {
       console.error("Error updating profile:", error);

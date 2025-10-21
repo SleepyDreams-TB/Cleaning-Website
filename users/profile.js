@@ -139,6 +139,8 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         body: data.toString()
       });
+      const jsonResponse = await response.json();
+      console.log("API response:", jsonResponse);
 
       if (!response.ok) throw new Error("Failed to update user");
       alert("Profile updated successfully!");

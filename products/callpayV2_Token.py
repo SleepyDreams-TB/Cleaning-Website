@@ -1,9 +1,13 @@
 import time
 import hashlib
 
+from dotenv import load_dotenv
+import os
+load_dotenv()
+
 # === Global configuration ===
-SALT = "PKnO1sf8zAbDeSqcwa-QRH"   # same as your JS salt
-ORG_ID = "15974"                    # same as your JS org_id
+SALT = os.getenv("SALT")
+ORG_ID = os.getenv("ORG_ID")    
 
 def generate_callpay_token():
     """

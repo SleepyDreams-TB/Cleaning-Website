@@ -35,67 +35,54 @@ export function recalcTotal(cart) {
   return cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 }
 
-export async function createOrder(orderData) {
+// ----- Payment -----
+export async function createPayment(payment_type) {
+  const cartItems = getCart();
+  if (!cartItems.length) {
+    alert("Your cart is empty!");
+    return;
+  }
+
+  const totalAmount = recalcTotal(cartItems).toFixed(2);
+
+  // Call backend payment endpoint directly
   try {
-    const res = await fetch('https://api.kingburger.site/api/create-order', {
+    const res = await fetch('https://api.kingburger.site/api/create-payment', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(orderData)
+      body: JSON.stringify({
+        payment_type,
+        amount: totalAmount,
+        user_id: localStorage.getItem("userId") || null,
+        items: cartItems // backend will handle order creation and merchant_reference
+      })
     });
 
     const text = await res.text();
     let data;
-    try { data = text ? JSON.parse(text) : {}; }
-    catch { data = { raw_response: text }; }
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch {
+      data = { raw_response: text };
+    }
 
-    return data;
+    // Clear cart after initiating payment
+    clearCart();
+
+    if (data.url) {
+      // Redirect to payment page
+      window.location.href = data.url;
+    } else if (data.raw_response) {
+      // Try to extract a URL from raw response
+      const urlMatch = data.raw_response.match(/https?:\/\/\S+/);
+      if (urlMatch) window.location.href = urlMatch[0];
+      else alert("Payment failed. Check console for raw response.");
+    } else {
+      alert("Payment failed. Check console for details.");
+    }
 
   } catch (err) {
-    console.error("Order creation error:", err);
-    throw err;
+    console.error("Payment error:", err);
+    alert("Payment failed. Please try again.");
   }
-}
-
-// ----- Payment -----
-export async function createPayment(payment_type, amount) {
-
-  orderData = {
-    user_id: localStorage.getItem("userId") || null,
-    items: getCart(),
-    merchant_reference: '',
-    total: amount,
-    payment_type: payment_type
-  };
-
-  response = createOrder(orderData);
-  if (response.ok) {
-    try {
-      const res = await fetch('https://api.kingburger.site/api/create-payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ payment_type, amount })
-      });
-
-      const text = await res.text();
-      let data;
-      try { data = text ? JSON.parse(text) : {}; }
-      catch { data = { raw_response: text }; }
-
-      clearCart();
-
-      if (data.url) window.location.href = data.url;
-      else if (data.raw_response) {
-        const urlMatch = data.raw_response.match(/https?:\/\/\S+/);
-        if (urlMatch) window.location.href = urlMatch[0];
-        else alert("Payment failed. Check console for raw response.");
-      } else alert("Payment failed. Check console for details.");
-
-    } catch (err) {
-      console.error("Payment error:", err);
-      alert("Payment failed. Please try again.");
-    }
-  } else {
-    alert("Order creation failed. Please try again.");
-  }
-
 }

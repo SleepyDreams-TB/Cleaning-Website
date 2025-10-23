@@ -83,6 +83,7 @@
                 if (res.ok && !result.error) {
                     // Store JWT in localStorage
                     localStorage.setItem('jwt', result.token);
+                    localStorage.setItem('userId', result.user_id);
                     window.location.href = 'index.html';
                 } else {
                     document.getElementById('loginError').textContent = result.error || 'Login failed';

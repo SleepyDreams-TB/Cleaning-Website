@@ -16,22 +16,22 @@ import sys
 import random
 import string
 import jwt
-import json                    # ✅ FIXED: Added missing import
-from datetime import datetime, timedelta, UTC
+import json
+from datetime import datetime, timedelta, timezone
 import httpx
 import os
 
 from .callpayV2_Token import generate_callpay_token
 
-
-# --------- Helper constants ---------
-SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret")   # ✅ FIXED: moved to env var
+# ------------------- Constants -------------------
+SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret")
 ALGORITHM = "HS256"
 CALLPAY_API_URL = os.getenv("CALLPAY_API_URL", "https://services.callpay.com/api/v2/payment-key")
 IP_WHITELIST = os.getenv("CALLPAY_IPS", "54.72.191.28,54.194.139.201").split(",")
 
+UTC = timezone.utc
 
-# --------- FastAPI lifespan ---------
+# ------------------- FastAPI Lifespan -------------------
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("Python version:", sys.version)
@@ -41,8 +41,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan, docs_url="/docs")
 print("✅ FastAPI app loaded")
 
-
-# --------- CORS middleware ---------
+# ------------------- CORS -------------------
 origins = [
     "https://kingburger.site",
     "https://cleaning-website-static-site.onrender.com",
@@ -56,8 +55,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-# --------- MongoDB setup ---------
+# ------------------- MongoDB -------------------
 MONGO_URI = os.getenv("MONGO_URI", "mongodb+srv://SleepyDreams:saRqSb7xoc1cI1DO@kingburgercluster.ktvavv3.mongodb.net/?retryWrites=true&w=majority")
 client = MongoClient(
     MONGO_URI,
@@ -65,23 +63,21 @@ client = MongoClient(
     tlsAllowInvalidCertificates=False
 )
 db = client["cleaning_website"]
-products_collection = db["products"]                   # ✅ FIXED: renamed for consistency
+products_collection = db["products"]
 users_collection = db["usersCleaningSite"]
+orders_collection = db["orders"]
 
-
-# --------- Helper functions ---------
+# ------------------- Helpers -------------------
 def check_user_avail(userName: str, email: str):
     try:
         user = users_collection.find_one({"$or": [{"userName": userName}, {"email": email}]})
         return user is not None
     except Exception as e:
-        print(f"check_user_avail error: {e}")          # ✅ FIXED: log actual error
+        print(f"check_user_avail error: {e}")
         return False
-
 
 def get_user_by_username(username: str):
     return users_collection.find_one({"userName": username})
-
 
 def get_user_by_id(userID: str):
     try:
@@ -89,8 +85,6 @@ def get_user_by_id(userID: str):
     except InvalidId:
         return None
 
-
-# Used for Render webhook IP extraction
 def get_client_ip(request: Request) -> str:
     xff = request.headers.get("x-forwarded-for")
     if xff:
@@ -100,8 +94,7 @@ def get_client_ip(request: Request) -> str:
         return xrip.strip()
     return request.client.host if request.client else "unknown"
 
-
-# ----------Logger setup ----------
+# ------------------- Logger -------------------
 import logging
 from pythonjsonlogger import jsonlogger
 
@@ -113,8 +106,7 @@ webhook_logger = logging.getLogger("webhook_logger")
 webhook_logger.addHandler(webhook_log_handler)
 webhook_logger.setLevel(logging.INFO)
 
-
-# --------- Password generator setup ---------
+# ------------------- Password Generator -------------------
 letters = list("abcdefghjklmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ")
 numbers = list("23456789")
 symbols = list("!#$%()*+")
@@ -124,7 +116,6 @@ cases = [0, 0, 1, 1, 2]
 async def generate_password(length: int):
     if length < 12 or length > 16:
         return {"error": "Length must be between 12 and 16"}
-
     password = ""
     for _ in range(length):
         case = random.choice(cases)
@@ -134,11 +125,9 @@ async def generate_password(length: int):
             password += random.choice(numbers)
         else:
             password += random.choice(symbols)
-
     return {"password": password}
 
-
-# --------- Registration ---------
+# ------------------- Registration -------------------
 @app.post("/register/")
 async def register(
     firstName: str = Form(...),
@@ -151,7 +140,6 @@ async def register(
     try:
         if check_user_avail(userName, email):
             return JSONResponse(content={"error": "Username or email already exists"}, status_code=400)
-
         hashed_pw = argon2.hash(password)
         result = users_collection.insert_one({
             "firstName": firstName,
@@ -162,20 +150,16 @@ async def register(
             "cellNum": cellNum,
             "created_at": datetime.now(UTC)
         })
-
         if result.inserted_id:
             return JSONResponse(
                 content={"message": "User created successfully", "id": str(result.inserted_id)},
                 status_code=201
             )
-
         return JSONResponse(content={"error": "User insertion failed"}, status_code=500)
-
     except Exception as e:
         return JSONResponse(content={"error": f"Server error: {str(e)}"}, status_code=500)
 
-
-# --------- Basic routes ---------
+# ------------------- Basic Routes -------------------
 @app.get("/")
 def root():
     return {"message": "Welcome to the KingBurger API"}
@@ -184,15 +168,13 @@ def root():
 def health_check():
     return {"status": "alive"}
 
-
-# --------- JWT Login ---------
+# ------------------- JWT Login -------------------
 @app.post("/login/")
 async def login(userName: str = Form(...), password: str = Form(...)):
     try:
         user = users_collection.find_one({"userName": userName})
         if not user:
             return JSONResponse(content={"error": "Invalid credentials"}, status_code=401)
-        
         try:
             if not argon2.verify(password, user.get("password", "")):
                 return JSONResponse(content={"error": "Invalid credentials"}, status_code=401)
@@ -204,30 +186,24 @@ async def login(userName: str = Form(...), password: str = Form(...)):
             "exp": datetime.now(UTC) + timedelta(hours=1)
         }
         token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
-
         return JSONResponse({
             "message": "Login successful",
             "token": token,
             "user": {"firstName": user["firstName"]},
             "user_id": str(user["_id"])
         })
-
     except Exception as e:
         print("Login error:", e)
         return JSONResponse(content={"error": f"Server error: {e}"}, status_code=500)
-
-
 
 @app.post("/logout/")
 async def logout():
     return {"message": "Logout successful (client should discard the token)"}
 
-
-# --------- Get Current User ---------
+# ------------------- Current User -------------------
 def get_current_user(authorization: str = Header(...)):
     if not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Invalid auth header")
-
     token = authorization.split(" ")[1]
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -241,158 +217,11 @@ def get_current_user(authorization: str = Header(...)):
     except jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
 
-
 @app.get("/dashboard")
 async def dashboard(user=Depends(get_current_user)):
     return {"loggedIn_User": f"{user['firstName']}!"}
 
-
-# ----------User endpoints ----------
-@app.get("/users/{id}")
-async def get_user(id: str, user=Depends(get_current_user)):
-    try:
-        user_data = get_user_by_id(id)
-        if user_data:
-            user_data["_id"] = str(user_data["_id"])
-            del user_data["password"]
-            return user_data
-        return {"error": "User not found"}
-    except Exception as e:
-        return {"error": str(e)}
-
-
-@app.put("/users/update/{id}")
-async def update_user(
-    id: str,
-    userName: Union[str, None] = Form(None),
-    password: Union[str, None] = Form(None),
-    firstName: Union[str, None] = Form(None),
-    lastName: Union[str, None] = Form(None),
-    email: Union[EmailStr, None] = Form(None),
-    cellNum: Union[str, None] = Form(None),
-    user=Depends(get_current_user)
-):
-    try:
-        update_data = {k: v for k, v in {
-            "userName": userName,
-            "password": argon2.hash(password) if password else None,
-            "firstName": firstName,
-            "lastName": lastName,
-            "email": email,
-            "cellNum": cellNum
-        }.items() if v is not None}
-
-        print(f"Updating user {id} with: {update_data}")
-
-        result = users_collection.update_one({"_id": ObjectId(id)}, {"$set": update_data})
-        if result.matched_count:
-            updated_user = get_user_by_id(id)
-            if updated_user:
-                updated_user["_id"] = str(updated_user["_id"])
-                del updated_user["password"]
-            return {"message": "User updated successfully", "updated_user": updated_user}
-        return {"error": "User not found"}
-
-    except InvalidId:
-        return {"error": "Invalid user ID"}
-    except Exception as e:
-        print("Error updating user:", str(e))
-        return {"error": str(e)}
-
-
-# --------- Product endpoints ---------
-@app.post("/products/create/")
-async def create_product(
-    name: str = Form(...),
-    price: float = Form(...),
-    description: Union[str, None] = Form(None),
-    category: int = Form(0),
-    image_url: Union[str, None] = Form(None),
-    user=Depends(get_current_user)
-):
-    try:
-        result = products_collection.insert_one({
-            "name": name,
-            "price": price,
-            "description": description,
-            "category": category,
-            "image_url": image_url,
-            "created_at": datetime.now(UTC)
-        })
-        return {"message": "Product created successfully", "id": str(result.inserted_id)}
-    except Exception as e:
-        return {"error": str(e)}
-
-
-@app.get("/products/")
-async def get_all_products():
-    try:
-        all_products = []
-        for product in products_collection.find():
-            product["_id"] = str(product["_id"])
-            all_products.append(product)
-        return all_products
-    except Exception as e:
-        return {"error": str(e)}
-
-
-@app.get("/products/{id}")
-async def get_product(id: str, user=Depends(get_current_user)):
-    try:
-        product = products_collection.find_one({"_id": ObjectId(id)})
-        if product:
-            product["_id"] = str(product["_id"])
-            return product
-        return {"error": "Product not found"}
-    except InvalidId:
-        return {"error": "Invalid product ID"}
-    except Exception as e:
-        return {"error": str(e)}
-
-
-@app.put("/products/update/{id}")
-async def update_product(
-    id: str,
-    name: Union[str, None] = Form(None),
-    price: Union[float, None] = Form(None),
-    description: Union[str, None] = Form(None),
-    category: Union[int, None] = Form(None),
-    image_url: Union[str, None] = Form(None),
-    user=Depends(get_current_user)
-):
-    try:
-        update_data = {k: v for k, v in {
-            "name": name,
-            "price": price,
-            "description": description,
-            "category": category,
-            "image_url": image_url
-        }.items() if v is not None}
-
-        result = products_collection.update_one({"_id": ObjectId(id)}, {"$set": update_data})
-        if result.matched_count:
-            return {"message": "Product updated successfully"}
-        return {"error": "Product not found"}
-    except InvalidId:
-        return {"error": "Invalid product ID"}
-    except Exception as e:
-        return {"error": str(e)}
-
-
-@app.delete("/products/delete/{id}", include_in_schema=False)
-async def delete_product(id: str, user=Depends(get_current_user)):
-    try:
-        result = products_collection.delete_one({"_id": ObjectId(id)})
-        if result.deleted_count:
-            return {"message": "Product deleted successfully"}
-        return {"error": "Product not found"}
-    except InvalidId:
-        return {"error": "Invalid product ID"}
-    except Exception as e:
-        return {"error": str(e)}
-
-
-#---------- Create Order Logic ----------
+# ------------------- Orders -------------------
 def create_order(user_id: str, items: list, callpay_payload: dict):
     try:
         gateway_response = json.loads(callpay_payload.get("gateway_response", "{}"))
@@ -415,30 +244,30 @@ def create_order(user_id: str, items: list, callpay_payload: dict):
             "items": items,
             "raw_response": callpay_payload
         }
-
-        orders_collection = db["orders"]
         result = orders_collection.insert_one(order)
-        return bool(result.inserted_id)
-
+        if result.inserted_id:
+            order["_id"] = str(result.inserted_id)
+            return {"ok": True, "order_id": str(result.inserted_id), "merchant_reference": order["merchant_reference"]}
+        return {"ok": False, "error": "Order creation failed"}
     except Exception as e:
         print("Error creating order:", str(e))
-        return None
+        return {"ok": False, "error": str(e)}
 
-
-# --------- Payment endpoint ---------
+# ------------------- Payment Endpoint -------------------
 class PaymentRequest(BaseModel):
     payment_type: str
     amount: float
-
+    merchant_reference: Union[str, None] = None
 
 @app.post("/api/create-payment", include_in_schema=False)
 async def create_payment(payment: PaymentRequest):
     callpay_creds = generate_callpay_token()
     suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=3))
+    merchant_ref = payment.merchant_reference or f"PAY-{datetime.now(UTC).strftime('%y%m%d%H%M%S')}{suffix}"
 
     payload = {
         "amount": f"{payment.amount:.2f}",
-        "merchant_reference": f"PAY-{datetime.now(UTC).strftime('%y%m%d%H%M%S')}{suffix}",
+        "merchant_reference": merchant_ref,
         "payment_type": payment.payment_type,
         "notify_url": "https://api.kingburger.site/webhook",
         "success_url": "https://kingburger.site/redirects/success",
@@ -451,7 +280,6 @@ async def create_payment(payment: PaymentRequest):
         "org-id": callpay_creds["org_id"],
         "timestamp": callpay_creds["timestamp"]
     }
-
     try:
         async with httpx.AsyncClient() as client:
             response = await client.post(CALLPAY_API_URL, data=payload, headers=headers)
@@ -460,14 +288,13 @@ async def create_payment(payment: PaymentRequest):
             try:
                 data = response.json()
             except Exception:
-                data = {"raw_response": response.text or "No content returned"}
+                data = {"raw_response": text or "No content returned"}
             return data
     except Exception as e:
-        print("Payment error:", e)                      # ✅ FIXED: added logging for visibility
+        print("Payment error:", e)
         raise HTTPException(status_code=500, detail=f"Payment request failed: {e}")
 
-
-# --------- Webhook endpoint ---------
+# ------------------- Webhook -------------------
 @app.post("/webhook", include_in_schema=False)
 async def webhook(request: Request):
     client_ip = get_client_ip(request)
@@ -491,9 +318,8 @@ async def webhook(request: Request):
     })
     return JSONResponse({"status": "ok", "client_ip": client_ip})
 
-
-# --------- Run server ---------
+# ------------------- Run Server -------------------
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 10000))
-    uvicorn.run(app, host="0.0.0.0", port=port, reload=True)  # ✅ FIXED: simplified run command
+    uvicorn.run(app, host="0.0.0.0", port=port, reload=True)

@@ -192,10 +192,13 @@ async def login(userName: str = Form(...), password: str = Form(...)):
         user = users_collection.find_one({"userName": userName})
         if not user:
             return JSONResponse(content={"error": "Invalid credentials"}, status_code=401)
-
-        if not argon2.verify(password, user.get("password", "")):
-            return JSONResponse(content={"error": "Invalid credentials"}, status_code=401)
-
+        
+        try:
+            if not argon2.verify(password, user.get("password", "")):
+                return JSONResponse(content={"error": "Invalid credentials"}, status_code=401)
+        except Exception:
+            print(f"Failed login for '{userName}': password verify error: {e}")
+            return JSONResponse({"error": "Invalid credentials"}, status_code=401)        
         payload = {
             "user_id": str(user["_id"]),
             "exp": datetime.now(UTC) + timedelta(hours=1)

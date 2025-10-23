@@ -196,7 +196,7 @@ async def login(userName: str = Form(...), password: str = Form(...)):
         try:
             if not argon2.verify(password, user.get("password", "")):
                 return JSONResponse(content={"error": "Invalid credentials"}, status_code=401)
-        except Exception:
+        except Exception as e:
             print(f"Failed login for '{userName}': password verify error: {e}")
             return JSONResponse({"error": "Invalid credentials"}, status_code=401)        
         payload = {

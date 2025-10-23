@@ -22,12 +22,13 @@ import httpx
 import os
 
 from .callpayV2_Token import generate_callpay_token
+from .orders import router as orders_router  # SQL-based orders router
 
-# ------------------- Constants -------------------
-SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret")
-ALGORITHM = "HS256"
-CALLPAY_API_URL = os.getenv("CALLPAY_API_URL", "https://services.callpay.com/api/v2/payment-key")
-IP_WHITELIST = os.getenv("CALLPAY_IPS", "54.72.191.28,54.194.139.201").split(",")
+# ------------------- Environment / Constants -------------------
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM", "HS256")
+CALLPAY_API_URL = os.getenv("CALLPAY_API_URL")
+IP_WHITELIST = os.getenv("IP_WHITELIST", "54.72.191.28,54.194.139.201").split(",")
 
 UTC = timezone.utc
 
@@ -56,16 +57,14 @@ app.add_middleware(
 )
 
 # ------------------- MongoDB -------------------
-MONGO_URI = os.getenv("MONGO_URI", "mongodb+srv://SleepyDreams:saRqSb7xoc1cI1DO@kingburgercluster.ktvavv3.mongodb.net/?retryWrites=true&w=majority")
-client = MongoClient(
-    MONGO_URI,
-    tls=True,
-    tlsAllowInvalidCertificates=False
+MONGO_URI = os.getenv(
+    "MONGO_URI",
+    "mongodb+srv://SleepyDreams:saRqSb7xoc1cI1DO@kingburgercluster.ktvavv3.mongodb.net/?retryWrites=true&w=majority"
 )
+client = MongoClient(MONGO_URI, tls=True, tlsAllowInvalidCertificates=False)
 db = client["cleaning_website"]
 products_collection = db["products"]
 users_collection = db["usersCleaningSite"]
-orders_collection = db["orders"]
 
 # ------------------- Helpers -------------------
 def check_user_avail(userName: str, email: str):
@@ -180,7 +179,8 @@ async def login(userName: str = Form(...), password: str = Form(...)):
                 return JSONResponse(content={"error": "Invalid credentials"}, status_code=401)
         except Exception as e:
             print(f"Failed login for '{userName}': password verify error: {e}")
-            return JSONResponse({"error": "Invalid credentials"}, status_code=401)        
+            return JSONResponse({"error": "Invalid credentials"}, status_code=401)
+        
         payload = {
             "user_id": str(user["_id"]),
             "exp": datetime.now(UTC) + timedelta(hours=1)
@@ -220,38 +220,6 @@ def get_current_user(authorization: str = Header(...)):
 @app.get("/dashboard")
 async def dashboard(user=Depends(get_current_user)):
     return {"loggedIn_User": f"{user['firstName']}!"}
-
-# ------------------- Orders -------------------
-def create_order(user_id: str, items: list, callpay_payload: dict):
-    try:
-        gateway_response = json.loads(callpay_payload.get("gateway_response", "{}"))
-        order = {
-            "user_id": ObjectId(user_id),
-            "callpay_transaction_id": callpay_payload.get("callpay_transaction_id"),
-            "status": callpay_payload.get("status"),
-            "success": bool(callpay_payload.get("success")),
-            "amount": callpay_payload.get("amount", ""),
-            "currency": callpay_payload.get("currency", "ZAR"),
-            "created_at": datetime.now(UTC),
-            "transaction_date": callpay_payload.get("created"),
-            "reason": callpay_payload.get("reason", ""),
-            "merchant_reference": callpay_payload.get("merchant_reference", ""),
-            "gateway_reference": callpay_payload.get("gateway_reference", ""),
-            "payment_key": callpay_payload.get("payment_key", ""),
-            "bank": gateway_response.get("customer", {}).get("bank", ""),
-            "is_demo": bool(callpay_payload.get("is_demo_transaction")),
-            "total_items": len(items),
-            "items": items,
-            "raw_response": callpay_payload
-        }
-        result = orders_collection.insert_one(order)
-        if result.inserted_id:
-            order["_id"] = str(result.inserted_id)
-            return {"ok": True, "order_id": str(result.inserted_id), "merchant_reference": order["merchant_reference"]}
-        return {"ok": False, "error": "Order creation failed"}
-    except Exception as e:
-        print("Error creating order:", str(e))
-        return {"ok": False, "error": str(e)}
 
 # ------------------- Payment Endpoint -------------------
 class PaymentRequest(BaseModel):
@@ -317,6 +285,9 @@ async def webhook(request: Request):
         "payload": payload
     })
     return JSONResponse({"status": "ok", "client_ip": client_ip})
+
+# ------------------- Include Orders Router (SQLAlchemy) -------------------
+app.include_router(orders_router)
 
 # ------------------- Run Server -------------------
 if __name__ == "__main__":

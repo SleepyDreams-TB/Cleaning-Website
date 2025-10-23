@@ -188,24 +188,31 @@ def health_check():
 # --------- JWT Login ---------
 @app.post("/login/")
 async def login(userName: str = Form(...), password: str = Form(...)):
-    user = users_collection.find_one({"userName": userName})
-    if not user or not argon2.verify(password, user["password"]):
-        return JSONResponse(content={"error": "Invalid credentials"}, status_code=401)
+    try:
+        user = users_collection.find_one({"userName": userName})
+        if not user:
+            return JSONResponse(content={"error": "Invalid credentials"}, status_code=401)
 
-    payload = {
-        "user_id": str(user["_id"]),
-        "exp": datetime.now(UTC) + timedelta(hours=1)
-    }
-    token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+        if not argon2.verify(password, user.get("password", "")):
+            return JSONResponse(content={"error": "Invalid credentials"}, status_code=401)
 
-    return JSONResponse(
-        content={
+        payload = {
+            "user_id": str(user["_id"]),
+            "exp": datetime.now(UTC) + timedelta(hours=1)
+        }
+        token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
+        return JSONResponse({
             "message": "Login successful",
             "token": token,
             "user": {"firstName": user["firstName"]},
             "user_id": str(user["_id"])
-        }
-    )
+        })
+
+    except Exception as e:
+        print("Login error:", e)
+        return JSONResponse(content={"error": f"Server error: {e}"}, status_code=500)
+
 
 
 @app.post("/logout/")

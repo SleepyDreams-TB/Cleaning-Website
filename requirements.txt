@@ -10,7 +10,7 @@ python-jose==3.3.0
 passlib[argon2]==1.7.4
 python-json-logger==4.0.0
 python-dotenv==1.1.1
-SQLAlchemy==2.0.26
+SQLAlchemy==2.0.38
 psycopg2-binary==2.9.7
 
 

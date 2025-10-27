@@ -145,7 +145,7 @@ def get_user_orders(authorization: str = Header(None), db=Depends(get_db)):
 
     if not orders:
         return JSONResponse({"message": "No orders found for this user."})
-
+   
     result = []
     for order in orders:
         result.append({

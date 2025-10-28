@@ -12,7 +12,7 @@ from pydantic import BaseModel
 from pytz import UTC
 
 from utils.dotenv_utils import dotenv
-from .callpayV2_Token import generate_callpay_token
+from callpayV2_Token import generate_callpay_token
 
 CALLPAY_API_URL = dotenv.get("CALLPAY_API_URL")
 

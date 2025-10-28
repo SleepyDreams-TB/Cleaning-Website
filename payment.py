@@ -7,9 +7,9 @@ import string
 from datetime import datetime
 from typing import Union
 import httpx
-from fastapi import FastAPI, HTTPException
+from fastapi import HTTPException
 from pydantic import BaseModel
-from pytz import UTC
+from datetime import UTC
 
 from utils.dotenv_utils import dotenv
 from callpayV2_Token import generate_callpay_token
@@ -47,12 +47,11 @@ async def create_payment(payment: PaymentRequest):
         async with httpx.AsyncClient() as client:
             response = await client.post(CALLPAY_API_URL, data=payload, headers=headers)
             text = response.text
-            print("Callpay raw response:", text)
             try:
                 data = response.json()
             except Exception:
                 data = {"raw_response": text or "No content returned"}
-            return data
+        return {"status": "success", "response": data}
     except Exception as e:
         print("Payment error:", e)
         raise HTTPException(status_code=500, detail=f"Payment request failed: {e}")

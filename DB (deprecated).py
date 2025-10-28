@@ -13,16 +13,14 @@ from passlib.hash import argon2
 
 import ssl
 import sys
-import random
-import string
 import jwt
-import json
 from datetime import datetime, timedelta, timezone
-import httpx
 import os
 
-from .callpayV2_Token import generate_callpay_token
 from .orders import router as orders_router  # SQL-based orders router
+from .products import router as products_router  # Products router
+from .password_generator import router as password_generator_router
+from  .payment import router as payments_router
 
 # ------------------- Environment / Constants -------------------
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -104,27 +102,6 @@ webhook_log_handler.setFormatter(webhook_formatter)
 webhook_logger = logging.getLogger("webhook_logger")
 webhook_logger.addHandler(webhook_log_handler)
 webhook_logger.setLevel(logging.INFO)
-
-# ------------------- Password Generator -------------------
-letters = list("abcdefghjklmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ")
-numbers = list("23456789")
-symbols = list("!#$%()*+")
-cases = [0, 0, 1, 1, 2]
-
-@app.post("/password/{length}")
-async def generate_password(length: int):
-    if length < 12 or length > 16:
-        return {"error": "Length must be between 12 and 16"}
-    password = ""
-    for _ in range(length):
-        case = random.choice(cases)
-        if case == 0:
-            password += random.choice(letters)
-        elif case == 1:
-            password += random.choice(numbers)
-        else:
-            password += random.choice(symbols)
-    return {"password": password}
 
 # ------------------- Registration -------------------
 @app.post("/register/")
@@ -243,46 +220,6 @@ async def get_user(user_id: str, user=Depends(get_current_user)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
 
-# ------------------- Payment Endpoint -------------------
-class PaymentRequest(BaseModel):
-    payment_type: str
-    amount: float
-    merchant_reference: Union[str, None] = None
-
-@app.post("/api/create-payment", include_in_schema=False)
-async def create_payment(payment: PaymentRequest):
-    callpay_creds = generate_callpay_token()
-    suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=3))
-    merchant_ref = payment.merchant_reference or f"PAY-{datetime.now(UTC).strftime('%y%m%d%H%M%S')}{suffix}"
-
-    payload = {
-        "amount": f"{payment.amount:.2f}",
-        "merchant_reference": merchant_ref,
-        "payment_type": payment.payment_type,
-        "notify_url": "https://api.kingburger.site/webhook",
-        "success_url": "https://kingburger.site/redirects/success",
-        "error_url": "https://kingburger.site/redirects/failure",
-        "cancel_url": "https://kingburger.site/redirects/cancel"
-    }
-    headers = {
-        "Content-Type": "application/x-www-form-urlencoded",
-        "auth-token": callpay_creds["Token"],
-        "org-id": callpay_creds["org_id"],
-        "timestamp": callpay_creds["timestamp"]
-    }
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.post(CALLPAY_API_URL, data=payload, headers=headers)
-            text = response.text
-            print("Callpay raw response:", text)
-            try:
-                data = response.json()
-            except Exception:
-                data = {"raw_response": text or "No content returned"}
-            return data
-    except Exception as e:
-        print("Payment error:", e)
-        raise HTTPException(status_code=500, detail=f"Payment request failed: {e}")
 
 # ------------------- Webhook -------------------
 @app.post("/webhook", include_in_schema=False)
@@ -310,7 +247,9 @@ async def webhook(request: Request):
 
 # ------------------- Include Orders Router (SQLAlchemy) -------------------
 app.include_router(orders_router)
-
+app.include_router(products_router)
+app.include_router(password_generator_router)
+app.include_router(payments_router)
 # ------------------- Run Server -------------------
 if __name__ == "__main__":
     import uvicorn

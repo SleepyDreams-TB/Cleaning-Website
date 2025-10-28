@@ -11,10 +11,14 @@ from fastapi import HTTPException
 from pydantic import BaseModel
 from datetime import UTC
 
-from utils.dotenv_utils import dotenv
 from callpayV2_Token import generate_callpay_token
+from dotenv import load_dotenv
+import os
 
-CALLPAY_API_URL = dotenv.get("CALLPAY_API_URL")
+load_dotenv()
+
+CALLPAY_API_URL = os.getenv("CALLPAY_API_URL")
+
 
 # ------------------- Payment Endpoint -------------------
 class PaymentRequest(BaseModel):

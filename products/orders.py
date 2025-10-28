@@ -130,25 +130,54 @@ async def create_order(request: Request, authorization: str = Header(None), db=D
 
 
 # --- Get All Orders for the Logged-in User ---
+from fastapi import Query
+
 @router.get("/orders/me")
-def get_user_orders(authorization: str = Header(None), db=Depends(get_db)):
-    """Retrieve all orders for the currently authenticated user."""
+def get_user_orders(
+    authorization: str = Header(None),
+    db=Depends(get_db),
+    status: str | None = Query(None, description="Filter by order status"),
+    payment_type: str | None = Query(None, description="Filter by payment type"),
+    merchant_reference: str | None = Query(None, description="Search by merchant reference"),
+    date_from: str | None = Query(None, description="Filter from date (YYYY-MM-DD)"),
+    date_to: str | None = Query(None, description="Filter to date (YYYY-MM-DD)"),
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(10, ge=1, le=100, description="Items per page")
+):
+    """Retrieve pages and filterable orders for the authenticated user."""
     user_id = get_user_id_from_token(authorization)
 
-    orders = (
+    # --- Query ---
+    query = (
         db.query(Order)
         .options(joinedload(Order.items))
         .filter(Order.user_id == user_id)
-        .order_by(Order.created_at.desc())
+    )
+
+    # --- Apply filters ---
+    if status:
+        query = query.filter(Order.status.ilike(f"%{status}%"))
+    if payment_type:
+        query = query.filter(Order.payment_type.ilike(f"%{payment_type}%"))
+    if merchant_reference:
+        query = query.filter(Order.merchant_reference.ilike(f"%{merchant_reference}%"))
+    if date_from:
+        query = query.filter(Order.created_at >= datetime.fromisoformat(date_from))
+    if date_to:
+        query = query.filter(Order.created_at <= datetime.fromisoformat(date_to))
+
+    # --- Pages ---
+    total_records = query.count()
+    orders = (
+        query.order_by(Order.created_at.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
         .all()
     )
 
-    if not orders:
-        return JSONResponse({"message": "No orders found for this user."})
-   
-    result = []
-    for order in orders:
-        result.append({
+    # --- Format JSON ---
+    result = [
+        {
             "merchant_reference": order.merchant_reference,
             "total": order.total,
             "payment_type": order.payment_type,
@@ -157,7 +186,16 @@ def get_user_orders(authorization: str = Header(None), db=Depends(get_db)):
             "items": [
                 {"name": i.name, "price": i.price, "quantity": i.quantity}
                 for i in order.items
-            ]
-        })
+            ],
+        }
+        for order in orders
+    ]
 
-    return JSONResponse(result)
+    return JSONResponse({
+        "page": page,
+        "page_size": page_size,
+        "total_records": total_records,
+        "total_pages": (total_records + page_size - 1) // page_size,
+        "orders": result,
+    })
+

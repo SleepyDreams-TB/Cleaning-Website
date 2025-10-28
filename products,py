@@ -15,7 +15,7 @@ import os
 router = APIRouter(prefix="/products", tags=["products"])
 
 # Connect to MongoDB database
-MONGO_URI = os.getenv("MONGO_URI", "your-mongo-connection-string")
+MONGO_URI = os.getenv("MONGO_URI")
 client = MongoClient(MONGO_URI, tls=True, tlsAllowInvalidCertificates=False)
 db = client["cleaning_website"]
 products_collection = db["products"]  # This is our products table

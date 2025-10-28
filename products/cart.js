@@ -22,7 +22,6 @@ export function clearCart() {
   localStorage.removeItem("checkoutCart");
 }
 
-// Delete single item by _id
 export function deleteCartItem(id) {
   let cart = getCart();
   cart = cart.filter(item => item._id !== id);
@@ -30,22 +29,12 @@ export function deleteCartItem(id) {
   return cart;
 }
 
-// Recalculate total price
 export function recalcTotal(cart) {
   return cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 }
 
-// ----- Payment -----
-export async function createPayment(payment_type) {
-  const cartItems = getCart();
-  if (!cartItems.length) {
-    alert("Your cart is empty!");
-    return;
-  }
-
-  const totalAmount = recalcTotal(cartItems).toFixed(2);
-
-  // Call backend payment endpoint directly
+// ----- Create Order -----
+export async function createOrder(orderData) {
   try {
     const res = await fetch('https://api.kingburger.site/api/create-payment', {
       method: 'POST',
@@ -66,23 +55,58 @@ export async function createPayment(payment_type) {
       data = { raw_response: text };
     }
 
-    // Clear cart after initiating payment
-    clearCart();
-
-    if (data.url) {
-      // Redirect to payment page
-      window.location.href = data.url;
-    } else if (data.raw_response) {
-      // Try to extract a URL from raw response
-      const urlMatch = data.raw_response.match(/https?:\/\/\S+/);
-      if (urlMatch) window.location.href = urlMatch[0];
-      else alert("Payment failed. Check console for raw response.");
-    } else {
-      alert("Payment failed. Check console for details.");
-    }
+    return data;
 
   } catch (err) {
-    console.error("Payment error:", err);
-    alert("Payment failed. Please try again.");
+    console.error("Order creation error:", err);
+    throw err;
+  }
+}
+
+// ----- Payment -----
+export async function createPayment(payment_type, amount) {
+
+  const orderData = {
+    user_id: localStorage.getItem("userId") || null,
+    items: getCart(),
+    merchant_reference: '',
+    total: amount,
+    payment_type: payment_type
+  };
+
+  const response = await createOrder(orderData);
+
+  if (response && !response.error) {
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch {
+      data = { raw_response: text };
+    }
+
+      const text = await res.text();
+      let data;
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        data = { raw_response: text };
+      }
+
+      clearCart();
+      try {
+        if (data.url) {
+          window.location.href = data.url;
+        } else if (data.raw_response) {
+          const urlMatch = data.raw_response.match(/https?:\/\/\S+/);
+          if (urlMatch) window.location.href = urlMatch[0];
+          else alert("Payment failed. Check console for raw response.");
+        } else {
+          alert("Payment failed. Check console for details.");
+        }
+    } catch (err) {
+      console.error("Payment error:", err);
+      alert("Payment failed. Please try again.");
+    }
+  } else {
+    alert("Order creation failed. Please try again.");
   }
 }

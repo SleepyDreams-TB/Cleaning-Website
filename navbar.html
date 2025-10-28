@@ -1,11 +1,33 @@
-<nav>
-  <span id="userFname"></span>
-  <a href="/index" class="mr-4 text-pink-600 hover:underline">Home</a>
-  <a href="/services" class="mr-4 text-pink-600 hover:underline">Services</a>
-  <a href="/About-Us" class="mr-4 text-pink-600 hover:underline">About Us</a>
-  <a href="/ContactUs" class="mr-4 text-pink-600 hover:underline">Contact</a>
-  <a href="/products/productsPage" class="mr-4 text-pink-600 hover:underline">Products</a>
-  <a href="/products/cart" class="mr-4 text-pink-600 hover:underline">Cart</a>
-  <a id="profileLink" href="../users/profile.html" class="mr-4 text-pink-600 hover:underline">Profile</a>
-  <a id="logoutLink" class="mr-4 text-pink-600 hover:underline" style="cursor:pointer;">Logout</a>
+<nav class="flex items-center space-x-4">
+  <a href="/index" class="text-pink-600 hover:underline">Home</a>
+  <a href="/services" class="text-pink-600 hover:underline">Services</a>
+  <a href="/About-Us" class="text-pink-600 hover:underline">About Us</a>
+  <a href="/ContactUs" class="text-pink-600 hover:underline">Contact</a>
+  <a href="/products/productsPage" class="text-pink-600 hover:underline">Products</a>
+
+  <!-- User Dropdown -->
+  <div class="relative inline-block text-left" id="userDropdownContainer">
+    <button id="userDropdownButton"
+      class="inline-flex items-center justify-center w-full text-pink-600 hover:underline font-semibold focus:outline-none">
+      <span id="userFname">User</span>
+      <svg class="w-4 h-4 ml-1" xmlns="http://www.w3.org/2000/svg" fill="none"
+        viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M19 9l-7 7-7-7" />
+      </svg>
+    </button>
+
+    <!-- Dropdown Menu -->
+    <div id="userDropdownMenu"
+      class="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg hidden z-50">
+      <a href="/users/profile.html"
+        class="block px-4 py-2 text-sm text-gray-700 hover:bg-pink-100">Profile</a>
+      <a href="/orders/orders.html"
+        class="block px-4 py-2 text-sm text-gray-700 hover:bg-pink-100">Orders</a>
+      <a href="/products/cart"
+        class="block px-4 py-2 text-sm text-gray-700 hover:bg-pink-100">Cart</a>
+      <button id="logoutLink"
+        class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-pink-100">Logout</button>
+    </div>
+  </div>
 </nav>

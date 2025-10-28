@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" href="/Cleaning-Website/assets/wipe.ico" type="image/x-icon">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Orders - Sparkle Clean</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-cover bg-center bg-no-repeat bg-fixed text-gray-800"
+  style="background-image: url('../assets/cleaningbg.jpg');">
+
+  <!-- Header -->
+  <header class="bg-black shadow p-4 flex justify-between items-center">
+    <h1 class="text-pink-600 font-bold text-xl">Sparkle Clean</h1>
+    <nav><div id="navbar-container"></div></nav>
+  </header>
+
+  <!-- Orders Section -->
+  <section class="max-w-6xl mx-auto mt-12 bg-white/80 backdrop-blur-md rounded-lg shadow-lg p-6">
+    <h2 class="text-3xl font-bold text-center mb-6 text-pink-600">My Orders</h2>
+
+    <!-- Filters -->
+    <div class="grid md:grid-cols-5 gap-4 mb-6">
+      <input id="filter-status" type="text" placeholder="Filter by Status" class="border p-2 rounded">
+      <input id="filter-payment" type="text" placeholder="Filter by Payment Type" class="border p-2 rounded">
+      <input id="filter-reference" type="text" placeholder="Search by Reference" class="border p-2 rounded">
+      <input id="filter-from" type="date" class="border p-2 rounded">
+      <input id="filter-to" type="date" class="border p-2 rounded">
+    </div>
+
+    <div class="flex justify-between items-center mb-4">
+      <button id="apply-filters" class="bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700">Apply Filters</button>
+      <div class="text-gray-600 text-sm" id="pagination-info"></div>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="overflow-x-auto">
+      <table class="min-w-full border border-gray-300 bg-white rounded">
+        <thead class="bg-pink-100">
+          <tr>
+            <th class="px-4 py-2 border">Reference</th>
+            <th class="px-4 py-2 border">Total</th>
+            <th class="px-4 py-2 border">Payment</th>
+            <th class="px-4 py-2 border">Status</th>
+            <th class="px-4 py-2 border">Date</th>
+            <th class="px-4 py-2 border">Items</th>
+          </tr>
+        </thead>
+        <tbody id="orders-body" class="divide-y divide-gray-200 text-center">
+          <tr><td colspan="6" class="p-4 text-gray-500">Loading orders...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div class="flex justify-center items-center gap-4 mt-6">
+      <button id="prev-page" class="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400 disabled:opacity-50" disabled>Previous</button>
+      <button id="next-page" class="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400 disabled:opacity-50" disabled>Next</button>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="text-center text-sm py-6 bg-gray-100 mt-16">
+    © 2025 Sparkle Clean. All rights reserved.
+  </footer>
+
+  <script type="module" src="/navbar.js"></script>
+
+  <script>
+    const ordersBody = document.getElementById('orders-body');
+    const paginationInfo = document.getElementById('pagination-info');
+    const prevPageBtn = document.getElementById('prev-page');
+    const nextPageBtn = document.getElementById('next-page');
+    const filters = {
+      status: document.getElementById('filter-status'),
+      payment: document.getElementById('filter-payment'),
+      reference: document.getElementById('filter-reference'),
+      from: document.getElementById('filter-from'),
+      to: document.getElementById('filter-to'),
+    };
+
+    let currentPage = 1;
+    const pageSize = 10;
+
+    async function fetchOrders(page = 1) {
+      const token = localStorage.getItem('jwt');
+      if (!token) {
+        ordersBody.innerHTML = '<tr><td colspan="6" class="p-4 text-red-600">Unauthorized - please log in.</td></tr>';
+        return;
+      }
+
+      const params = new URLSearchParams({
+        page,
+        page_size: pageSize,
+        status: filters.status.value,
+        payment_type: filters.payment.value,
+        merchant_reference: filters.reference.value,
+        date_from: filters.from.value,
+        date_to: filters.to.value,
+      });
+
+      const response = await fetch(`/api/orders/me?${params}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        ordersBody.innerHTML = `<tr><td colspan="6" class="p-4 text-red-600">${data.detail || 'Error fetching orders'}</td></tr>`;
+        return;
+      }
+
+      // Render orders
+      renderOrders(data.orders);
+      updatePagination(data);
+    }
+
+    function renderOrders(orders) {
+      if (!orders || orders.length === 0) {
+        ordersBody.innerHTML = '<tr><td colspan="6" class="p-4 text-gray-500">No orders found.</td></tr>';
+        return;
+      }
+
+      ordersBody.innerHTML = orders.map(order => `
+        <tr>
+          <td class="border px-4 py-2">${order.merchant_reference}</td>
+          <td class="border px-4 py-2">R${order.total.toFixed(2)}</td>
+          <td class="border px-4 py-2">${order.payment_type}</td>
+          <td class="border px-4 py-2">${order.status}</td>
+          <td class="border px-4 py-2">${new Date(order.created_at).toLocaleString()}</td>
+          <td class="border px-4 py-2 text-left">
+            <ul>
+              ${order.items.map(i => `<li>${i.name} x${i.quantity} (R${i.price.toFixed(2)})</li>`).join('')}
+            </ul>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function updatePagination(data) {
+      currentPage = data.page;
+      paginationInfo.textContent = `Page ${data.page} of ${data.total_pages}`;
+      prevPageBtn.disabled = data.page <= 1;
+      nextPageBtn.disabled = data.page >= data.total_pages;
+    }
+
+    // Event listeners
+    prevPageBtn.addEventListener('click', () => fetchOrders(currentPage - 1));
+    nextPageBtn.addEventListener('click', () => fetchOrders(currentPage + 1));
+    document.getElementById('apply-filters').addEventListener('click', () => fetchOrders(1));
+
+    // Initial load
+    fetchOrders();
+  </script>
+</body>
+</html>

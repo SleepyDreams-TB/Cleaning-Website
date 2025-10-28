@@ -56,7 +56,8 @@ app.add_middleware(
 
 # ------------------- MongoDB -------------------
 MONGO_URI = os.getenv(
-    "MONGO_URI"
+    "MONGO_URI",
+    "mongodb+srv://SleepyDreams:saRqSb7xoc1cI1DO@kingburgercluster.ktvavv3.mongodb.net/?retryWrites=true&w=majority"
 )
 client = MongoClient(MONGO_URI, tls=True, tlsAllowInvalidCertificates=False)
 db = client["cleaning_website"]

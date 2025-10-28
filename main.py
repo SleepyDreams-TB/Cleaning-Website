@@ -1,17 +1,17 @@
 """
 MAIN APPLICATION FILE
-This is the entry point for your FastAPI application
-All routes are organized in separate router files
 """
+
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import ssl
-import sys
-import os
 
-# Import all routers
+# Import routers
 from auth import router as auth_router
 from users import router as users_router
 from products import router as products_router

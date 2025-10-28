@@ -11,6 +11,9 @@ from typing import Optional
 from datetime import datetime, timezone
 import os
 
+import sys, os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 # Create a router (like a mini-app for products)
 router = APIRouter(prefix="/products", tags=["products"])
 

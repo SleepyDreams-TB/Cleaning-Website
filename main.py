@@ -5,7 +5,7 @@ All routes are organized in separate router files
 """
 
 from fastapi import FastAPI
-from fastapimiddlewarecors import CORSMiddleware
+from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import ssl
 import sys
@@ -26,17 +26,17 @@ async def lifespan(app: FastAPI):
     Runs when the app starts and shuts down
     Good place for startup/cleanup tasks
     """
-    print("🚀 Starting application")
-    print(f"🐍 Python version: {sysversion}")
-    print(f"🔒 OpenSSL version: {sslOPENSSL_VERSION}")
+    print("🚀 Starting application...")
+    print(f"🐍 Python version: {sys.version}")
+    print(f"🔒 OpenSSL version: {ssl.OPENSSL_VERSION}")
     yield
-    print("👋 Shutting down application")
+    print("👋 Shutting down application...")
 
 # ==================== CREATE FASTAPI APP ====================
 app = FastAPI(
     title="Cleaning Website API",
     description="API for cleaning services booking and management",
-    version="100",
+    version="1.0.0",
     lifespan=lifespan,
     docs_url="/docs"  # Swagger documentation at /docs
 )
@@ -46,33 +46,33 @@ print("✅ FastAPI app initialized")
 # ==================== CORS MIDDLEWARE ====================
 # Allow these websites to access the API
 allowed_origins = [
-    "https://kingburgersite",
-    "https://cleaning-website-static-siteonrendercom",
-    "http://127001:5173",  # Local development
+    "https://kingburger.site",
+    "https://cleaning-website-static-site.onrender.com",
+    "http://127.0.0.1:5173",  # Local development
     "http://localhost:5173"    # Alternative local
 ]
 
-appadd_middleware(
+app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],  # Allow all HTTP methods (GET, POST, PUT, DELETE, etc)
+    allow_methods=["*"],  # Allow all HTTP methods (GET, POST, PUT, DELETE, etc.)
     allow_headers=["*"],  # Allow all headers
 )
 
 print("✅ CORS middleware configured")
 
 # ==================== BASIC ROUTES ====================
-@appget("/")
+@app.get("/")
 def root():
     """Welcome endpoint - shows API is running"""
     return {
         "message": "Welcome to the Cleaning Website API! 🧹✨",
         "docs": "/docs",
-        "version": "100"
+        "version": "1.0.0"
     }
 
-@appget("/health")
+@app.get("/health")
 def health_check():
     """Health check endpoint - used by hosting services"""
     return {
@@ -83,12 +83,12 @@ def health_check():
 # ==================== INCLUDE ALL ROUTERS ====================
 # Each router handles a specific part of the application
 
-appinclude_router(auth_router)           # /auth/* - login, register, logout
-appinclude_router(users_router)          # /users/* - user profiles
-appinclude_router(products_router)       # /products/* - cleaning products/services
-appinclude_router(payment_router)        # /payments/* - payment processing
-appinclude_router(orders_router)         # /orders/* - order management (SQL)
-appinclude_router(password_generator_router)  # /password/* - password generator
+app.include_router(auth_router)           # /auth/* - login, register, logout
+app.include_router(users_router)          # /users/* - user profiles
+app.include_router(products_router)       # /products/* - cleaning products/services
+app.include_router(payment_router)        # /payments/* - payment processing
+app.include_router(orders_router)         # /orders/* - order management (SQL)
+app.include_router(password_generator_router)  # /password/* - password generator
 
 print("✅ All routers registered")
 
@@ -97,13 +97,13 @@ if __name__ == "__main__":
     import uvicorn
     
     # Get port from environment or use 10000 as default
-    port = int(osenvironget("PORT", 10000))
+    port = int(os.environ.get("PORT", 10000))
     
-    print(f"🌐 Starting server on port {port}")
+    print(f"🌐 Starting server on port {port}...")
     
-    uvicornrun(
+    uvicorn.run(
         app,
-        host="0000",  # Listen on all network interfaces
+        host="0.0.0.0",  # Listen on all network interfaces
         port=port,
         reload=True      # Auto-reload on code changes (development only)
     )

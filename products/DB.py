@@ -219,7 +219,7 @@ def get_current_user(authorization: str = Header(...)):
 
 @app.get("/dashboard")
 async def dashboard(user=Depends(get_current_user)):
-    return {"loggedIn_User": f"{user['firstName']}!"}
+    return {"loggedIn_User": f"{user['firstName']}"}
 
 # ------------------- Payment Endpoint -------------------
 class PaymentRequest(BaseModel):

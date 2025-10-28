@@ -219,7 +219,29 @@ def get_current_user(authorization: str = Header(...)):
 
 @app.get("/dashboard")
 async def dashboard(user=Depends(get_current_user)):
-    return {"loggedIn_User": f"{user['firstName']}"}
+    return {
+        "loggedIn_User": f"{user['firstName']}!",
+        "user_id": str(user["_id"]),
+        "userName": user.get("userName")
+    }
+
+
+@app.get("/users/{user_id}")
+async def get_user(user_id: str, user=Depends(get_current_user)):
+    """Get user by ID - requires authentication"""
+    try:
+        target_user = users_collection.find_one({"_id": ObjectId(user_id)})
+        if not target_user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        target_user.pop("password", None)
+        target_user["_id"] = str(target_user["_id"])
+        
+        return target_user
+    except InvalidId:
+        raise HTTPException(status_code=400, detail="Invalid user ID format")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
 
 # ------------------- Payment Endpoint -------------------
 class PaymentRequest(BaseModel):

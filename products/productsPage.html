@@ -34,7 +34,7 @@
         try {
           const response = await fetch('https://api.kingburger.site/products/');
           const responseData = await response.json()
-          const products = responseData.data || [];
+          const products = responseData.products || [];
           const container = document.getElementById('productsContainer');
 
           container.innerHTML = products.map(product => `

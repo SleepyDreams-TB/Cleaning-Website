@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function checkUsernameAvailability() {
     const username = document.getElementById('username')?.value || "";
     const email = document.getElementById('email')?.value || "";
-    if (!username) return; // Skip if empty
+    if (!username) return;
 
     try {
       const response = await fetch('/api/check_user_avail', {
@@ -156,7 +156,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (el) el.disabled = true;
       });
 
-      // Refresh page after update
       window.location.reload();
 
     } catch (error) {

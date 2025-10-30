@@ -13,6 +13,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     const dropdownMenu = document.getElementById('userDropdownMenu');
     const token = localStorage.getItem('jwt');
 
+    // Hide dropdown if not logged in
+    if (!token) {
+      showGuest(usernameSpan, logoutLink);
+      if (dropdownButton) dropdownButton.style.display = "none";
+      if (dropdownMenu) dropdownMenu.style.display = "none";
+      return;
+    }
+
     // Show/Hide dropdown on click
     if (dropdownButton && dropdownMenu) {
       dropdownButton.addEventListener('click', () => {
@@ -26,11 +34,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
 
-    if (!token) {
-      showGuest(usernameSpan, logoutLink);
-      return;
-    }
-
     try {
       const res = await fetch('https://api.kingburger.site/users/dashboard', {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -39,10 +42,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!res.ok) throw new Error();
 
       const responseData = await res.json();
-
-      const user_data = responseData.user || {};
+      const user = responseData.user || {};
       if (usernameSpan) {
-        usernameSpan.textContent = `${user_data.firstName || ''} ${user_data.lastName || ''}`.trim() || user_data.userName || 'User';
+        usernameSpan.textContent = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.userName || 'User';
       }
 
     } catch {
@@ -53,6 +55,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       logoutLink.addEventListener('click', () => {
         if (confirm("Are you sure you want to log out?")) {
           localStorage.removeItem('jwt');
+          localStorage.removeItem('userId');
           window.location.href = '/index.html';
         }
       });

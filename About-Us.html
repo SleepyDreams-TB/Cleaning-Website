@@ -5,38 +5,66 @@
   <link rel="icon" href="wipe.ico" type="image/x-icon">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sparkle Cleaning Services</title>
+  <title>About Us - Sparkle Cleaning Services</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body class="bg-cover bg-center bg-no-repeat bg-fixed text-gray-800"
   style="background-image: url('../assets/cleaningbg.jpg');">
+
+  <!-- Header -->
   <header class="bg-black shadow p-4 flex justify-between items-center">
-    <h1 class="text-pink-600 font-bold">Sparkle Clean</h1>
+    <h1 class="text-pink-600 font-bold text-xl">Sparkle Clean</h1>
     <nav>
       <div id="navbar-container"></div>
     </nav>
   </header>
 
-  <section class="text-center py-16 bg-gray-100">
-    <h3 class="text-2xl font-semibold mb-4">Book Your Cleaning Today!</h3>
-    <p class="mb-6">Contact us for a free quote or to schedule your first clean.</p>
-    <a href="ContactUs.html" class="bg-pink-600 text-white py-2 px-4 rounded hover:bg-pink-700">
-      Contact Us
+  <!-- Hero Section -->
+  <section class="text-center py-24 bg-pink-50/90 backdrop-blur-sm">
+    <h2 class="text-4xl md:text-5xl font-extrabold mb-4 text-gray-900">Professional Cleaning Services You Can Trust</h2>
+    <p class="text-lg md:text-xl mb-6 text-gray-700 max-w-2xl mx-auto">At Sparkle Clean, we provide top-notch cleaning
+      solutions for homes, offices, and more. Our team is dedicated to delivering spotless results every time.</p>
+    <a href="ContactUs.html"
+      class="bg-pink-600 text-white py-3 px-6 rounded-full text-lg font-semibold shadow hover:bg-pink-700 transition duration-300">
+      Book Your Cleaning
     </a>
   </section>
 
-  <section>
-    <h3 class="text-2xl font-semibold text-center mb-8">Why Choose Sparkle Clean?</h3>
-    <ul class="list-disc list-inside max-w-3xl mx-auto text-center">
-      <li>Experienced and professional cleaners</li>
-      <li>Eco-friendly cleaning products</li>
-      <li>Flexible scheduling options</li>
-      <li>100% satisfaction guarantee</li>
-    </ul>
+  <!-- About / Why Choose Us Section -->
+  <section class="py-20 bg-gray-100">
+    <div class="max-w-6xl mx-auto px-6">
+      <h3 class="text-3xl font-bold text-center mb-12">Why Choose Sparkle Clean?</h3>
+      <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition duration-300">
+          <h4 class="text-xl font-semibold mb-2 text-pink-600">Experienced Team</h4>
+          <p>Our cleaners are trained professionals who handle every job with care and precision.</p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition duration-300">
+          <h4 class="text-xl font-semibold mb-2 text-pink-600">Eco-Friendly Products</h4>
+          <p>We use environmentally safe cleaning products that protect your family and pets.</p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition duration-300">
+          <h4 class="text-xl font-semibold mb-2 text-pink-600">Flexible Scheduling</h4>
+          <p>Book your cleaning at a time that works best for your schedule, 7 days a week.</p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition duration-300">
+          <h4 class="text-xl font-semibold mb-2 text-pink-600">Satisfaction Guarantee</h4>
+          <p>We stand behind our work. If you’re not happy, we’ll make it right at no extra cost.</p>
+        </div>
+      </div>
+    </div>
+  </section>
 
-    <br>
-    <b>Contact us for a free quote or to book your first clean!</b>
+  <!-- Call to Action -->
+  <section class="text-center py-20 bg-pink-50/90 backdrop-blur-sm">
+    <h3 class="text-3xl font-bold mb-4">Ready for a Sparkling Clean Home?</h3>
+    <p class="text-lg mb-6 max-w-2xl mx-auto text-gray-700">Contact us today for a free quote or to schedule your first
+      cleaning.</p>
+    <a href="ContactUs.html"
+      class="bg-pink-600 text-white py-3 px-6 rounded-full text-lg font-semibold shadow hover:bg-pink-700 transition duration-300">
+      Contact Us Now
+    </a>
   </section>
 
   <!-- Footer -->
@@ -44,7 +72,7 @@
     © 2025 Sparkle Clean. All rights reserved.
   </footer>
 
+  <script type="module" src="/navbar.js"></script>
 </body>
-<script type="module" src="/navbar.js"></script>
 
 </html>

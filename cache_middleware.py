@@ -9,6 +9,7 @@ Cache Duration Strategy:
 - Health checks: 1 minute (needs to be reasonably fresh)
 - Root endpoint: 5 minutes (static welcome message)
 - Auth/User endpoints: No caching (sensitive/dynamic data)
+- Payment/Order endpoints: No caching (real-time data)
 - Other GET endpoints: 2 minutes (safe default)
 """
 
@@ -22,24 +23,42 @@ class CacheControlMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
         path = request.url.path
         
+        # Define endpoints that should NEVER be cached
+        NO_CACHE_PATTERNS = [
+            "/auth",
+            "/users",
+            "/payments",
+            "/orders",
+            "/dashboard",
+            "/profile",
+        ]
+        
         if request.method == "GET":
-            if path.startswith("/products"):
+            # Check if path matches any no-cache pattern
+            should_not_cache = any(path.startswith(pattern) for pattern in NO_CACHE_PATTERNS)
+            
+            if should_not_cache:
+                # Sensitive or real-time data - never cache
+                response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+                response.headers["Pragma"] = "no-cache"
+                response.headers["Expires"] = "0"
+            
+            elif path.startswith("/products"):
+                # Products - cache for 10 minutes
                 response.headers["Cache-Control"] = "public, max-age=600"
                 expiry_time = datetime.now(timezone.utc) + timedelta(minutes=10)
                 response.headers["Expires"] = expiry_time.strftime("%a, %d %b %Y %H:%M:%S GMT")
             
             elif path == "/health":
+                # Health check - cache for 1 minute
                 response.headers["Cache-Control"] = "public, max-age=60"
             
             elif path == "/":
+                # Root endpoint - cache for 5 minutes
                 response.headers["Cache-Control"] = "public, max-age=300"
             
-            elif path.startswith("/auth") or path.startswith("/users"):
-                response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-                response.headers["Pragma"] = "no-cache"
-                response.headers["Expires"] = "0"
-            
             else:
+                # Default for other GET endpoints - cache for 2 minutes
                 response.headers["Cache-Control"] = "public, max-age=120"
         
         return response
@@ -86,6 +105,41 @@ Additional Headers:
     Legacy header for HTTP/1.0 compatibility. Equivalent to "no-cache".
 
 ──────────────────────────────────────────────────────────────────────
+How to Modify Cache Rules
+──────────────────────────────────────────────────────────────────────
+
+To Disable Cache for Specific Endpoints:
+    Add the path pattern to NO_CACHE_PATTERNS list:
+    
+    NO_CACHE_PATTERNS = [
+        "/auth",
+        "/users",
+        "/payments",
+        "/orders",
+        "/your-new-endpoint",  # Add here
+    ]
+
+To Add Custom Cache Duration:
+    Add a new elif block with your endpoint and desired max-age:
+    
+    elif path.startswith("/products/featured"):
+        response.headers["Cache-Control"] = "public, max-age=1800"  # 30 minutes
+
+To Use Private Cache (user-specific):
+    Replace "public" with "private":
+    
+    response.headers["Cache-Control"] = "private, max-age=300"
+
+Common Cache Durations (in seconds):
+    30 seconds:  max-age=30
+    1 minute:    max-age=60
+    5 minutes:   max-age=300
+    10 minutes:  max-age=600
+    30 minutes:  max-age=1800
+    1 hour:      max-age=3600
+    1 day:       max-age=86400
+
+──────────────────────────────────────────────────────────────────────
 Implementation Notes
 ──────────────────────────────────────────────────────────────────────
 
@@ -98,6 +152,9 @@ Security Considerations:
     Authentication and user-specific endpoints explicitly disable caching
     to prevent leaking sensitive information. Never cache data containing
     passwords, tokens, or personally identifiable information.
+    
+    Payment and order endpoints are never cached to ensure users always
+    see the most current transaction status and order information.
 
 Cache Invalidation:
     When product data is updated, users will see stale data until cache expires.
@@ -130,6 +187,7 @@ Common Pitfalls to Avoid:
     - Setting max-age too high for frequently changing data
     - Forgetting to handle cache invalidation strategy
     - Not testing cache behavior in production-like environment
+    - Caching payment or order data (security and accuracy concerns)
 
 ──────────────────────────────────────────────────────────────────────
 """

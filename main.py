@@ -12,6 +12,7 @@ from contextlib import asynccontextmanager
 import ssl
 
 # Import routers
+from middleware import CacheControlMiddleware
 from auth import router as auth_router
 from users import router as users_router
 from products import router as products_router
@@ -47,7 +48,7 @@ print("✅ FastAPI app initialized")
 # Allow these websites to access the API
 allowed_origins = [
     "https://kingburger.site",
-    "https://sparkle-clean-app.onrender.com/login",
+    "https://sparkle-clean-app.onrender.com/",
     "http://127.0.0.1:5173",  # Local development
     "http://localhost:5173"    # Alternative local
 ]
@@ -58,6 +59,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods (GET, POST, PUT, DELETE, etc.)
     allow_headers=["*"],  # Allow all headers
+    expose_headers=["*"]  # Expose all headers to the client
 )
 
 print("✅ CORS middleware configured")
@@ -83,6 +85,7 @@ def health_check():
 # ==================== INCLUDE ALL ROUTERS ====================
 # Each router handles a specific part of the application
 
+app.add_middleware(CacheControlMiddleware) # Control caching for all Pages
 app.include_router(auth_router)           # /auth/* - login, register, logout
 app.include_router(users_router)          # /users/* - user profiles
 app.include_router(products_router)       # /products/* - cleaning products/services

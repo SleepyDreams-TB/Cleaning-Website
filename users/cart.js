@@ -33,80 +33,90 @@ export function recalcTotal(cart) {
   return cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 }
 
-// ----- Create Order -----
-export async function createOrder(orderData) {
+// ----- Create Order in Backend -----
+export async function createBackendOrder(payment_type) {
+  const cart = getCart();
+  if (cart.length === 0) {
+    alert("Your cart is empty.");
+    return null;
+  }
+
+  const token = localStorage.getItem("authToken");
+  if (!token) {
+    alert("Please log in before placing an order.");
+    return null;
+  }
+
   try {
-    const res = await fetch('https://api.kingburger.site/api/create-payment', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const res = await fetch("https://api.kingburger.site/api/orders", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token
+      },
       body: JSON.stringify({
-        payment_type,
-        amount: totalAmount,
-        user_id: localStorage.getItem("userId") || null,
-        items: cartItems // backend will handle order creation and merchant_reference
+        payment_type: payment_type,
+        items: cart
+      })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error();
+
+    return data;
+  } catch {
+    alert("We could not create your order. Please try again.");
+    return null;
+  }
+}
+
+// ----- Create Payment -----
+export async function createPayment(payment_type, amount) {
+  try {
+    const orderData = await createBackendOrder(payment_type);
+    if (!orderData || !orderData.merchant_reference) {
+      alert("We could not create your order. Please try again.");
+      return;
+    }
+
+    const res = await fetch("https://api.kingburger.site/api/create-payment", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        payment_type: payment_type,
+        amount: amount,
+        merchant_reference: orderData.merchant_reference
       })
     });
 
     const text = await res.text();
-    let data;
+    let data = {};
     try {
       data = text ? JSON.parse(text) : {};
     } catch {
       data = { raw_response: text };
     }
 
-    return data;
+    clearCart();
 
-  } catch (err) {
-    console.error("Order creation error:", err);
-    throw err;
-  }
-}
-
-// ----- Payment -----
-export async function createPayment(payment_type, amount) {
-
-  const orderData = {
-    user_id: localStorage.getItem("userId") || null,
-    items: getCart(),
-    merchant_reference: '',
-    total: amount,
-    payment_type: payment_type
-  };
-
-  const response = await createOrder(orderData);
-
-  if (response && !response.error) {
-    try {
-      data = text ? JSON.parse(text) : {};
-    } catch {
-      data = { raw_response: text };
-    }
-
-      const text = await res.text();
-      let data;
-      try {
-        data = text ? JSON.parse(text) : {};
-      } catch {
-        data = { raw_response: text };
-      }
-
-      clearCart();
-      try {
-        if (data.url) {
-          window.location.href = data.url;
-        } else if (data.raw_response) {
-          const urlMatch = data.raw_response.match(/https?:\/\/\S+/);
-          if (urlMatch) window.location.href = urlMatch[0];
-          else alert("Payment failed. Check console for raw response.");
+    if (data && data.response) {
+      const response = data.response;
+      if (response.url) {
+        window.location.href = response.url;
+      } else if (response.raw_response) {
+        const urlMatch = response.raw_response.match(/https?:\/\/\S+/);
+        if (urlMatch) {
+          window.location.href = urlMatch[0];
         } else {
-          alert("Payment failed. Check console for details.");
+          alert("Something went wrong. Please try again.");
         }
-    } catch (err) {
-      console.error("Payment error:", err);
-      alert("Payment failed. Please try again.");
+      } else {
+        alert("Something went wrong. Please try again.");
+      }
+    } else {
+      alert("Something went wrong. Please try again.");
     }
-  } else {
-    alert("Order creation failed. Please try again.");
+  } catch {
+    alert("Something went wrong. Please try again.");
   }
 }

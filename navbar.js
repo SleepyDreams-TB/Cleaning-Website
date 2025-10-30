@@ -1,16 +1,20 @@
+// navbar.js
 document.addEventListener('DOMContentLoaded', async () => {
   const navbarContainer = document.getElementById('navbar-container');
   if (!navbarContainer) return;
 
   try {
+    // Fetch navbar HTML
     const response = await fetch('/navbar.html');
-    if (!response.ok) throw new Error();
+    if (!response.ok) throw new Error('Failed to fetch navbar');
     navbarContainer.innerHTML = await response.text();
 
-    const profileContainer = document.getElementById('profileContainer'); // Single container for guest or logged-in
+    // Grab profile container
+    const profileContainer = document.getElementById('profileContainer');
+    if (!profileContainer) return;
+
     const token = localStorage.getItem('jwt');
 
-    // Swap content based on login status
     if (!token) {
       showGuest(profileContainer);
       return;
@@ -21,7 +25,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
-      if (!res.ok) throw new Error();
+      if (!res.ok) throw new Error('Invalid token');
 
       const responseData = await res.json();
       showLoggedIn(profileContainer, responseData);
@@ -30,7 +34,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       showGuest(profileContainer);
     }
 
-  } catch {
+  } catch (err) {
+    console.error('Navbar load failed:', err);
     navbarContainer.innerHTML = `
       <nav class="bg-gray-900 text-white p-4 text-center">
         <a href="/index.html" class="hover:underline">Home</a>
@@ -40,7 +45,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
-// Show guest/login UI
+// Display guest UI
 function showGuest(container) {
   if (!container) return;
   container.innerHTML = `
@@ -48,7 +53,7 @@ function showGuest(container) {
     (<a href="/login.html" class="text-pink-600 hover:underline">Login</a>)`;
 }
 
-// Show logged-in dropdown UI
+// Display logged-in dropdown UI
 function showLoggedIn(container, data) {
   if (!container) return;
 
@@ -58,7 +63,7 @@ function showLoggedIn(container, data) {
       <button id="userDropdownButton" class="bg-pink-600 text-white px-4 py-2 rounded">
         ${userName}
       </button>
-      <div id="userDropdownMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20">
+      <div id="userDropdownMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
         <a href="/users/profile.html" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Profile</a>
         <a href="/users/cart.html" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Cart</a>
         <a href="/users/orders.html" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Orders</a>
@@ -73,10 +78,12 @@ function showLoggedIn(container, data) {
 
   // Toggle dropdown
   if (dropdownButton && dropdownMenu) {
-    dropdownButton.addEventListener('click', () => {
+    dropdownButton.addEventListener('click', (e) => {
+      e.stopPropagation(); // Prevent immediate close
       dropdownMenu.classList.toggle('hidden');
     });
 
+    // Close dropdown when clicking outside
     document.addEventListener('click', (e) => {
       if (!dropdownButton.contains(e.target) && !dropdownMenu.contains(e.target)) {
         dropdownMenu.classList.add('hidden');
@@ -84,9 +91,10 @@ function showLoggedIn(container, data) {
     });
   }
 
-  // Logout
+  // Logout handler
   if (logoutLink) {
-    logoutLink.addEventListener('click', () => {
+    logoutLink.addEventListener('click', (e) => {
+      e.preventDefault();
       if (confirm("Are you sure you want to log out?")) {
         localStorage.removeItem('jwt');
         window.location.href = '/index.html';
@@ -95,7 +103,7 @@ function showLoggedIn(container, data) {
   }
 }
 
-// Require login helper
+// Optional helper to require login
 export function reqLogin() {
   const token = localStorage.getItem('jwt');
   if (!token) {

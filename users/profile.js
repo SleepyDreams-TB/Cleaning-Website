@@ -15,17 +15,23 @@ document.addEventListener('DOMContentLoaded', () => {
     window.location.href = "../index.html";
   }
 
-  // Load navbar
   async function loadNavbar() {
     try {
-      const response = await fetch("../navbar.html");
+      const response = await fetch("/navbar.html");
+      if (!response.ok) throw new Error("Failed to load navbar");
       const html = await response.text();
       document.getElementById("navbar-container").innerHTML = html;
+
+      // Import navbar logic after HTML is injected
+      import('../navbar.js'); // this attaches dropdown events
+
     } catch (error) {
       console.error("Error loading navbar:", error);
+      document.getElementById("navbar-container").innerHTML =
+        '<p class="text-red-500">Navbar failed to load</p>';
     }
   }
-  loadNavbar();
+  await loadNavbar();
 
   // Fetch user data
   async function fetchUser() {

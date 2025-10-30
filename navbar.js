@@ -38,9 +38,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       if (!res.ok) throw new Error();
 
-      const data = await res.json();
+      const responseData = await res.json();
+
+      const user_data = responseData.user || {};
       if (usernameSpan) {
-        usernameSpan.textContent = data.loggedIn_User || 'User';
+        usernameSpan.textContent = `${user_data.firstName || ''} ${user_data.lastName || ''}`.trim() || user_data.userName || 'User';
       }
 
     } catch {

@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     try {
-      const res = await fetch('https://api.kingburger.site/dashboard', {
+      const res = await fetch('https://api.kingburger.site/users/dashboard', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 

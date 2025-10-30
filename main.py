@@ -48,7 +48,7 @@ print("✅ FastAPI app initialized")
 # Allow these websites to access the API
 allowed_origins = [
     "https://kingburger.site",
-    "https://sparkle-clean-app.onrender.com/",
+    "https://sparkle-clean-app.onrender.com",
     "http://127.0.0.1:5173",  # Local development
     "http://localhost:5173"    # Alternative local
 ]

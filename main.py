@@ -12,7 +12,7 @@ from contextlib import asynccontextmanager
 import ssl
 
 # Import routers
-from middleware import CacheControlMiddleware
+from cache_middleware import CacheControlMiddleware
 from auth import router as auth_router
 from users import router as users_router
 from products import router as products_router

@@ -35,8 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
         headers: { 'Authorization': `Bearer ${JWT}` }
       });
       if (!response.ok) throw new Error("Failed to fetch user");
-      const user = await response.json();
-      console.log("Fetched user:", user);
+      const responseData = await response.json();
+      const userData = responseData.user || {};
 
       const fields = {
         username: user.userName || "",

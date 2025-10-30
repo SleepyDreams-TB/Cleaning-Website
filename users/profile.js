@@ -39,12 +39,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const userData = responseData.user || {};
 
       const fields = {
-        username: user.userName || "",
-        fname: user.firstName || "",
-        lname: user.lastName || "",
-        email: user.email || "",
-        cellnumber: user.cellNum || "",
-        createdDate: user.created_at || ""
+        username: userData.userName || "",
+        fname: userData.firstName || "",
+        lname: userData.lastName || "",
+        email: userData.email || "",
+        cellnumber: userData.cellNum || "",
+        createdDate: userData.created_at || ""
       };
 
       Object.entries(fields).forEach(([id, value]) => {

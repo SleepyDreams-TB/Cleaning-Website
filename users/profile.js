@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
         '<p class="text-red-500">Navbar failed to load</p>';
     }
   }
-  await loadNavbar();
+  loadNavbar();
 
   // Fetch user data
   async function fetchUser() {

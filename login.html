@@ -57,7 +57,7 @@
                         <div id="loginError" class="text-danger mt-2"></div>
                     </form>
                     <div class="text-center mt-3">
-                        <a href="register.html" class="text-pink">Create an Account!</a>
+                        <!--<a href="register" class="text-pink">Create an Account!</a>-->
                     </div>
                 </div>
             </div>
@@ -72,7 +72,7 @@
             const data = new URLSearchParams(new FormData(form));
 
             try {
-                const res = await fetch('https://api.kingburger.site/login/', {
+                const res = await fetch('https://api.kingburger.site/auth/login/', {
                     method: 'POST',
                     body: data,
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' }

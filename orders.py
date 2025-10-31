@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, Header
+from fastapi import APIRouter, Depends, HTTPException, Request, Header, Query
 from fastapi.responses import JSONResponse
 from sqlalchemy import create_engine, Column, Integer, String, Float, ForeignKey, DateTime
 from sqlalchemy.orm import sessionmaker, declarative_base, relationship, joinedload
@@ -48,7 +48,6 @@ class OrderItem(Base):
 
 Base.metadata.create_all(bind=engine)
 
-
 # --- Helper Functions ---
 def generate_merchant_reference():
     suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
@@ -78,7 +77,6 @@ def get_user_id_from_token(authorization: str):
         return user_id
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
-
 
 # --- Create Order ---
 @router.post("/orders")
@@ -128,70 +126,58 @@ async def create_order(request: Request, authorization: str = Header(None), db=D
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Order creation failed: {str(e)}")
 
-
 # --- Get All Orders for the Logged-in User ---
-from fastapi import Query
-
 @router.get("/orders/me")
 def get_user_orders(
     authorization: str = Header(None),
     db=Depends(get_db),
-    status: str | None = Query(None, description="Filter by order status"),
-    payment_type: str | None = Query(None, description="Filter by payment type"),
-    merchant_reference: str | None = Query(None, description="Search by merchant reference"),
-    date_from: str | None = Query(None, description="Filter from date (YYYY-MM-DD)"),
-    date_to: str | None = Query(None, description="Filter to date (YYYY-MM-DD)"),
-    page: int = Query(1, ge=1, description="Page number"),
-    page_size: int = Query(10, ge=1, le=100, description="Items per page")
+    status: str | None = Query(None),
+    payment_type: str | None = Query(None),
+    merchant_reference: str | None = Query(None),
+    date_from: str | None = Query(None),
+    date_to: str | None = Query(None),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(10, ge=1, le=100)
 ):
     """Retrieve pages and filterable orders for the authenticated user."""
     user_id = get_user_id_from_token(authorization)
 
-    # --- Query ---
-    query = (
-        db.query(Order)
-        .options(joinedload(Order.items))
-        .filter(Order.user_id == user_id)
-    )
+    query = db.query(Order).options(joinedload(Order.items)).filter(Order.user_id == user_id)
 
-    date_from = date_from or None
-    date_to = date_to or None
-
-    # --- Apply filters ---
     if status:
         query = query.filter(Order.status.ilike(f"%{status}%"))
     if payment_type:
         query = query.filter(Order.payment_type.ilike(f"%{payment_type}%"))
     if merchant_reference:
         query = query.filter(Order.merchant_reference.ilike(f"%{merchant_reference}%"))
+
+    # Handle optional date filters safely
     if date_from:
-        query = query.filter(Order.created_at >= datetime.fromisoformat(date_from))
+        try:
+            date_from_dt = datetime.fromisoformat(date_from)
+            query = query.filter(Order.created_at >= date_from_dt)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid date_from format")
     if date_to:
-        query = query.filter(Order.created_at <= datetime.fromisoformat(date_to))
+        try:
+            date_to_dt = datetime.fromisoformat(date_to)
+            query = query.filter(Order.created_at <= date_to_dt)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid date_to format")
 
-    # --- Pages ---
     total_records = query.count()
-    orders = (
-        query.order_by(Order.created_at.desc())
-        .offset((page - 1) * page_size)
-        .limit(page_size)
-        .all()
-    )
+    orders = query.order_by(Order.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
 
-    # --- Format JSON ---
     result = [
         {
-            "merchant_reference": order.merchant_reference,
-            "total": order.total,
-            "payment_type": order.payment_type,
-            "status": order.status,
-            "created_at": order.created_at.isoformat(),
-            "items": [
-                {"name": i.name, "price": i.price, "quantity": i.quantity}
-                for i in order.items
-            ],
+            "merchant_reference": o.merchant_reference,
+            "total": o.total,
+            "payment_type": o.payment_type,
+            "status": o.status,
+            "created_at": o.created_at.isoformat(),
+            "items": [{"name": i.name, "price": i.price, "quantity": i.quantity} for i in o.items],
         }
-        for order in orders
+        for o in orders
     ]
 
     return JSONResponse({
@@ -201,4 +187,3 @@ def get_user_orders(
         "total_pages": (total_records + page_size - 1) // page_size,
         "orders": result,
     })
-

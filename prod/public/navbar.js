@@ -1,67 +1,82 @@
-// navbar.js
-export function initNavbar(containerId = "profileContainer") {
+export async function initNavbar(containerId = "navbar-container") {
   const container = document.getElementById(containerId);
   if (!container) return;
 
-  const token = localStorage.getItem('jwt');
+  try {
+    // Load navbar HTML
+    const response = await fetch("/navbar.html");
+    container.innerHTML = await response.text();
 
-  // Show guest view if no token
-  if (!token) {
-    container.innerHTML = `<span>Guest</span> (<a href="/login.html">Login</a>)`;
-    return;
-  }
+    // Find the profile container inside the navbar
+    const profileContainer = container.querySelector("#profileContainer");
+    if (!profileContainer) return;
 
-  // Fetch logged-in user info
-  fetch('https://api.kingburger.site/users/dashboard/info', {
-    headers: { 'Authorization': `Bearer ${token}` }
-  })
-    .then(res => res.json())
-    .then(data => {
-      container.innerHTML = `
-        <div class="relative inline-block text-left" id="profileContainer">
+    // Check if user is logged in
+    const token = localStorage.getItem("jwt");
+    if (!token) {
+      profileContainer.innerHTML = `<span class="text-white">Guest</span>
+        (<a href="/login.html" class="text-pink-600 hover:underline">Login</a>)`;
+      return;
+    }
+
+    // Fetch user info for dropdown
+    try {
+      const res = await fetch('https://api.kingburger.site/users/dashboard/info', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!res.ok) throw new Error('Invalid token');
+      const data = await res.json();
+
+      const userName = data.loggedIn_User || 'User';
+      profileContainer.innerHTML = `
+        <div class="relative inline-block text-left">
           <button id="userDropdownButton" class="bg-pink-600 text-white px-4 py-2 rounded">
-            ${data.loggedIn_User || 'User'}
+            ${userName}
           </button>
           <div id="userDropdownMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-            <a href="/users/profile.html" class="block px-4 py-2 hover:bg-gray-100">Profile</a>
-            <a href="/users/cart.html" class="block px-4 py-2 hover:bg-gray-100">Cart</a>
-            <a href="/users/orders.html" class="block px-4 py-2 hover:bg-gray-100">Orders</a>
-            <a href="#" id="logoutLink" class="block px-4 py-2 hover:bg-gray-100">Logout</a>
+            <a href="/users/profile.html" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Profile</a>
+            <a href="/users/cart.html" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Cart</a>
+            <a href="/users/orders.html" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Orders</a>
+            <a href="#" id="logoutLink" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Logout</a>
           </div>
         </div>
       `;
 
-      // Dropdown toggle
-      const dropdownButton = document.getElementById('userDropdownButton');
-      const dropdownMenu = document.getElementById('userDropdownMenu');
-      const logoutLink = document.getElementById('logoutLink');
+      // Attach dropdown logic
+      const dropdownButton = profileContainer.querySelector("#userDropdownButton");
+      const dropdownMenu = profileContainer.querySelector("#userDropdownMenu");
+      const logoutLink = profileContainer.querySelector("#logoutLink");
 
-      dropdownButton.addEventListener('click', e => {
-        e.stopPropagation();
-        dropdownMenu.classList.toggle('hidden');
-      });
+      if (dropdownButton && dropdownMenu) {
+        dropdownButton.addEventListener("click", e => {
+          e.stopPropagation();
+          dropdownMenu.classList.toggle("hidden");
+        });
 
-      // Close dropdown when clicking outside
-      document.addEventListener('click', e => {
-        if (!dropdownButton.contains(e.target) && !dropdownMenu.contains(e.target)) {
-          dropdownMenu.classList.add('hidden');
-        }
-      });
+        document.addEventListener("click", e => {
+          if (!dropdownButton.contains(e.target) && !dropdownMenu.contains(e.target)) {
+            dropdownMenu.classList.add("hidden");
+          }
+        });
+      }
 
-      logoutLink.addEventListener('click', e => {
-        e.preventDefault();
-        localStorage.removeItem('jwt');
-        window.location.href = '/index.html';
-      });
+      if (logoutLink) {
+        logoutLink.addEventListener("click", e => {
+          e.preventDefault();
+          localStorage.removeItem("jwt");
+          window.location.href = "/index.html";
+        });
+      }
 
-    })
-    .catch(() => {
-      container.innerHTML = `<span>Guest</span> (<a href="/login.html">Login</a>)`;
-    });
-}
+    } catch (err) {
+      console.error("Failed to load user dropdown:", err);
+      profileContainer.innerHTML = `<span class="text-white">Guest</span>
+        (<a href="/login.html" class="text-pink-600 hover:underline">Login</a>)`;
+    }
 
-// Optional helper to require login
-export function reqLogin() {
-  const token = localStorage.getItem('jwt');
-  if (!token) window.location.href = '/redirects/401.html';
+  } catch (err) {
+    console.error("Failed to load navbar:", err);
+    container.innerHTML = "<p class='text-red-500'>Navbar failed to load</p>";
+  }
 }

@@ -154,6 +154,9 @@ def get_user_orders(
         .filter(Order.user_id == user_id)
     )
 
+    date_from = date_from or None
+    date_to = date_to or None
+
     # --- Apply filters ---
     if status:
         query = query.filter(Order.status.ilike(f"%{status}%"))

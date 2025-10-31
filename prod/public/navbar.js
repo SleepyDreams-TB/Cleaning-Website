@@ -1,5 +1,5 @@
 // navbar.js
-export function initNavbar(containerId = "navbar-container") {
+export function initNavbar(containerId = "profileContainer") {
   const container = document.getElementById(containerId);
   if (!container) return;
 

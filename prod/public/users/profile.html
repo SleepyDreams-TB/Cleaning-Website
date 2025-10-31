@@ -80,6 +80,24 @@
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
+  <script type="module">
+    async function loadNavbar() {
+      const container = document.getElementById("navbar-container");
+      try {
+        const response = await fetch("/navbar.html");
+        container.innerHTML = await response.text();
+
+        // Dynamically import JS logic after HTML injection
+        const module = await import('/navbar.js');
+        module.initNavbar("navbar-container");
+      } catch (err) {
+        console.error("Failed to load navbar:", err);
+        container.innerHTML = "<p class='text-red-500'>Navbar failed to load</p>";
+      }
+    }
+
+    loadNavbar();
+  </script>
   <script type="module" src="./profile.js"></script>
 </body>
 

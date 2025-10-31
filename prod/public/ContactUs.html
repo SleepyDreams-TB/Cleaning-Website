@@ -82,7 +82,9 @@
       });
     </script>
   </body>
-  <script type="module" src="/navbar.js"></script>
-
+  <script type="module">
+    import { initNavbar } from '/navbar.js';
+    initNavbar("navbar-container");
+  </script>
 
 </html>

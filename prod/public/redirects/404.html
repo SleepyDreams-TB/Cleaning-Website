@@ -30,8 +30,14 @@
     </div>
   </div>
 
-  <script type="module" src="../navbar.js"></script>
+  <script type="module">
+    import { initNavbar } from '/navbar.js';
+    initNavbar("navbar-container");
+  </script>
 
+  <footer class="bg-black text-white text-center p-4 mt-8">
+    © 2025 Sparkle Clean. All rights reserved.
+  </footer>
 </body>
 
 </html>

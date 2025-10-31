@@ -1,49 +1,25 @@
-import { reqLogin } from '../navbar.js';
-reqLogin();
-
+// profile.js
 document.addEventListener('DOMContentLoaded', () => {
-  let userId;
   const JWT = localStorage.getItem("jwt");
-  if (!JWT) window.location.href = "../index.html";
+  if (!JWT) return window.location.href = "../index.html";
 
+  let userId;
   try {
     const payload = jwt_decode(JWT);
     userId = payload.user_id;
-    console.log("Decoded JWT userId:", userId);
-  } catch (e) {
-    console.error("Failed to decode JWT:", e);
-    window.location.href = "../index.html";
+  } catch {
+    return window.location.href = "../index.html";
   }
 
-  async function loadNavbar() {
-    try {
-      const response = await fetch("/navbar.html");
-      if (!response.ok) throw new Error("Failed to load navbar");
-      const html = await response.text();
-      document.getElementById("navbar-container").innerHTML = html;
-
-      // Import navbar logic after HTML is injected
-      import('../navbar.js'); // this attaches dropdown events
-
-    } catch (error) {
-      console.error("Error loading navbar:", error);
-      document.getElementById("navbar-container").innerHTML =
-        '<p class="text-red-500">Navbar failed to load</p>';
-    }
-  }
-  loadNavbar();
-
-  // Fetch user data
+  // Fetch user and populate form
   async function fetchUser() {
     try {
-      const response = await fetch(`https://api.kingburger.site/users/${userId}`, {
-        method: 'GET',
+      const res = await fetch(`https://api.kingburger.site/users/${userId}`, {
         headers: { 'Authorization': `Bearer ${JWT}` }
       });
-      if (!response.ok) throw new Error("Failed to fetch user");
-      const responseData = await response.json();
-      const userData = responseData.user || {};
+      if (!res.ok) throw new Error("Failed to fetch user");
 
+      const userData = (await res.json()).user || {};
       const fields = {
         username: userData.userName || "",
         fname: userData.firstName || "",
@@ -52,83 +28,58 @@ document.addEventListener('DOMContentLoaded', () => {
         cellnumber: userData.cellNum || "",
         createdDate: userData.created_at || ""
       };
-
       Object.entries(fields).forEach(([id, value]) => {
         const el = document.getElementById(id);
         if (el) el.value = value;
       });
-    } catch (error) {
-      console.error("Error fetching user:", error);
-    }
+
+    } catch (err) { console.error(err); }
   }
   fetchUser();
 
-  // Enable editing
-  function enableField(fieldId) {
-    const field = document.getElementById(fieldId);
-    if (field) {
-      field.disabled = false;
-      field.focus();
-    }
+  // Enable editing fields
+  function enableField(id) {
+    const el = document.getElementById(id);
+    if (el) el.disabled = false;
   }
 
-  // Map edit buttons to fields
-  const editButtons = [
-    { btnId: "editUsernameBtn", fieldId: "username" },
-    { btnId: "editPasswordBtn", fieldId: "password" },
-    { btnId: "editFnameBtn", fieldId: "fname" },
-    { btnId: "editLnameBtn", fieldId: "lname" },
-    { btnId: "editEmailBtn", fieldId: "email" },
-    { btnId: "editCellBtn", fieldId: "cellnumber" }
-  ];
-
-  editButtons.forEach(item => {
-    const btn = document.getElementById(item.btnId);
-    if (btn) btn.addEventListener('click', () => enableField(item.fieldId));
+  ["Username", "Password", "Fname", "Lname", "Email", "Cell"].forEach(type => {
+    const btn = document.getElementById(`edit${type}Btn`);
+    if (btn) btn.addEventListener('click', () => enableField(type.toLowerCase()));
   });
 
   // Username availability check
-  async function checkUsernameAvailability() {
+  document.getElementById('username')?.addEventListener('input', async () => {
     const username = document.getElementById('username')?.value || "";
     const email = document.getElementById('email')?.value || "";
     if (!username) return;
-
     try {
-      const response = await fetch('/api/check_user_avail', {
+      const res = await fetch('/api/check_user_avail', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, email })
       });
-      if (!response.ok) return;
-      const data = await response.json();
+      const data = await res.json();
       const hint = document.getElementById('username-hint');
       if (hint) {
         hint.textContent = data.exists ? "Username already taken" : "Username is available";
         hint.style.color = data.exists ? "red" : "green";
       }
-    } catch (error) {
-      console.error("Error checking username:", error);
-    }
-  }
+    } catch (err) { console.error(err); }
+  });
 
   // Password validation
-  function validatePassword() {
+  document.getElementById('password')?.addEventListener('input', () => {
     const password = document.getElementById('password')?.value || "";
     const hint = document.getElementById('password-hint');
     const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{12,}$/;
     if (hint) {
-      if (regex.test(password)) {
-        hint.textContent = "Password is strong";
-        hint.style.color = "green";
-      } else {
-        hint.textContent = "Password must contain 1 lowercase, 1 uppercase, 1 number, 1 special character, min 12 chars";
-        hint.style.color = "red";
-      }
+      hint.textContent = regex.test(password)
+        ? "Password is strong"
+        : "Password must contain 1 lowercase, 1 uppercase, 1 number, 1 special character, min 12 chars";
+      hint.style.color = regex.test(password) ? "green" : "red";
     }
-  }
-
-  document.getElementById('username')?.addEventListener('input', checkUsernameAvailability);
-  document.getElementById('password')?.addEventListener('input', validatePassword);
+  });
 
   // Update profile
   document.getElementById('updateBtn')?.addEventListener('click', async () => {
@@ -142,31 +93,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     try {
-      const response = await fetch(`https://api.kingburger.site/users/update/${userId}`, {
+      const res = await fetch(`https://api.kingburger.site/users/update/${userId}`, {
         method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${JWT}`,
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
+        headers: { 'Authorization': `Bearer ${JWT}`, 'Content-Type': 'application/x-www-form-urlencoded' },
         body: data.toString()
       });
-
-      const jsonResponse = await response.json();
-      console.log("API response:", jsonResponse);
-
-      if (!response.ok) throw new Error("Failed to update user");
+      if (!res.ok) throw new Error("Failed to update user");
       alert("Profile updated successfully!");
-
       ["username", "password", "fname", "lname", "email", "cellnumber"].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.disabled = true;
       });
-
       window.location.reload();
-
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      alert("Failed to update profile. Check console.");
-    }
+    } catch (err) { console.error(err); alert("Failed to update profile."); }
   });
 });

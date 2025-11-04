@@ -144,23 +144,24 @@ def get_user_orders(
 
     query = db.query(Order).options(joinedload(Order.items)).filter(Order.user_id == user_id)
 
-    if status:
-        query = query.filter(Order.status.ilike(f"%{status}%"))
-    if payment_type:
-        query = query.filter(Order.payment_type.ilike(f"%{payment_type}%"))
-    if merchant_reference:
-        query = query.filter(Order.merchant_reference.ilike(f"%{merchant_reference}%"))
+    # Only apply filters if values are provided and not empty
+    if status and status.strip():
+        query = query.filter(Order.status.ilike(f"%{status.strip()}%"))
+    if payment_type and payment_type.strip():
+        query = query.filter(Order.payment_type.ilike(f"%{payment_type.strip()}%"))
+    if merchant_reference and merchant_reference.strip():
+        query = query.filter(Order.merchant_reference.ilike(f"%{merchant_reference.strip()}%"))
 
     # Handle optional date filters safely
-    if date_from:
+    if date_from and date_from.strip():
         try:
-            date_from_dt = datetime.fromisoformat(date_from)
+            date_from_dt = datetime.fromisoformat(date_from.strip())
             query = query.filter(Order.created_at >= date_from_dt)
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid date_from format")
-    if date_to:
+    if date_to and date_to.strip():
         try:
-            date_to_dt = datetime.fromisoformat(date_to)
+            date_to_dt = datetime.fromisoformat(date_to.strip())
             query = query.filter(Order.created_at <= date_to_dt)
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid date_to format")

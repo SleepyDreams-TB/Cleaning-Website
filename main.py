@@ -27,9 +27,7 @@ from password_generator import router as password_generator_router
 async def lifespan(app: FastAPI):
     """
     Application lifespan manager for startup and shutdown events.
-    
-    Logs application initialization details including Python and OpenSSL versions
-    for debugging.
+    Logs application initialization details including Python and OpenSSL versions.
     """
     print("🚀 Starting application...")
     print(f"🐍 Python version: {sys.version}")
@@ -50,15 +48,9 @@ print("✅ FastAPI app initialized")
 
 
 # Middleware Configuration
-# Note: Middleware order is critical. Request processing flows top-to-bottom,
-# response processing flows bottom-to-top. CORS must be applied first to ensure
-# proper handling of preflight OPTIONS requests.
-
 allowed_origins = [
     "https://kingburger.site",
     "https://sparkle-clean-app.onrender.com",
-    "http://127.0.0.1:5173",
-    "http://localhost:5173"
 ]
 
 app.add_middleware(
@@ -88,11 +80,7 @@ def root():
 
 @app.get("/health")
 def health_check():
-    """
-    Health check endpoint for monitoring and load balancer probes.
-    
-    Returns service status and name for deployment verification.
-    """
+    """Health check endpoint for monitoring."""
     return {
         "status": "healthy",
         "service": "cleaning-website-api"
@@ -100,7 +88,6 @@ def health_check():
 
 
 # Router Registration
-# Each router handles a specific domain of the application with its own prefix
 app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(products_router)
@@ -113,14 +100,13 @@ print("✅ All routers registered")
 
 if __name__ == "__main__":
     import uvicorn
-    
+
     port = int(os.environ.get("PORT", 10000))
-    
     print(f"🌐 Starting server on port {port}...")
-    
+
     uvicorn.run(
         app,
         host="0.0.0.0",
-        port=port,
-        reload=True
+        port=port
+        # reload=True removed for production
     )

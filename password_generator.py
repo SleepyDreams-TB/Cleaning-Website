@@ -5,7 +5,7 @@ router = APIRouter()
 # ------------------- Password Generator -------------------
 letters = list("abcdefghjklmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ")
 numbers = list("23456789")
-symbols = list("!#$%()*+")
+symbols = list("!#$.")
 cases = [0, 0, 1, 1, 2]
 
 @router.post("/password/{length}")

@@ -46,6 +46,9 @@ print("✅ FastAPI app initialized")
 
 # ==================== CORS MIDDLEWARE ====================
 # Allow these websites to access the API
+
+app.add_middleware(CacheControlMiddleware) # Control caching for all Pages 
+
 allowed_origins = [
     "https://kingburger.site",
     "https://sparkle-clean-app.onrender.com",
@@ -85,13 +88,12 @@ def health_check():
 # ==================== INCLUDE ALL ROUTERS ====================
 # Each router handles a specific part of the application
 
-app.add_middleware(CacheControlMiddleware) # Control caching for all Pages
-app.include_router(auth_router)           # /auth/* - login, register, logout
-app.include_router(users_router)          # /users/* - user profiles
-app.include_router(products_router)       # /products/* - cleaning products/services
+app.include_router(auth_router)           # /auth/* - login, register, logout (JWT)
+app.include_router(users_router)          # /users/* - user profiles (MongoDB)
+app.include_router(products_router)       # /products/* - cleaning products/services (MongoDB)
 app.include_router(payment_router)        # /payments/* - payment processing
 app.include_router(orders_router)         # /orders/* - order management (SQL)
-app.include_router(password_generator_router)  # /password/* - password generator
+app.include_router(password_generator_router)  # /password/* - password generator (utility)
 
 print("✅ All routers registered")
 

@@ -1,5 +1,8 @@
 """
 MAIN APPLICATION FILE
+
+This module initializes and configures the FastAPI application with all necessary
+middleware, routers, and lifecycle management for the cleaning services API.
 """
 
 import sys
@@ -11,7 +14,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import ssl
 
-# Import routers
 from cache_middleware import CacheControlMiddleware
 from auth import router as auth_router
 from users import router as users_router
@@ -20,12 +22,14 @@ from payment import router as payment_router
 from orders import router as orders_router
 from password_generator import router as password_generator_router
 
-# ==================== FASTAPI LIFESPAN ====================
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    Runs when the app starts and shuts down
-    Good place for startup/cleanup tasks
+    Application lifespan manager for startup and shutdown events.
+    
+    Logs application initialization details including Python and OpenSSL versions
+    for debugging.
     """
     print("🚀 Starting application...")
     print(f"🐍 Python version: {sys.version}")
@@ -33,82 +37,90 @@ async def lifespan(app: FastAPI):
     yield
     print("👋 Shutting down application...")
 
-# ==================== CREATE FASTAPI APP ====================
+
 app = FastAPI(
     title="Cleaning Website API",
     description="API for cleaning services booking and management",
     version="1.0.0",
     lifespan=lifespan,
-    docs_url="/docs"  # Swagger documentation at /docs
+    docs_url="/docs"
 )
 
 print("✅ FastAPI app initialized")
 
-# ==================== CORS MIDDLEWARE ====================
-# Allow these websites to access the API
 
-app.add_middleware(CacheControlMiddleware) # Control caching for all Pages 
+# Middleware Configuration
+# Note: Middleware order is critical. Request processing flows top-to-bottom,
+# response processing flows bottom-to-top. CORS must be applied first to ensure
+# proper handling of preflight OPTIONS requests.
 
 allowed_origins = [
     "https://kingburger.site",
     "https://sparkle-clean-app.onrender.com",
-    "http://127.0.0.1:5173",  # Local development
-    "http://localhost:5173"    # Alternative local
+    "http://127.0.0.1:5173",
+    "http://localhost:5173"
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],  # Allow all HTTP methods (GET, POST, PUT, DELETE, etc.)
-    allow_headers=["*"],  # Allow all headers
-    expose_headers=["*"]  # Expose all headers to the client
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 print("✅ CORS middleware configured")
 
-# ==================== BASIC ROUTES ====================
+app.add_middleware(CacheControlMiddleware)
+print("✅ Cache Control middleware configured")
+
+
 @app.get("/")
 def root():
-    """Welcome endpoint - shows API is running"""
+    """Root endpoint returning API metadata and documentation link."""
     return {
-        "message": "Welcome to the Cleaning Website API! 🧹✨",
+        "message": "Welcome to the Cleaning Website API! Visit /docs for API documentation.",
         "docs": "/docs",
-        "version": "1.0.0"
+        "version": "1.0.1"
     }
+
 
 @app.get("/health")
 def health_check():
-    """Health check endpoint - used by hosting services"""
+    """
+    Health check endpoint for monitoring and load balancer probes.
+    
+    Returns service status and name for deployment verification.
+    """
     return {
         "status": "healthy",
         "service": "cleaning-website-api"
     }
 
-# ==================== INCLUDE ALL ROUTERS ====================
-# Each router handles a specific part of the application
 
-app.include_router(auth_router)           # /auth/* - login, register, logout (JWT)
-app.include_router(users_router)          # /users/* - user profiles (MongoDB)
-app.include_router(products_router)       # /products/* - cleaning products/services (MongoDB)
-app.include_router(payment_router)        # /payments/* - payment processing
-app.include_router(orders_router)         # /orders/* - order management (SQL)
-app.include_router(password_generator_router)  # /password/* - password generator (utility)
+# Router Registration
+# Each router handles a specific domain of the application with its own prefix
+app.include_router(auth_router)
+app.include_router(users_router)
+app.include_router(products_router)
+app.include_router(payment_router)
+app.include_router(orders_router)
+app.include_router(password_generator_router)
 
 print("✅ All routers registered")
 
-# ==================== RUN SERVER ====================
+
 if __name__ == "__main__":
     import uvicorn
     
-    # Get port from environment or use 10000 as default
     port = int(os.environ.get("PORT", 10000))
     
     print(f"🌐 Starting server on port {port}...")
     
     uvicorn.run(
         app,
-        host="0.0.0.0",  # Listen on all network interfaces
+        host="0.0.0.0",
         port=port,
-        reload=True      # Auto-reload on code changes (development only)
+        reload=True
     )

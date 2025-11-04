@@ -50,6 +50,7 @@ print("✅ FastAPI app initialized")
 # Middleware Configuration
 allowed_origins = [
     "https://kingburger.site",
+    "https://api.kingburger.site",
     "https://sparkle-clean-app.onrender.com",
 ]
 

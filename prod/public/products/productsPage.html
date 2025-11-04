@@ -47,7 +47,7 @@
               <div class="flex justify-between items-center">
                 <span class="text-pink-600 font-bold">R${product.price}</span>
                 <button class="bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700 add-to-cart-btn"
-                        data-id = "${product._id}">
+                        data-id = "${product.id}">
                   Add to Cart
                 </button>
               </div>
@@ -57,7 +57,7 @@
           document.querySelectorAll('.add-to-cart-btn').forEach(button => {
             button.addEventListener('click', () => {
               const productId = button.getAttribute('data-id');
-              const product = products.find(p => p._id === productId);
+              const product = products.find(p => p._id === product.id);
               if (product) {
                 addToCart(product);
               } else {

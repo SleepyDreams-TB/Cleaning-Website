@@ -25,7 +25,7 @@ class Order(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     merchant_reference = Column(String(50), unique=True, nullable=False)
-    user_id = Column(Integer, nullable=False)
+    user_id = Column(String(24), nullable=False)
     total = Column(Float, nullable=False)
     payment_type = Column(String(50), nullable=False)
     created_at = Column(DateTime, default=datetime.now(timezone.utc))

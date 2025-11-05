@@ -4,7 +4,7 @@ router = APIRouter()
 
 import random
 import string
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Union
 import httpx
 from fastapi import HTTPException
@@ -30,8 +30,8 @@ class PaymentRequest(BaseModel):
 async def create_payment(payment: PaymentRequest):
     callpay_creds = generate_callpay_token()
     suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=3))
-    merchant_ref = payment.merchant_reference or f"PAY-{datetime.now(UTC).strftime('%y%m%d%H%M%S')}{suffix}"
-
+    timestamp = datetime.now(timezone.utc).strftime('%y%m%d%H%M%S')  # 12 characters
+    merchant_ref = payment.merchant_reference or f"PAY-{timestamp}{suffix}"
     payload = {
         "amount": f"{payment.amount:.2f}",
         "merchant_reference": merchant_ref,

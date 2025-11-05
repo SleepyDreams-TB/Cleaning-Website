@@ -75,7 +75,23 @@
   © 2025 Sparkle Clean. All rights reserved.
 </footer>
 
-<script type="module" src="/navbar.js"></script>
+<script type="module">
+  async function loadNavbar() {
+    const container = document.getElementById("navbar-container");
+    try {
+      const response = await fetch("/navbar.html");
+      container.innerHTML = await response.text();
+
+      const module = await import('/navbar.js');
+      module.initNavbar("navbar-container");
+    } catch (err) {
+      console.error("Failed to load navbar:", err);
+      container.innerHTML = "<p class='text-red-500'>Navbar failed to load</p>";
+    }
+  }
+
+  loadNavbar();
+</script>
 
 <script>
   const ordersBody = document.getElementById('orders-body');
@@ -119,7 +135,6 @@
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
-          'Origin': 'https://sparkle-clean-app.onrender.com',
           'Accept': 'application/json'
         }
       });

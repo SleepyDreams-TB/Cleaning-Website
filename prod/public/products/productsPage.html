@@ -57,7 +57,7 @@
           document.querySelectorAll('.add-to-cart-btn').forEach(button => {
             button.addEventListener('click', () => {
               const productId = button.getAttribute('data-id');
-              const product = products.find(p => p._id === product.id);
+              const product = products.find(p => p.id === product.id);
               if (product) {
                 addToCart(product);
               } else {

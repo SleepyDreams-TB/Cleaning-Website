@@ -41,7 +41,7 @@ export async function createBackendOrder(payment_type) {
     return null;
   }
 
-  const token = localStorage.getItem("authToken");
+  const token = localStorage.getItem("jwt");
   if (!token) {
     alert("Please log in before placing an order.");
     return null;

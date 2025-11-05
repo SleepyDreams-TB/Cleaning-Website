@@ -59,7 +59,7 @@ allowed_origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[allowed_origins],  # For development; replace with allowed_origins in production
+    allow_origins=allowed_origins,  # For development; replace with allowed_origins in production
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],

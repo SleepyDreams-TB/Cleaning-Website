@@ -24,7 +24,7 @@ export function clearCart() {
 
 export function deleteCartItem(id) {
   let cart = getCart();
-  cart = cart.filter(item => item._id !== id);
+  cart = cart.filter(item => item.id !== id);
   saveCart(cart);
   return cart;
 }
@@ -42,6 +42,8 @@ export async function createBackendOrder(payment_type) {
   }
 
   const token = localStorage.getItem("jwt");
+  console.log("Token:", token);
+
   if (!token) {
     alert("Please log in before placing an order.");
     return null;

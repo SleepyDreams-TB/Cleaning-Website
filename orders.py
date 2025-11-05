@@ -50,8 +50,8 @@ Base.metadata.create_all(bind=engine)
 
 # --- Helper Functions ---
 def generate_merchant_reference():
-    suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
+    suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=3))
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M")
     return f"PAY-{timestamp}-{suffix}"
 
 

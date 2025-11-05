@@ -29,9 +29,7 @@ class PaymentRequest(BaseModel):
 @router.post("/api/create-payment", include_in_schema=False)
 async def create_payment(payment: PaymentRequest):
     callpay_creds = generate_callpay_token()
-    suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=3))
-    timestamp = datetime.now(timezone.utc).strftime('%y%m%d%H%M')  # 12 characters
-    merchant_ref = payment.merchant_reference or f"{timestamp}{suffix}"
+    merchant_ref = payment.merchant_reference
     payload = {
         "amount": f"{payment.amount:.2f}",
         "merchant_reference": merchant_ref,

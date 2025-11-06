@@ -72,23 +72,22 @@
             const data = new URLSearchParams(new FormData(form));
 
             try {
-                const res = await fetch('https://api.kingburger.site/auth/login/', {
+                const res = await fetch('https://api.kingburger.site/auth/login-step/', {
                     method: 'POST',
                     body: data,
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
                 });
 
                 const result = await res.json();
-                const userInfo = result.user;
 
                 if (res.ok && !result.error) {
-                    // Store JWT in localStorage
-                    localStorage.setItem('jwt', result.token);
-                    console.log('Login successful, token stored', result.token);
-                    localStorage.setItem('userId', userInfo.user_id);
-                    window.location.href = 'index.html';
+                    // Store JWT in localStorage - move to 2fa page
+
+                    localStorage.setItem('qr_code', result.qr_code);
+                    console.log('qr code stored successful', result.qr_code);
+                    window.location.href = '2fa-step.html';
                 } else {
-                    document.getElementById('loginError').textContent = result.error || 'Login failed';
+                    document.getElementById('loginError').textContent = result.error || 'Login Step failed';
                 }
             } catch (err) {
                 document.getElementById('loginError').textContent = 'Network error';

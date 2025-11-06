@@ -223,74 +223,50 @@ async def get_my_info(user = Depends(get_current_user)):
 
 # ==================== LOGIN STEP ====================
 
-@router.post("/login-step") # New endpoint for 2FA QR code step
-def login_step(userName: str = Form(...),
-    password: str = Form(...)):
-    """
-    Login step for 2FA authentication
-    """
+@router.post("/login-step")  # FastAPI endpoint without trailing slash
+def login_step(userName: str = Form(...), password: str = Form(...)):
     try:
-        # Find user by username
+        print(f"🔹 Login attempt for username: {userName}")
         user = users_collection.find_one({"userName": userName})
-        
         if not user:
-            return JSONResponse(
-                content={"error": "Invalid username or password"},
-                status_code=401
-            )
-        
+            print("❌ User not found")
+            return JSONResponse({"error": "Invalid username or password"}, status_code=401)
+
         # Verify password
         try:
             password_correct = argon2.verify(password, user.get("password", ""))
             if not password_correct:
-                return JSONResponse(
-                    content={"error": "Invalid username or password"},
-                    status_code=401
-                )
+                print("❌ Password incorrect")
+                return JSONResponse({"error": "Invalid username or password"}, status_code=401)
         except Exception as verify_error:
-            print(f"❌ Password verify error for '{userName}': {verify_error}")
-            return JSONResponse(
-                content={"error": "Invalid username or password"},
-                status_code=401
-            )
-        
-        #to-do perform lookup to DB to get user secret and call generate_qrcode function
+            print(f"❌ Password verify error: {verify_error}")
+            return JSONResponse({"error": "Invalid username or password"}, status_code=401)
+
+        # Generate QR for 2FA
         try:
             result = generate_qr(str(user["_id"]))
+            print(f"🔹 QR generation result: {result}")
             if result["success"] and not result["registered"]:
-                return JSONResponse(
-                    content={
-                        "success": True,
-                        "user_id": str(user["_id"]),
-                        "qr_code": f"data:image/png;base64,{result['qr_image']}",
-                        "message": "2FA not registered, please scan QR code to register"
-                    },
-                    status_code=200
-                )
+                return JSONResponse({
+                    "success": True,
+                    "user_id": str(user["_id"]),
+                    "qr_code": f"data:image/png;base64,{result['qr_image']}",
+                    "message": "2FA not registered, please scan QR code"
+                }, status_code=200)
             else:
-                return JSONResponse(
-                    content={
-                        "success": True,
-                        "user_id": str(user["_id"]),
-                        "message": "2FA already registered, proceed to login",
-                    },
-                    status_code=200
-                )
-
+                return JSONResponse({
+                    "success": True,
+                    "user_id": str(user["_id"]),
+                    "message": "2FA already registered, proceed to login"
+                }, status_code=200)
         except Exception as e:
-            return JSONResponse(
-                content={
-                    "success": False,
-                    "message": f"Error generating QR: {str(e)}"
-                },
-                status_code=500
-            )
+            print(f"❌ QR generation exception: {e}")
+            return JSONResponse({"success": False, "message": f"Error generating QR: {str(e)}"}, status_code=500)
+
     except Exception as error:
-            print(f"❌ Login error: {error}")
-            return JSONResponse(
-                content={"error": f"Server error: {str(error)}"},
-                status_code=500
-            )
+        print(f"❌ Login-step outer exception: {error}")
+        return JSONResponse({"error": f"Server error: {str(error)}"}, status_code=500)
+
 
 
 # ==================== QR STEP ====================

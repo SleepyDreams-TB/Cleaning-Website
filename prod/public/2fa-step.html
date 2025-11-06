@@ -93,40 +93,38 @@
   <script src="/utils.js"></script>
   <script>
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
+      e.preventDefault();
+      const form = e.target;
+      const data = new URLSearchParams(new FormData(form));
     
-        const form = e.target;
-        const data = new URLSearchParams(new FormData(form));
+      try {
+        const res = await fetch('https://api.kingburger.site/auth/login-step', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: data
+        });
     
-        try {
-            const res = await fetch('https://api.kingburger.site/auth/login-step', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: data
-            });
+        const result = await res.json();
     
-            const result = await res.json();
-    
-            if (!res.ok) {
-                // Handle API-level errors properly
-                document.getElementById('loginError').textContent = result.error || 'Login failed';
-                return;
-            }
-    
-            // Store QR code and user_id
-            localStorage.setItem('qr_code', result.qr_code);
-            localStorage.setItem('user_id', result.user_id);
-    
-            // Redirect to 2FA step
-            window.location.href = '2fa-step.html';
-    
-        } catch (err) {
-            console.error('Fetch failed:', err);
-            // Show real error message
-            document.getElementById('loginError').textContent = 'Cannot reach API — try again later';
+        if (!res.ok) {
+          document.getElementById('loginError').textContent = result.error || 'Login failed';
+          return;
         }
+    
+        // Save QR code & user id
+        localStorage.setItem('qr_code', result.qr_code);
+        localStorage.setItem('user_id', result.user_id);
+    
+        // Go to 2FA page
+        window.location.href = '2fa-step.html';
+    
+      } catch (err) {
+        console.error('Fetch error:', err);
+        document.getElementById('loginError').textContent = 'Cannot reach API. Check your network.';
+      }
     });
     </script>
+    
     
     
 </body>

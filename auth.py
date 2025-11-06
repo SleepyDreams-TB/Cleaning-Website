@@ -13,13 +13,12 @@ from typing import Union
 import jwt
 import os
 from datetime import datetime, timedelta, timezone
-import requests
 
 #QR code library
+import base64
 import pyotp
 import qrcode
 import io
-from fastapi.responses import StreamingResponse
 
 
 # Create router
@@ -86,31 +85,38 @@ def generate_qr(user_id: str):
     user_2fa_secret = user.get("2fa_secret")
     user_2fa_registered = user.get("2fa_registered", False)
 
-    if not user_2fa_registered:
-        
-        if not user_2fa_secret:
-            # Generate a new secret if not present
-            user_2fa_secret = pyotp.random_base32()
-            users_collection.update_one(
-                {"_id": ObjectId(user_id)},
-                {"$set": {"2fa_secret": user_2fa_secret}}
-            )
-        #create otpauth URI
-        issuer_name = "CleaningWebsite"
-        otpauth_uri = pyotp.totp.TOTP(user_2fa_secret).provisioning_uri(name=user["email"], issuer_name=issuer_name)
+    if user_2fa_registered:
+        return {
+            "success": True,
+            "registered": True,
+            "message": "2FA already registered"
+        }
 
-        qr_img = qrcode.make(otpauth_uri)
-        buf = io.BytesIO()
-        qr_img.save(buf, format='PNG')
-        buf.seek(0)
-        
+    if not user_2fa_secret:
+        user_2fa_secret = pyotp.random_base32()
+        users_collection.update_one(
+            {"_id": ObjectId(user_id)},
+            {"$set": {"2fa_secret": user_2fa_secret}}
+        )
 
-        return StreamingResponse(buf, media_type="image/png")
+    issuer_name = "CleaningWebsite"
+    otpauth_uri = pyotp.totp.TOTP(user_2fa_secret).provisioning_uri(
+        name=user["email"], issuer_name=issuer_name
+    )
+
+    # Generate QR and encode as Base64
+    qr_img = qrcode.make(otpauth_uri)
+    buf = io.BytesIO()
+    qr_img.save(buf, format="PNG")
+    qr_bytes = buf.getvalue()
+    qr_base64 = base64.b64encode(qr_bytes).decode("utf-8")
+
     return {
         "success": True,
-        "message": "2FA already registered"
+        "registered": False,
+        "message": "QR code generated successfully",
+        "qr_image": qr_base64
     }
-
 # ==================== REGISTER NEW USER ====================
 @router.post("/register")
 async def register_user(
@@ -181,52 +187,6 @@ async def register_user(
             status_code=500
         )
 
-# ==================== LOGIN USER ====================
-@router.post("/login-step") # to be changed to /login-step for 2FA step implementation  | will talk only return login-step true and qr code if user is not registered
-async def login_user(
-    userName: str = Form(...),
-    password: str = Form(...)
-):
-    """
-    Login with username and password
-    Returns a JWT token for authentication
-    
-    Example response:
-    {
-        "success": true,
-        "message": "Login successful",
-        "token": "eyJ0eXAiOiJKV1QiLCJhbGc...",
-        "user": {"firstName": "John", "user_id": "123"}
-    }
-    """
-    try:
-        # Create JWT token (expires in 1 hour)
-        token_payload = {
-            "user_id": str(user["_id"]),
-            "exp": datetime.now(UTC) + timedelta(hours=1)
-        }
-        token = jwt.encode(token_payload, SECRET_KEY, algorithm=ALGORITHM)
-        
-
-        #should be returned by qr-step endpoint instead 
-        return JSONResponse({
-            "success": True,
-            "message": "Login successful",
-            "token": token,
-            "user": {
-                "firstName": user["firstName"],
-                "user_id": str(user["_id"]),
-                "userName": user["userName"]
-            }
-        })
-    
-    except Exception as error:
-        print(f"❌ Login error: {error}")
-        return JSONResponse(
-            content={"error": f"Server error: {str(error)}"},
-            status_code=500
-        )
-
 # ==================== LOGOUT USER ====================
 @router.post("/logout")
 async def logout_user():
@@ -261,6 +221,8 @@ async def get_my_info(user = Depends(get_current_user)):
         }
     }
 
+# ==================== LOGIN STEP ====================
+
 @router.post("/login-step") # New endpoint for 2FA QR code step
 def login_step(userName: str = Form(...),
     password: str = Form(...)):
@@ -292,14 +254,16 @@ def login_step(userName: str = Form(...),
                 status_code=401
             )
         
-        #2FA logic here - perform lookup to DB to get user secret and call generate_qrcode function
+        #to-do perform lookup to DB to get user secret and call generate_qrcode function
         try:
-            generate_qr_response = generate_qr(str(user["_id"]))
-            if isinstance(generate_qr_response, StreamingResponse):
+            result = generate_qr(str(user["_id"]))
+            if result["success"] and not result["registered"]:
                 return JSONResponse(
                     content={
                         "success": True,
-                        "qr_code": generate_qr_response,
+                        "user_id": str(user["_id"]),
+                        "qr_code": f"data:image/png;base64,{result['qr_image']}",
+                        "message": "2FA not registered, please scan QR code to register"
                     },
                     status_code=200
                 )
@@ -307,16 +271,19 @@ def login_step(userName: str = Form(...),
                 return JSONResponse(
                     content={
                         "success": True,
+                        "user_id": str(user["_id"]),
                         "message": "2FA already registered, proceed to login",
                     },
                     status_code=200
                 )
-                
-        except Exception as fa_error:
-            print(f"❌ 2FA error for '{userName}': {fa_error}")
+
+        except Exception as e:
             return JSONResponse(
-                content={"error": "2FA verification failed"},
-                status_code=401
+                content={
+                    "success": False,
+                    "message": f"Error generating QR: {str(e)}"
+                },
+                status_code=500
             )
     except Exception as error:
             print(f"❌ Login error: {error}")
@@ -326,20 +293,70 @@ def login_step(userName: str = Form(...),
             )
 
 
+# ==================== QR STEP ====================
 
 @router.post("/qr-step")
-def qr_step(
-    user_id: str = Form(...)
-):
+def qr_step(user_id: str = Form(...),
+    digit_code: str = Form(...)):
+    
     """
     QR code step for 2FA authentication
     """
     try:
-        qr_response = generate_qr(user_id)
-        if isinstance(qr_response, StreamingResponse):
-            return qr_response
-        else:
-            return qr_response
+
+        user = users_collection.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            return JSONResponse(
+                content={"error": "User not found"},
+                status_code=404
+                )
+
+        secret = user.get("2fa_secret")
+        if not secret:
+            return JSONResponse(
+                content={"error": "2FA not set up for this user"},
+                status_code=400
+            )
+
+        is_valid = pyotp.TOTP(secret).verify(digit_code)
+        
+        if not is_valid:
+            return JSONResponse(
+                content={"error": "Invalid 2FA code"},
+                status_code=401
+            )
+        if not user.get("2fa_registered", False):
+            users_collection.update_one(
+                {"_id": ObjectId(user_id)},
+                {"$set": {"2fa_registered": True}}
+            )
+
+        try:
+            # Create JWT token (expires in 1 hour)
+            token_payload = {
+                "user_id": str(user_id),
+                "exp": datetime.now(UTC) + timedelta(hours=1)
+            }
+            token = jwt.encode(token_payload, SECRET_KEY, algorithm=ALGORITHM)
+            
+            return JSONResponse({
+                "success": True,
+                "message": "Login successful",
+                "token": token,
+                "user": {
+                    "firstName": user["firstName"],
+                    "user_id": str(user["_id"]),
+                    "userName": user["userName"]
+                }
+            })
+        
+        except Exception as error:
+            print(f"❌ Login error: {error}")
+            return JSONResponse(
+                content={"error": f"Server error: {str(error)}"},
+                status_code=500
+            )
+
     except Exception as error:
         print(f"❌ QR step error: {error}")
         return JSONResponse(

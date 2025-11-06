@@ -92,47 +92,47 @@
 
   <script src="/utils.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const qrImage = document.getElementById('qrImage');
-      const qrCode = localStorage.getItem('qr_code');
-      if (qrCode) {
-        qrImage.src = qrCode;
-        qrImage.style.display = 'block';
-      }
-    });
-
-    document.getElementById('verifyForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const user_id = localStorage.getItem('user_id');
-      if (!user_id) {
-        document.getElementById('verifyError').textContent = "Session expired — please login again.";
-        return;
-      }
-
-      const data = new URLSearchParams(new FormData(e.target));
-      data.append('user_id', user_id);
-
-      try {
-        const result = await fetch('https://api.kingburger.site/auth/qr-step', {
-          method: 'POST',
-          body: data,
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-        });
-
-        if (result.success) {
-          localStorage.setItem('jwt', result.token);
-          localStorage.removeItem('qr_code');
-          localStorage.removeItem('user_id');
-          window.location.href = 'index.html';
-        } else {
-          document.getElementById('verifyError').textContent = result.error || 'Invalid 2FA code.';
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const data = new URLSearchParams(new FormData(form));
+    
+        try {
+            // Call login-step API
+            const res = await fetch('https://api.kingburger.site/auth/login-step', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: data
+            });
+    
+            const result = await res.json();
+    
+            // API responded but fields may be invalid
+            if (res.ok && result.success) {
+                // Store QR code and user_id for 2FA
+                localStorage.setItem('qr_code', result.qr_code);
+                localStorage.setItem('user_id', result.user_id);
+    
+                // Redirect to 2FA page
+                window.location.href = '2fa-step.html';
+            } else {
+                // Show detailed server error message
+                if (result.detail) {
+                    // API validation errors (like missing username/password)
+                    document.getElementById('loginError').textContent = 
+                        result.detail.map(d => `${d.loc[1]}: ${d.msg}`).join(', ');
+                } else {
+                    document.getElementById('loginError').textContent = result.error || 'Login failed';
+                }
+            }
+    
+        } catch (err) {
+            // Only network errors reach here
+            document.getElementById('loginError').textContent = 'Network error — try again later';
+            console.error(err);
         }
-      } catch (err) {
-        console.error(err);
-        document.getElementById('verifyError').textContent = err.message || 'Error verifying 2FA.';
-      }
     });
-  </script>
+    </script>
+    
 </body>
 </html>

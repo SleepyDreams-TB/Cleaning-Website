@@ -50,6 +50,7 @@
       padding: 1rem;
       border: 2px dashed #ff80b5;
       min-height: 220px;
+      margin-bottom: 1rem;
     }
 
     #qrImage {
@@ -72,7 +73,7 @@
           <h4 class="fw-bold mb-3" style="color:#ff1f6b;">Two-Factor Authentication</h4>
           <p id="qrMessage">Scan the QR code below with your authenticator app.</p>
 
-          <div class="qr-placeholder mb-4">
+          <div class="qr-placeholder">
             <img id="qrImage" src="" alt="QR Code">
           </div>
 
@@ -90,42 +91,57 @@
     </div>
   </div>
 
-  <script src="/utils.js"></script>
   <script>
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    // Show QR code from localStorage
+    document.addEventListener('DOMContentLoaded', () => {
+      const qrImage = document.getElementById('qrImage');
+      const qrCode = localStorage.getItem('qr_code');
+      if (qrCode) {
+        qrImage.src = qrCode;
+        qrImage.style.display = 'block';
+      }
+    });
+
+    // Handle 2FA verification
+    document.getElementById('verifyForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const form = e.target;
-      const data = new URLSearchParams(new FormData(form));
-    
+      const token = document.getElementById('token').value;
+      const user_id = localStorage.getItem('user_id');
+
+      if (!user_id) {
+        document.getElementById('verifyError').textContent = 'Session expired. Please login again.';
+        return;
+      }
+
+      const data = new URLSearchParams({ user_id, token });
+
       try {
-        const res = await fetch('https://api.kingburger.site/auth/login-step', {
+        const res = await fetch('https://api.kingburger.site/auth/qr-step', {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: data
         });
-    
+
         const result = await res.json();
-    
-        if (!res.ok) {
-          document.getElementById('loginError').textContent = result.error || 'Login failed';
+
+        if (!res.ok || !result.success) {
+          document.getElementById('verifyError').textContent = result.error || 'Invalid 2FA code.';
           return;
         }
-    
-        // Save QR code & user id
-        localStorage.setItem('qr_code', result.qr_code);
-        localStorage.setItem('user_id', result.user_id);
-    
-        // Go to 2FA page
-        window.location.href = '2fa-step.html';
-    
+
+        // Store JWT & clear temporary storage
+        localStorage.setItem('jwt', result.token);
+        localStorage.removeItem('qr_code');
+        localStorage.removeItem('user_id');
+
+        // Redirect to main page
+        window.location.href = 'index.html';
+
       } catch (err) {
         console.error('Fetch error:', err);
-        document.getElementById('loginError').textContent = 'Cannot reach API. Check your network.';
+        document.getElementById('verifyError').textContent = 'Cannot reach API. Check your network.';
       }
     });
-    </script>
-    
-    
-    
+  </script>
 </body>
 </html>

@@ -19,6 +19,7 @@ import base64
 import pyotp
 import qrcode
 import io
+from qrcode.image.pil import PilImage
 
 
 # Create router
@@ -105,7 +106,7 @@ def generate_qr(user_id: str):
     )
 
     # Generate QR and encode as Base64
-    qr_img = qrcode.make(otpauth_uri)
+    qr_img = qrcode.make(otpauth_uri,  image_factory=PilImage)
     buf = io.BytesIO()
     qr_img.save(buf, format="PNG")
     qr_bytes = buf.getvalue()

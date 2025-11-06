@@ -46,3 +46,4 @@ httpx==0.28.1             # Async HTTP requests
 # --------------------------
 pyotp==2.9.0              # TOTP 2FA codes
 qrcode==7.4.2             # QR code generation
+Pillow==10.0.0

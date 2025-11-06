@@ -6,7 +6,7 @@ loaderOverlay.style.cssText = `
   display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.3);
   z-index:9999;
 `;
-loaderOverlay.innerHTML = '<img src="loader.gif" alt="Loading..." style="width:100px;height:100px;">';
+loaderOverlay.innerHTML = '<img src="/assets/loader.gif" alt="Loading..." style="width:100px;height:100px;">';
 document.body.appendChild(loaderOverlay);
 
 window.showLoader = () => loaderOverlay.style.display = 'flex';

@@ -72,7 +72,7 @@
             const data = new URLSearchParams(new FormData(form));
 
             try {
-                const res = await fetch('https://api.kingburger.site/auth/login-step', {
+                const res = await apiFetch('https://api.kingburger.site/auth/login-step', {
                     method: 'POST',
                     body: data,
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' }

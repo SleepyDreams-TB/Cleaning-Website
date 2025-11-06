@@ -69,7 +69,7 @@
         const data = new FormData(form);
         const messageBox = document.getElementById("formMessage");
 
-        const res = await fetch(form.action, {
+        const res = await apiFetch(form.action, {
           method: "POST",
           body: data,
         });

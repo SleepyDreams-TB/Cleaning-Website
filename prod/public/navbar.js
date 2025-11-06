@@ -4,7 +4,7 @@ export async function initNavbar(containerId = "navbar-container") {
 
   try {
     // Load navbar HTML
-    const response = await fetch("/navbar.html");
+    const response = await apiFetch("/navbar.html");
     container.innerHTML = await response.text();
 
     // Find the profile container inside the navbar
@@ -19,9 +19,9 @@ export async function initNavbar(containerId = "navbar-container") {
       return;
     }
 
-    // Fetch user info for dropdown
+    // apiFetch user info for dropdown
     try {
-      const res = await fetch('https://api.kingburger.site/users/dashboard/info', {
+      const res = await apiFetch('https://api.kingburger.site/users/dashboard/info', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 

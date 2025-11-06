@@ -11,13 +11,13 @@ document.addEventListener('DOMContentLoaded', () => {
     return window.location.href = "../index.html";
   }
 
-  // Fetch user and populate form
-  async function fetchUser() {
+  // apiFetch user and populate form
+  async function apiFetchUser() {
     try {
-      const res = await fetch(`https://api.kingburger.site/users/${userId}`, {
+      const res = await apiFetch(`https://api.kingburger.site/users/${userId}`, {
         headers: { 'Authorization': `Bearer ${JWT}` }
       });
-      if (!res.ok) throw new Error("Failed to fetch user");
+      if (!res.ok) throw new Error("Failed to apiFetch user");
 
       const userData = (await res.json()).user || {};
       const fields = {
@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     } catch (err) { console.error(err); }
   }
-  fetchUser();
+  apiFetchUser();
 
   // Enable editing fields
   function enableField(id) {
@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const email = document.getElementById('email')?.value || "";
     if (!username) return;
     try {
-      const res = await fetch('/api/check_user_avail', {
+      const res = await apiFetch('/api/check_user_avail', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, email })
@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     try {
-      const res = await fetch(`https://api.kingburger.site/users/update/${userId}`, {
+      const res = await apiFetch(`https://api.kingburger.site/users/update/${userId}`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${JWT}`, 'Content-Type': 'application/x-www-form-urlencoded' },
         body: data.toString()

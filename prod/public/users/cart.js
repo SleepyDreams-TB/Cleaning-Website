@@ -75,7 +75,7 @@ export async function createBackendOrder(payment_type) {
   }
 
   try {
-    const res = await fetch("https://api.kingburger.site/api/orders", {
+    const res = await apiFetch("https://api.kingburger.site/api/orders", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -111,7 +111,7 @@ export async function createPayment(payment_type, amount) {
 
     console.log("Creating payment for merchant_reference:", orderData.merchant_reference);
 
-    const res = await fetch("https://api.kingburger.site/api/create-payment", {
+    const res = await apiFetch("https://api.kingburger.site/api/create-payment", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

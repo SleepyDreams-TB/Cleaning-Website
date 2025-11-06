@@ -12,13 +12,13 @@ document.body.appendChild(loaderOverlay);
 window.showLoader = () => loaderOverlay.style.display = 'flex';
 window.hideLoader = () => loaderOverlay.style.display = 'none';
 
-// ================= Global Fetch Override =================
-const originalFetch = window.fetch;
+// ================= Global apiFetch Override =================
+const originalapiFetch = window.apiFetch;
 
-window.fetch = async (...args) => {
+window.apiFetch = async (...args) => {
     showLoader(); // show loader automatically
     try {
-        const response = await originalFetch(...args);
+        const response = await originalapiFetch(...args);
         return response;
     } catch (err) {
         throw err; // propagate error
@@ -28,8 +28,8 @@ window.fetch = async (...args) => {
 };
 
 // ================= Optional JSON Helper =================
-window.apiFetch = async (url, options = {}) => {
-    const res = await fetch(url, options); // uses overridden fetch
+window.apiapiFetch = async (url, options = {}) => {
+    const res = await apiFetch(url, options); // uses overridden apiFetch
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Unknown error');
     return data;

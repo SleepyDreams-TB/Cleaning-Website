@@ -94,11 +94,11 @@
   <script>
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
         e.preventDefault();
+    
         const form = e.target;
         const data = new URLSearchParams(new FormData(form));
     
         try {
-            // Call login-step API
             const res = await fetch('https://api.kingburger.site/auth/login-step', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -107,32 +107,27 @@
     
             const result = await res.json();
     
-            // API responded but fields may be invalid
-            if (res.ok && result.success) {
-                // Store QR code and user_id for 2FA
-                localStorage.setItem('qr_code', result.qr_code);
-                localStorage.setItem('user_id', result.user_id);
-    
-                // Redirect to 2FA page
-                window.location.href = '2fa-step.html';
-            } else {
-                // Show detailed server error message
-                if (result.detail) {
-                    // API validation errors (like missing username/password)
-                    document.getElementById('loginError').textContent = 
-                        result.detail.map(d => `${d.loc[1]}: ${d.msg}`).join(', ');
-                } else {
-                    document.getElementById('loginError').textContent = result.error || 'Login failed';
-                }
+            if (!res.ok) {
+                // Handle API-level errors properly
+                document.getElementById('loginError').textContent = result.error || 'Login failed';
+                return;
             }
     
+            // Store QR code and user_id
+            localStorage.setItem('qr_code', result.qr_code);
+            localStorage.setItem('user_id', result.user_id);
+    
+            // Redirect to 2FA step
+            window.location.href = '2fa-step.html';
+    
         } catch (err) {
-            // Only network errors reach here
-            document.getElementById('loginError').textContent = 'Network error — try again later';
-            console.error(err);
+            console.error('Fetch failed:', err);
+            // Show real error message
+            document.getElementById('loginError').textContent = 'Cannot reach API — try again later';
         }
     });
     </script>
+    
     
 </body>
 </html>

@@ -9,28 +9,24 @@ loaderOverlay.style.cssText = `
 loaderOverlay.innerHTML = '<img src="/assets/loader.gif" alt="Loading..." style="width:100px;height:100px;">';
 document.body.appendChild(loaderOverlay);
 
-window.showLoader = () => loaderOverlay.style.display = 'flex';
-window.hideLoader = () => loaderOverlay.style.display = 'none';
+export const showLoader = () => loaderOverlay.style.display = 'flex';
+export const hideLoader = () => loaderOverlay.style.display = 'none';
+
+// ================= Original Fetch =================
+// You should define this as the "base" fetch function if needed
+export async function originalApiFetch(...args) {
+    return fetch(...args);
+}
 
 // ================= Global apiFetch Override =================
-const originalapiFetch = window.apiFetch;
-
-window.apiFetch = async (...args) => {
-    showLoader(); // show loader automatically
+export async function apiFetch(...args) {
+    showLoader();
     try {
-        const response = await originalapiFetch(...args);
-        return response;
+        const response = await originalApiFetch(...args);
+        return response; // raw Response object
     } catch (err) {
-        throw err; // propagate error
+        throw err;
     } finally {
-        hideLoader(); // hide loader automatically
+        hideLoader();
     }
-};
-
-// ================= Optional JSON Helper =================
-window.apiFetch = async (url, options = {}) => {
-    const res = await apiFetch(url, options); // uses overridden apiFetch
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Unknown error');
-    return data;
-};
+}

@@ -1,4 +1,6 @@
 // ----- Notification Helper -----
+import { apiFetch } from '/utils.js';
+
 function notifyUser(message) {
   // Replace with custom UI notifications if you have one
   // For now, we'll use alert

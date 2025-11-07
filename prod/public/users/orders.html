@@ -76,6 +76,8 @@
 </footer>
 
 <script type="module">
+  import { apiFetch } from '/utils.js';
+
   async function loadNavbar() {
     const container = document.getElementById("navbar-container");
     try {
@@ -109,7 +111,7 @@
   let currentPage = 1;
   const pageSize = 10;
 
-  async function apiFetchOrders(page = 1) {
+  async function fetchOrders(page = 1) {
     const token = localStorage.getItem('jwt');
     if (!token) {
       ordersBody.innerHTML = '<tr><td colspan="6" class="p-4 text-red-600">Unauthorized - please log in.</td></tr>';
@@ -193,12 +195,12 @@
   }
 
   // Event listeners
-  prevPageBtn.addEventListener('click', () => apiFetchOrders(currentPage - 1));
-  nextPageBtn.addEventListener('click', () => apiFetchOrders(currentPage + 1));
-  document.getElementById('apply-filters').addEventListener('click', () => apiFetchOrders(1));
+  prevPageBtn.addEventListener('click', () => fetchOrders(currentPage - 1));
+  nextPageBtn.addEventListener('click', () => fetchOrders(currentPage + 1));
+  document.getElementById('apply-filters').addEventListener('click', () => fetchOrders(1));
 
   // Initial load
-  apiFetchOrders();
+  fetchOrders();
 </script>
 
 </html>

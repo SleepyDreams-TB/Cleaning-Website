@@ -1,4 +1,6 @@
 // profile.js
+import { apiFetch } from '/utils.js';
+
 document.addEventListener('DOMContentLoaded', () => {
   const JWT = localStorage.getItem("jwt");
   if (!JWT) return window.location.href = "../index.html";
@@ -12,12 +14,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // apiFetch user and populate form
-  async function apiFetchUser() {
+  async function fetchUser() {
     try {
       const res = await apiFetch(`https://api.kingburger.site/users/${userId}`, {
         headers: { 'Authorization': `Bearer ${JWT}` }
       });
-      if (!res.ok) throw new Error("Failed to apiFetch user");
+      if (!res.ok) throw new Error("Failed to fetch user");
 
       const userData = (await res.json()).user || {};
       const fields = {
@@ -35,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     } catch (err) { console.error(err); }
   }
-  apiFetchUser();
+  fetchUser();
 
   // Enable editing fields
   function enableField(id) {

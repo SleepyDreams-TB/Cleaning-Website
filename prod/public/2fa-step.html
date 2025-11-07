@@ -96,9 +96,11 @@
     document.addEventListener('DOMContentLoaded', () => {
       const qrImage = document.getElementById('qrImage');
       const qrCode = localStorage.getItem('qr_code');
-      if (qrCode) {
+      if (!qrCode) {
         qrImage.src = qrCode;
         qrImage.style.display = 'block';
+      } else {
+        qrPlaceholder.style.display = 'none';
       }
     });
 

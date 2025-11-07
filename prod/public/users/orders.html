@@ -95,7 +95,9 @@
   loadNavbar();
 </script>
 
-<script>
+<script type="module">
+  import { apiFetch } from '/utils.js';
+
   const ordersBody = document.getElementById('orders-body');
   const paginationInfo = document.getElementById('pagination-info');
   const prevPageBtn = document.getElementById('prev-page');

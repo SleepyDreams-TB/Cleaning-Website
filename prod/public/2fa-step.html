@@ -113,7 +113,7 @@
         return;
       }
 
-      const data = new URLSearchParams({ user_id, token: digit_token });
+      const data = new URLSearchParams({ user_id, digit_token });
 
       try {
         const res = await fetch('https://api.kingburger.site/auth/qr-step', {

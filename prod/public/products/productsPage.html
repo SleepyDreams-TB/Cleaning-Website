@@ -47,14 +47,14 @@
   <script type="module">
     import { addToCart } from '/users/cart.js';
 
-    async function apiFetchProducts() {
+    async function fetchProducts() {
       try {
         const response = await apiFetch('https://api.kingburger.site/products/');
         const data = await response.json();
         const products = data.products || [];
         renderProducts(products);
       } catch (err) {
-        console.error("Failed to apiFetch products:", err);
+        console.error("Failed to Fetch products:", err);
         const container = document.getElementById('productsContainer');
         container.innerHTML = "<p class='text-red-600 text-center col-span-3'>Failed to load products. Please try again later.</p>";
       }
@@ -98,7 +98,7 @@
     }
 
     // Load products on page ready
-    document.addEventListener('DOMContentLoaded', apiFetchProducts);
+    document.addEventListener('DOMContentLoaded', fetchProducts);
   </script>
 
 </body>

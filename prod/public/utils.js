@@ -28,7 +28,7 @@ window.apiFetch = async (...args) => {
 };
 
 // ================= Optional JSON Helper =================
-window.apiapiFetch = async (url, options = {}) => {
+window.apiFetch = async (url, options = {}) => {
     const res = await apiFetch(url, options); // uses overridden apiFetch
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Unknown error');

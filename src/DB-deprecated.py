@@ -29,7 +29,7 @@ CALLPAY_API_URL = os.getenv("CALLPAY_API_URL")
 IP_WHITELIST = os.getenv("IP_WHITELIST", "54.72.191.28,54.194.139.201").split(",")
 
 UTC = timezone.utc
-
+#
 # ------------------- FastAPI Lifespan -------------------
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -82,26 +82,7 @@ def get_user_by_id(userID: str):
     except InvalidId:
         return None
 
-def get_client_ip(request: Request) -> str:
-    xff = request.headers.get("x-forwarded-for")
-    if xff:
-        return xff.split(",")[0].strip()
-    xrip = request.headers.get("x-real-ip")
-    if xrip:
-        return xrip.strip()
-    return request.client.host if request.client else "unknown"
 
-# ------------------- Logger -------------------
-import logging
-from pythonjsonlogger import jsonlogger
-
-webhook_log_handler = logging.FileHandler("webhooks.log")
-webhook_formatter = jsonlogger.JsonFormatter('%(asctime)s %(levelname)s %(message)s')
-webhook_log_handler.setFormatter(webhook_formatter)
-
-webhook_logger = logging.getLogger("webhook_logger")
-webhook_logger.addHandler(webhook_log_handler)
-webhook_logger.setLevel(logging.INFO)
 
 # ------------------- Registration -------------------
 @app.post("/register/")
@@ -221,29 +202,7 @@ async def get_user(user_id: str, user=Depends(get_current_user)):
         raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
 
 
-# ------------------- Webhook -------------------
-@app.post("/webhook", include_in_schema=False)
-async def webhook(request: Request):
-    client_ip = get_client_ip(request)
-    if client_ip not in IP_WHITELIST:
-        webhook_logger.warning({
-            "event": "forbidden_ip",
-            "client_ip": client_ip
-        })
-        raise HTTPException(status_code=403, detail=f"Forbidden IP: {client_ip}")
 
-    body_bytes = await request.body()
-    try:
-        payload = body_bytes.decode(errors="ignore")
-    except Exception:
-        payload = str(body_bytes)
-
-    webhook_logger.info({
-        "event": "webhook_received",
-        "client_ip": client_ip,
-        "payload": payload
-    })
-    return JSONResponse({"status": "ok", "client_ip": client_ip})
 
 # ------------------- Include Orders Router (SQLAlchemy) -------------------
 app.include_router(orders_router)

@@ -134,7 +134,7 @@
     if (filters.to.value) params.append('date_to', filters.to.value);
 
     try {
-      const response = await apiFetch(`https://cleaning-website-g62w.onrender.com/api/orders/me?${params}`, {
+      const response = await apiFetch(`https://api.kingburger.site/api/orders/me?${params}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,

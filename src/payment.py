@@ -34,10 +34,10 @@ async def create_payment(payment: PaymentRequest):
         "amount": f"{payment.amount:.2f}",
         "merchant_reference": merchant_ref,
         "payment_type": payment.payment_type,
-        "notify_url": "https://api.kingburger.site/api/webhook",
-        "success_url": "https://kingburger.site/api/redirects/success",
-        "error_url": "https://kingburger.site/api/redirects/error",
-        "cancel_url": "https://kingburger.site/api/redirects/cancel"
+        "notify_url": "https://api.kingburger.site/webhook",
+        "success_url": "https://kingburger.site/redirects/success",
+        "error_url": "https://kingburger.site/redirects/error",
+        "cancel_url": "https://kingburger.site/redirects/cancel"
     }
     headers = {
         "Content-Type": "application/x-www-form-urlencoded",

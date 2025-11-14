@@ -53,7 +53,7 @@ class Order(Base):
     __tablename__ = 'orders'  # replace with your actual table name
     
     id = Column(Integer, primary_key=True)
-    reference = Column(String, unique=True, nullable=False)  # ADDED: this was missing
+    merchant_reference = Column(String, unique=True, nullable=False)  # ADDED: this was missing
     status = Column(String, nullable=False)
     reason = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -70,7 +70,7 @@ def update_order_status(db, merchant_reference: str, status: str, reason: str = 
         return False
     
     try:
-        order = db.query(Order).filter(Order.reference == merchant_reference).first()
+        order = db.query(Order).filter(Order.merchant_reference == merchant_reference).first()
 
         if order:
             order.status = status
@@ -80,7 +80,7 @@ def update_order_status(db, merchant_reference: str, status: str, reason: str = 
             db.refresh(order)
             webhook_logger.info({
                 "event": "order_updated",
-                "reference": merchant_reference,
+                "merchant_reference": merchant_reference,
                 "status": status,
                 "reason": reason
             })
@@ -88,14 +88,14 @@ def update_order_status(db, merchant_reference: str, status: str, reason: str = 
         else:
             webhook_logger.warning({
                 "event": "order_not_found",
-                "reference": merchant_reference
+                "merchant_reference": merchant_reference
             })
             return False
     except Exception as e:
         db.rollback()
         webhook_logger.error({
             "event": "order_update_error",
-            "reference": merchant_reference,
+            "merchant_reference": merchant_reference,
             "error": str(e)
         })
         return False

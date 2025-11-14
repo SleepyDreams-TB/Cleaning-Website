@@ -103,40 +103,7 @@ def update_order_status(db, merchant_reference: str, status: str, reason: str = 
 
 # ------------------- Webhooks -------------------
 @router.post("/webhook", include_in_schema=False)
-async def webhook(request: Request):
-    client_ip = get_client_ip(request)
-    
-    # Validate IP whitelist
-    if client_ip not in IP_WHITELIST:
-        webhook_logger.warning({
-            "event": "forbidden_ip",
-            "client_ip": client_ip
-        })
-        raise HTTPException(status_code=403, detail=f"Forbidden IP: {client_ip}")
-
-    # Read and decode request body
-    try:
-        body_bytes = await request.body()
-        payload = body_bytes.decode(errors="ignore")
-    except Exception as e:
-        webhook_logger.error({
-            "event": "payload_decode_error",
-            "client_ip": client_ip,
-            "error": str(e)
-        })
-        raise HTTPException(status_code=400, detail="Invalid request body")
-
-    webhook_logger.info({
-        "event": "webhook_received",
-        "client_ip": client_ip,
-        "payload": payload
-    })
-    
-    return JSONResponse({"status": "ok", "client_ip": client_ip})
-
-
-@router.post("/payment-webhook")
-async def payment_webhook(request: Request, db=Depends(get_db)):
+async def webhook(request: Request, db=Depends(get_db)):
     client_ip = get_client_ip(request)
     
     # Validate IP whitelist
@@ -147,57 +114,68 @@ async def payment_webhook(request: Request, db=Depends(get_db)):
         })
         raise HTTPException(status_code=403, detail="Forbidden")
 
+    # Read request body
     try:
-        # Parse JSON payload
-        payload = await request.json()
+        body_bytes = await request.body()
+        content_type = request.headers.get("content-type", "")
         
-        status = payload.get("status")
-        success = payload.get("success")
-        reason = payload.get("reason")
-        merchant_reference = payload.get("merchant_reference")
-
-        # Validate required fields
-        if not merchant_reference:
-            webhook_logger.error({
-                "event": "missing_reference",
-                "client_ip": client_ip
-            })
-            raise HTTPException(status_code=400, detail="Missing merchant_reference")
+        # Try to parse as JSON
+        payload_dict = None
+        raw_payload = None
         
-        if not status:
-            webhook_logger.error({
-                "event": "missing_status",
+        if "application/json" in content_type:
+            try:
+                payload_dict = await request.json()
+                webhook_logger.info({
+                    "event": "webhook_received",
+                    "client_ip": client_ip,
+                    "payload": payload_dict
+                })
+            except Exception as json_error:
+                # JSON parsing failed, fall back to raw
+                raw_payload = body_bytes.decode(errors="ignore")
+                webhook_logger.info({
+                    "event": "webhook_received",
+                    "client_ip": client_ip,
+                    "payload": raw_payload,
+                    "parse_error": str(json_error)
+                })
+        else:
+            # Non-JSON content
+            raw_payload = body_bytes.decode(errors="ignore")
+            webhook_logger.info({
+                "event": "webhook_received",
                 "client_ip": client_ip,
-                "merchant_reference": merchant_reference
+                "payload": raw_payload
             })
-            raise HTTPException(status_code=400, detail="Missing status")
-
-        # Update transaction record
-        update_success = update_order_status(db, merchant_reference, status, reason)
-
-        if not update_success:
-            raise HTTPException(status_code=404, detail=f"Order not found: {merchant_reference}")
-
-        webhook_logger.info({
-            "event": "payment_processed",
-            "client_ip": client_ip,
-            "status": status,
-            "success": success,
-            "merchant_reference": merchant_reference,
-            "reason": reason
-        })
-
-        return JSONResponse({
-            "status": "ok",
-            "message": "Order updated successfully",
-            "merchant_reference": merchant_reference
-        })
-
-    except HTTPException:
-        raise
+        
+        # If we have JSON payload with payment information, process it
+        if payload_dict:
+            merchant_reference = payload_dict.get("merchant_reference")
+            status = payload_dict.get("status")
+            reason = payload_dict.get("reason")
+            success = payload_dict.get("success")
+            
+            # If payment-related fields are present, update the order
+            if merchant_reference and status:
+                update_success = update_order_status(db, merchant_reference, status, reason)
+                
+                if update_success:
+                    webhook_logger.info({
+                        "event": "payment_processed",
+                        "client_ip": client_ip,
+                        "status": status,
+                        "success": success,
+                        "merchant_reference": merchant_reference,
+                        "reason": reason
+                    })
+        
+        # Always return the same simple response
+        return JSONResponse({"status": "ok"})
+        
     except Exception as e:
         webhook_logger.error({
-            "event": "payment_webhook_error",
+            "event": "webhook_error",
             "client_ip": client_ip,
             "error": str(e)
         })

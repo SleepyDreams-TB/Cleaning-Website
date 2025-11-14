@@ -11,7 +11,7 @@ from datetime import datetime
 IP_WHITELIST = [ip.strip() for ip in os.getenv("IP_WHITELIST", "").split(",") if ip.strip()]
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-router = APIRouter(prefix="/api", tags=["webhook"])
+router = APIRouter(tags=["webhook"])
 
 # ------------------- Database Setup -------------------
 engine = create_engine(DATABASE_URL)

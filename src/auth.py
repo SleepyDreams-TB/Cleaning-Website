@@ -9,7 +9,7 @@ from pymongo import MongoClient
 from bson import ObjectId
 from pydantic import EmailStr
 from passlib.hash import argon2
-from typing import Union
+from typing import Union, cast
 import jwt
 import os
 from datetime import datetime, timedelta, timezone
@@ -26,14 +26,14 @@ from qrcode.image.pil import PilImage
 router = APIRouter(prefix="/auth", tags=["authentication"])
 
 # MongoDB connection
-MONGO_URI = os.getenv("MONGO_URI", "your-mongo-connection-string")
+MONGO_URI = cast(str, os.getenv("MONGO_URI"))
 client = MongoClient(MONGO_URI, tls=True, tlsAllowInvalidCertificates=False)
 db = client["cleaning_website"]
 users_collection = db["usersCleaningSite"]
 
 # JWT Settings
-SECRET_KEY = os.getenv("SECRET_KEY")
-ALGORITHM = os.getenv("ALGORITHM", "HS256")
+SECRET_KEY = cast(str, os.getenv("SECRET_KEY"))
+ALGORITHM = cast(str, os.getenv("ALGORITHM", "HS256"))
 UTC = timezone.utc
 
 # ==================== HELPER FUNCTIONS ====================

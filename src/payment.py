@@ -14,10 +14,10 @@ from datetime import UTC
 from callpayV2_Token import generate_callpay_token
 from dotenv import load_dotenv
 import os
-
+from typing import cast
 load_dotenv()
 
-CALLPAY_API_URL = os.getenv("CALLPAY_API_URL")
+CALLPAY_API_URL = cast(str, os.getenv("CALLPAY_API_URL"))
 
 
 # ------------------- Payment Endpoint -------------------

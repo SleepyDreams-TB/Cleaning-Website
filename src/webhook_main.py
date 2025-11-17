@@ -9,18 +9,14 @@ from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 from typing import cast
 
-from models import Base, Order
+from models import Order
+
+# --- Database Setup ---
+from postgresqlDB import SessionLocal
 
 # ------------------- Configuration -------------------
 IP_WHITELIST = [ip.strip() for ip in os.getenv("IP_WHITELIST", "").split(",") if ip.strip()]
-DATABASE_URL = cast(str, os.getenv("DATABASE_URL"))
-
 router = APIRouter(tags=["webhook"])
-
-# ------------------- Database Setup -------------------
-engine = create_engine(DATABASE_URL)
-Session = sessionmaker(bind=engine, autoflush=False, autocommit=False)
-
 
 # ------------ Logger -------------------
 webhook_log_handler = logging.StreamHandler(sys.stdout)
@@ -44,7 +40,7 @@ def get_origin_ip(request: Request) -> str:
 
 
 def get_db():
-    db = Session()
+    db = SessionLocal()
     try:
         yield db
     finally:

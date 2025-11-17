@@ -15,6 +15,7 @@ class Order(Base):
     payment_type = Column(String(50), nullable=False)
     status = Column(String(50), default="pending")
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
     reason = Column(String(255), nullable=True)
     items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
 

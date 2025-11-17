@@ -23,6 +23,9 @@ from orders import router as orders_router
 from webhook_main import router as webhook_router
 from password_generator import router as password_generator_router
 
+from models import Base
+from postgresqlDB import engine
+from postgresqlDB import init_db
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -30,6 +33,7 @@ async def lifespan(app: FastAPI):
     Application lifespan manager for startup and shutdown events.
     Logs application initialization details including Python and OpenSSL versions.
     """
+    init_db()
     print("🚀 Starting application...")
     print(f"🐍 Python version: {sys.version}")
     print(f"🔒 OpenSSL version: {ssl.OPENSSL_VERSION}")

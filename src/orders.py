@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Header, Query
 from fastapi.responses import JSONResponse
-from models import Base, Order, OrderItem
+from models import Order, OrderItem
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, joinedload
+from sqlalchemy.orm import joinedload
 from jose import jwt, JWTError
 from datetime import datetime, timezone
 import os
@@ -10,17 +10,14 @@ import random
 import string
 from typing import cast
 
+from postgresqlDB import SessionLocal
 
 # --- Configuration ---
-DATABASE_URL = cast(str, os.getenv("DATABASE_URL"))
 SECRET_KEY = cast(str, os.getenv("SECRET_KEY"))
 ALGORITHM = cast(str, os.getenv("ALGORITHM", "HS256"))
 
 # --- Database Setup ---
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 router = APIRouter(prefix="/api", tags=["orders"])
-Base.metadata.create_all(bind=engine)
 
 # --- Helper Functions ---
 def generate_merchant_reference():

@@ -90,32 +90,38 @@ def update_order_status(db, merchant_reference: str, status: str, reason: str) -
 @router.post("/webhook", include_in_schema=False)
 async def webhook(request: Request, db=Depends(get_db)):
     origin_ip = get_origin_ip(request)
+    try:
+        payload = await request.json()
+    except Exception as e:
+        webhook_logger.error({"event": "invalid_json", "error": str(e)})
+        raise HTTPException(status_code=400, detail="Invalid JSON")
+
+    webhook_logger.info({
+        "event": "webhook_received",
+        "origin_ip": origin_ip,
+        "payload": payload,
+        "headers": dict(request.headers)
+    })
 
     if origin_ip not in IP_WHITELIST:
         webhook_logger.warning({"event": "forbidden_ip", "origin_ip": origin_ip})
         raise HTTPException(status_code=403, detail="Forbidden")
 
+    merchant_reference = payload.get("merchant_reference")
+    status = payload.get("status")
+    reason = payload.get("reason", "N/A")  # default to "N/A" if successful
+
+    if not merchant_reference or not status:
+        webhook_logger.warning({"event": "missing_fields", "payload": payload})
+        raise HTTPException(status_code=400, detail="Missing merchant_reference or status")
+
     try:
-        payload = await request.json()
-        webhook_logger.info({"event": "webhook_received", "origin_ip": origin_ip, "payload": payload})
-
-        merchant_reference = payload.get("merchant_reference")
-        status = payload.get("status")
-        reason = payload.get("reason")
-
-        if merchant_reference and status:
-            update_order_status(db, merchant_reference, status, reason)
-            webhook_logger.info({
-                "event": "payment_processed",
-                "origin_ip": origin_ip,
-                "status": status,
-                "success": payload.get("success"),
-                "merchant_reference": merchant_reference,
-                "reason": reason
-            })
-
-        return JSONResponse({"status": "ok"})
-
+        updated = update_order_status(db, merchant_reference, status, reason)
+        if not updated:
+            webhook_logger.warning({"event": "update_failed", "merchant_reference": merchant_reference})
     except Exception as e:
-        webhook_logger.error({"event": "webhook_error", "origin_ip": origin_ip, "error": str(e)})
+        webhook_logger.error({"event": "webhook_processing_error", "error": str(e)})
         raise HTTPException(status_code=500, detail="Internal server error")
+
+    return JSONResponse({"status": "ok"})
+

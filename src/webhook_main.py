@@ -4,14 +4,10 @@ import sys
 import os
 import logging
 from pythonjsonlogger.json import JsonFormatter
-from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
-from typing import cast
 
 from models import Order
-
-# --- Database Setup ---
 from postgresqlDB import SessionLocal
 
 # ------------------- Configuration -------------------
@@ -27,7 +23,6 @@ webhook_logger = logging.getLogger("webhook_logger")
 webhook_logger.addHandler(webhook_log_handler)
 webhook_logger.setLevel(logging.INFO)
 
-
 # ------------------- Helper: Get Client IP from request -------------------
 def get_origin_ip(request: Request) -> str:
     xff = request.headers.get("x-forwarded-for")
@@ -38,7 +33,6 @@ def get_origin_ip(request: Request) -> str:
         return xrip.strip()
     return request.client.host if request.client else "unknown"
 
-
 def get_db():
     db = SessionLocal()
     try:
@@ -47,17 +41,12 @@ def get_db():
         db.close()
 
 def update_order_status(db, merchant_reference: str, status: str, reason: str) -> bool:
-    """Update order status in the database"""
     if not merchant_reference:
-        webhook_logger.warning({
-            "event": "invalid_reference",
-            "reference": merchant_reference
-        })
+        webhook_logger.warning({"event": "invalid_reference", "reference": merchant_reference})
         return False
     
     try:
         order = db.query(Order).filter(Order.merchant_reference == merchant_reference).first()
-
         if order:
             order.status = status
             order.reason = reason
@@ -72,10 +61,7 @@ def update_order_status(db, merchant_reference: str, status: str, reason: str) -
             })
             return True
         else:
-            webhook_logger.warning({
-                "event": "order_not_found",
-                "merchant_reference": merchant_reference
-            })
+            webhook_logger.warning({"event": "order_not_found", "merchant_reference": merchant_reference})
             return False
     except Exception as e:
         db.rollback()
@@ -86,14 +72,22 @@ def update_order_status(db, merchant_reference: str, status: str, reason: str) -
         })
         return False
 
-
 @router.post("/webhook", include_in_schema=False)
 async def webhook(request: Request, db=Depends(get_db)):
     origin_ip = get_origin_ip(request)
+    
+    # Try to parse JSON and log raw body if it fails
     try:
         payload = await request.json()
     except Exception as e:
-        webhook_logger.error({"event": "invalid_json", "error": str(e)})
+        raw_body = (await request.body()).decode(errors="replace")
+        webhook_logger.error({
+            "event": "invalid_json",
+            "error": str(e),
+            "raw_body": raw_body,
+            "origin_ip": origin_ip,
+            "headers": dict(request.headers)
+        })
         raise HTTPException(status_code=400, detail="Invalid JSON")
 
     webhook_logger.info({
@@ -124,4 +118,3 @@ async def webhook(request: Request, db=Depends(get_db)):
         raise HTTPException(status_code=500, detail="Internal server error")
 
     return JSONResponse({"status": "ok"})
-

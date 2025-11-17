@@ -12,6 +12,13 @@ from models import Order
 # --- Database Setup ---
 from postgresqlDB import SessionLocal
 
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+        
 # ------------------- Configuration -------------------
 IP_WHITELIST = [ip.strip() for ip in os.getenv("IP_WHITELIST", "").split(",") if ip.strip()]
 router = APIRouter(tags=["webhook"])
@@ -45,14 +52,7 @@ async def get_payload(request: Request):
         return {k: v[0] for k, v in parsed.items()} # Extract the first value for each key from the parsed query parameters dictionary , parse_qs returns lists of values so the first value is always taken as only 1 is expected
     else:
         return await request.json()
-    
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 def update_order_status(db, merchant_reference: str, status: str, reason: str) -> bool:
     """Update order status in the database"""

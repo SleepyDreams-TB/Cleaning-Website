@@ -104,7 +104,7 @@ async def webhook(request: Request, db=Depends(get_db)):
         raise HTTPException(status_code=403, detail="Forbidden")
 
     try:
-        payload = await get_payload.json(request)
+        payload = await get_payload(request)
         webhook_logger.info({"event": "webhook_received", "origin_ip": origin_ip, "payload": payload})
 
         merchant_reference = payload.get("merchant_reference")

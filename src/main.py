@@ -57,8 +57,8 @@ allowed_origins = [
     "https://kingburger.site",
     "https://api.kingburger.site",
     "https://www.kingburger.site",
-    "https://frontend-production-56ae.up.railway.app/"
-
+    "https://frontend-production-56ae.up.railway.app"
+]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,  # For development; replace with allowed_origins in production

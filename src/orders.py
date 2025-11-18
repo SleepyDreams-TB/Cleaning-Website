@@ -52,13 +52,14 @@ async def create_order(request: Request, authorization: str = Header(None)):
                 )
                 db.add(order_item)
 
-
-        return JSONResponse({
+            response_data = {
             "message": "Order created successfully",
             "merchant_reference": merchant_reference,
             "total": total,
             "status": new_order.status
-        })
+        }
+
+        return JSONResponse(response_data)
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Order creation failed: {str(e)}")

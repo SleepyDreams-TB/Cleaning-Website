@@ -52,7 +52,6 @@ async def create_order(request: Request, authorization: str = Header(None)):
                 )
                 db.add(order_item)
 
-            db.refresh(new_order)
 
         return JSONResponse({
             "message": "Order created successfully",

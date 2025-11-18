@@ -8,6 +8,7 @@ from datetime import datetime
 from typing import cast
 from urllib.parse import parse_qs
 from models import Order
+from helpers import get_origin_ip
 
 # --- Database Setup ---
 from postgresqlDB import SessionLocal
@@ -33,15 +34,7 @@ webhook_logger.addHandler(webhook_log_handler)
 webhook_logger.setLevel(logging.INFO)
 
 
-# ------------------- Helper: Get Client IP from request -------------------
-def get_origin_ip(request: Request) -> str:
-    xff = request.headers.get("x-forwarded-for")
-    if xff:
-        return xff.split(",")[0].strip()
-    xrip = request.headers.get("x-real-ip")
-    if xrip:
-        return xrip.strip()
-    return request.client.host if request.client else "unknown"
+
 
 #------------------- Helper: Parse Payload from urlencoded to JSON -------------------
 async def get_payload(request: Request):

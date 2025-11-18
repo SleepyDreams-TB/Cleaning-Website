@@ -3,6 +3,9 @@ MAIN APPLICATION FILE
 
 This module initializes and configures the FastAPI application with all necessary
 middleware, routers, and lifecycle management for the cleaning services API.
+
+Please ensure to review available helpers and utilities in other modules for database
+interactions. (Notably in postgresqlDB.py, models.py, helpers.py & auth.py)
 """
 
 import sys

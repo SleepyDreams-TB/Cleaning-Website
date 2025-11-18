@@ -11,3 +11,11 @@ SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 def init_db():
     Base.metadata.create_all(bind=engine)
+
+def get_db():
+    """Yields a database session and ensures it is closed after use."""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

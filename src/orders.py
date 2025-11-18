@@ -1,53 +1,21 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Header, Query
 from fastapi.responses import JSONResponse
 from models import Order, OrderItem
-from sqlalchemy import create_engine
 from sqlalchemy.orm import joinedload
-from jose import jwt, JWTError
-from datetime import datetime, timezone
+from datetime import datetime
 import os
-import random
-import string
 from typing import cast
-
-from postgresqlDB import SessionLocal
+from postgresqlDB import get_db
 
 # --- Configuration ---
 SECRET_KEY = cast(str, os.getenv("SECRET_KEY"))
 ALGORITHM = cast(str, os.getenv("ALGORITHM", "HS256"))
 
-# --- Database Setup ---
+# --- Router Setup ---
 router = APIRouter(prefix="/api", tags=["orders"])
 
 # --- Helper Functions ---
-def generate_merchant_reference():
-    suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=3))
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M")
-    return f"PAY-{timestamp}-{suffix}"
-
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-def get_user_id_from_token(authorization: str):
-    """Extract user_id from Bearer JWT token."""
-    if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Missing or invalid Authorization header")
-
-    token = authorization.split(" ")[1]
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id = payload.get("user_id")
-        if not user_id:
-            raise HTTPException(status_code=401, detail="Invalid token payload")
-        return user_id
-    except JWTError:
-        raise HTTPException(status_code=401, detail="Invalid token")
+from helpers import get_user_id_from_token, generate_merchant_reference
 
 # --- Create Order ---
 @router.post("/orders")
@@ -115,7 +83,7 @@ def get_user_orders(
 
     query = db.query(Order).options(joinedload(Order.items)).filter(Order.user_id == user_id)
 
-    # Only apply filters if values are provided and not empty
+    # Only apply query filters if values are provided and not empty
     if status and status.strip():
         query = query.filter(Order.status.ilike(f"%{status.strip()}%"))
     if payment_type and payment_type.strip():
@@ -123,7 +91,7 @@ def get_user_orders(
     if merchant_reference and merchant_reference.strip():
         query = query.filter(Order.merchant_reference.ilike(f"%{merchant_reference.strip()}%"))
 
-    # Handle optional date filters safely
+    # Handle optional date filters with validation
     if date_from and date_from.strip():
         try:
             date_from_dt = datetime.fromisoformat(date_from.strip())

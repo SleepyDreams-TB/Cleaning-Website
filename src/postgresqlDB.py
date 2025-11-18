@@ -3,6 +3,7 @@ from sqlalchemy.orm import sessionmaker
 from models import Base
 import os
 from typing import cast
+from contextlib import contextmanager
 
 # Variables that can be used elsewhere
 DATABASE_URL = cast(str, os.getenv("DATABASE_URL"))
@@ -12,10 +13,14 @@ SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 def init_db():
     Base.metadata.create_all(bind=engine)
 
-def get_db():
-    """Yields a database session and ensures it is closed after use."""
-    db = SessionLocal()
+@contextmanager
+def db_session():
+    db = SessionLocal()  # create a new database session
     try:
-        yield db
+        yield db          # give this session to whatever code is inside the "with" block
+        db.commit()       # if everything inside "with" ran without errors, commit changes
+    except:
+        db.rollback()     # if an exception happens, roll back all changes
+        raise             # re-raise the exception so it’s not silently ignored
     finally:
-        db.close()
+        db.close()        # always close the session at the end

@@ -6,6 +6,9 @@ import random
 import string
 from fastapi import HTTPException
 from typing import cast
+import logging
+import sys
+from pythonjsonlogger.jsonlogger import JsonFormatter
 
 SECRET_KEY = cast(str, os.getenv("SECRET_KEY"))
 ALGORITHM = cast(str, os.getenv("ALGORITHM", "HS256"))
@@ -42,3 +45,23 @@ def get_origin_ip(request: Request) -> str:
     if xrip:
         return xrip.strip()
     return request.client.host if request.client else "unknown"
+
+
+# ------------ Logger -------------------
+webhook_log_handler = logging.StreamHandler(sys.stdout)
+webhook_formatter = JsonFormatter('%(asctime)s %(levelname)s %(message)s')
+webhook_log_handler.setFormatter(webhook_formatter)
+
+webhook_logger = logging.getLogger("webhook_logger")
+webhook_logger.addHandler(webhook_log_handler)
+webhook_logger.setLevel(logging.INFO)
+
+# ------------------- Helper: Log Event -------------------
+def log_event(level: str, event: str, **kwargs):
+    log_data = {"event": event, **kwargs}
+    if level == "info":
+        webhook_logger.info(log_data)
+    elif level == "warning":
+        webhook_logger.warning(log_data)
+    elif level == "error":
+        webhook_logger.error(log_data)

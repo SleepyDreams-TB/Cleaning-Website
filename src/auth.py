@@ -209,6 +209,8 @@ async def get_my_info(user = Depends(get_current_user)):
     Example: GET /auth/me
     Header: Authorization: Bearer your-jwt-token
     """
+    billing_info_set = "billing_info" in user and user["billing_info"] is not None
+
     return {
         "success": True,
         "user": {
@@ -218,7 +220,8 @@ async def get_my_info(user = Depends(get_current_user)):
             "userName": user["userName"],
             "email": user["email"],
             "cellNum": user.get("cellNum"),
-            "created_at": user.get("created_at")
+            "created_at": user.get("created_at"),
+            "billing_info_set": billing_info_set
         }
     }
 

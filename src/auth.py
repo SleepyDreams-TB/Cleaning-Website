@@ -34,6 +34,7 @@ users_collection = db["usersCleaningSite"]
 # JWT Settings
 SECRET_KEY = cast(str, os.getenv("SECRET_KEY"))
 ALGORITHM = cast(str, os.getenv("ALGORITHM", "HS256"))
+ROLES = [role.strip() for role in os.getenv("ROLES", "").split(",") if role.strip()]
 UTC = timezone.utc
 
 # ==================== HELPER FUNCTIONS ====================
@@ -126,7 +127,7 @@ async def register_user(
     userName: str = Form(...),
     email: EmailStr = Form(...),
     password: str = Form(...),
-    cellNum: Union[str, None] = Form(None)
+    cellNum: Union[str, None] = Form(None),
 ):
     """
     Register a new user account
@@ -160,7 +161,8 @@ async def register_user(
             "cellNum": cellNum,
             "created_at": datetime.now(UTC),
             "2fa_registered": False,
-            "2fa_secret": pyotp.random_base32()
+            "2fa_secret": pyotp.random_base32(),
+            "role": "customer" 
         }
         
         # Insert into database

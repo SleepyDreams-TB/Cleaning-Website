@@ -92,7 +92,14 @@
                             <input class="form-control" type="text" name="lastName" placeholder="Last Name" required>
                             <input class="form-control" type="text" name="userName" placeholder="Username" required>
                             <input class="form-control" type="email" name="email" placeholder="Email" required>
-                            <input class="form-control" type="password" name="password" placeholder="Password" required>
+                            <input id="password" class="form-control" type="password" name="password"
+                                placeholder="Password" required>
+                            <ul id="password-rules"
+                                style="color:#ff1f6b; font-size:0.9rem; margin-top:-0.5rem; margin-bottom:1rem;">
+                                <li data-rule="minLength">At least 8 characters</li>
+                                <li data-rule="hasNumber">Contains a number</li>
+                                <li data-rule="hasUppercase">Contains an uppercase letter</li>
+                            </ul>
                             <input class="form-control" type="text" name="cellNum" placeholder="Phone (optional)">
                             <button type="submit" class="btn-user">Register</button>
                         </form>
@@ -105,6 +112,35 @@
             </div>
         </div>
     </div>
+
+    <script>
+        const submitButton = form.querySelector('button[type="submit"]');
+        const passwordInput = document.getElementById('password');
+        const ruleItems = document.querySelectorAll('#password-rules li');
+
+
+        const rules = {
+            minLength: (value) => value.length >= 8,
+            hasNumber: (value) => /\d/.test(value),
+            hasUppercase: (value) => /[A-Z]/.test(value),
+        };
+
+        passwordInput.addEventListener('input', () => {
+            const value = passwordInput.value;
+            let allValid = true;
+
+            ruleItems.forEach((item) => {
+                const ruleName = item.getAttribute('data-rule');
+                if (rules[ruleName](value)) {
+                    item.style.color = 'green';
+                } else {
+                    item.style.color = 'red';
+                    allValid = false;
+                }
+            });
+            submitButton.disabled = !allValid;
+        });
+    </script>
 
     <script>
         const form = document.getElementById('registerForm');

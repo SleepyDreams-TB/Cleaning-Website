@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - Burger Site</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
         body {
             background: linear-gradient(135deg, #ffb6d9, #ff6399);
@@ -92,8 +93,21 @@
                             <input class="form-control" type="text" name="lastName" placeholder="Last Name" required>
                             <input class="form-control" type="text" name="userName" placeholder="Username" required>
                             <input class="form-control" type="email" name="email" placeholder="Email" required>
-                            <input id="password" class="form-control" type="password" name="password"
-                                placeholder="Password" required>
+                            <div class="position-relative mb-3">
+                                <input class="form-control" type="password" name="password" id="password"
+                                    placeholder="Password" required>
+                                <i class="bi bi-eye" id="togglePassword" style="
+                                                                                position: absolute;
+                                                                                right: 10px;
+                                                                                top: 50%;
+                                                                                transform: translateY(-50%);
+                                                                                cursor: pointer;
+                                                                                color: #ff1f6b;
+                                                                                font-size: 1.2rem;
+                                                                            ">
+                                </i>
+                            </div>
+
                             <ul id="password-rules"
                                 style="color:#ff1f6b; font-size:0.9rem; margin-top:-0.5rem; margin-bottom:1rem;">
                                 <li data-rule="minLength">At least 8 characters</li>
@@ -117,7 +131,7 @@
         const submitButton = document.querySelector('button[type="submit"]');
         const passwordInput = document.getElementById('password');
         const ruleItems = document.querySelectorAll('#password-rules li');
-
+        toggleIcon = document.getElementById('togglePassword');
 
         const rules = {
             minLength: (value) => value.length >= 8,
@@ -139,6 +153,18 @@
                 }
             });
             submitButton.disabled = !allValid;
+        });
+
+        toggleIcon.addEventListener('click', () => {
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('bi-eye');
+                toggleIcon.classList.add('bi-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('bi-eye-slash');
+                toggleIcon.classList.add('bi-eye');
+            }
         });
     </script>
 

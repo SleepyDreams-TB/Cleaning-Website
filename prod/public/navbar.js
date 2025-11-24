@@ -7,36 +7,39 @@ export async function initNavbar(containerId = "navbar-container") {
     const response = await fetch("/navbar.html");
     container.innerHTML = await response.text();
 
-    // Find the profile container inside the navbar
     const dropdownContainer = container.querySelector("#dropdownContainer");
     if (!dropdownContainer) return;
 
-    // Check if user is logged in
     const token = localStorage.getItem("jwt");
     if (!token) {
-      dropdownContainer.innerHTML = `<span class="text-white">Guest</span>
-        (<a href="/login.html" class="text-pink-600 hover:underline">Login</a>)`;
+      dropdownContainer.innerHTML = `
+        <span class="text-white">Guest</span>
+        (<a href="/login.html" class="text-pink-600 hover:underline">Login</a>)
+      `;
       return;
     }
 
-    // fetch user info for dropdown
     try {
       const res = await fetch('https://api.kingburger.site/users/dashboard/info', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-
       if (!res.ok) throw new Error('Invalid token');
       const data = await res.json();
-
       const userName = data.loggedIn_User || 'User';
+
+      // Inject dual-button layout
       dropdownContainer.innerHTML = `
-        <button class="text-white mr-2">${userName}</button>
+        <!-- Username direct link -->
+        <a href="/users/profile.html" class="bg-pink-600 text-white px-4 py-2 rounded">
+          ${userName}
+        </a>
+
+        <!-- Dropdown toggle -->
         <div class="relative inline-block text-left">
           <button id="userDropdownButton" class="bg-pink-600 text-white px-4 py-2 rounded">
-                <i class="bi bi-list" style="font-size: 1.5rem;"></i>
+            <i class="bi bi-list"></i>
           </button>
           <div id="userDropdownMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-            <a href="/users/profile.html" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Profile</a>
             <a href="/users/cart.html" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Cart</a>
             <a href="/users/orders.html" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Orders</a>
             <a href="#" id="logoutLink" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Logout</a>
@@ -44,7 +47,7 @@ export async function initNavbar(containerId = "navbar-container") {
         </div>
       `;
 
-      // Attach dropdown logic
+      // Dropdown JS
       const dropdownButton = dropdownContainer.querySelector("#userDropdownButton");
       const dropdownMenu = dropdownContainer.querySelector("#userDropdownMenu");
       const logoutLink = dropdownContainer.querySelector("#logoutLink");
@@ -72,8 +75,10 @@ export async function initNavbar(containerId = "navbar-container") {
 
     } catch (err) {
       console.error("Failed to load user dropdown:", err);
-      dropdownContainer.innerHTML = `<span class="text-white">Guest</span>
-        (<a href="/login.html" class="text-pink-600 hover:underline">Login</a>)`;
+      dropdownContainer.innerHTML = `
+        <span class="text-white">Guest</span>
+        (<a href="/login.html" class="text-pink-600 hover:underline">Login</a>)
+      `;
     }
 
   } catch (err) {

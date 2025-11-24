@@ -91,7 +91,10 @@
     </div>
   </div>
 
-  <script>
+  <script type="module">
+    import { apiFetch } from '/utils.js';
+    const qrPlaceholder = document.querySelector('.qr-placeholder');
+
     // Show QR code from localStorage
     document.addEventListener('DOMContentLoaded', () => {
       const qrImage = document.getElementById('qrImage');
@@ -118,7 +121,7 @@
       const data = new URLSearchParams({ user_id, digit_code });
 
       try {
-        const res = await fetch('https://api.kingburger.site/auth/qr-step', {
+        const res = await apiFetch('https://api.kingburger.site/auth/qr-step', {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: data

@@ -60,14 +60,16 @@
     </div>
   </div>
 
-  <script>
+  <script type="module">
+    import { apiFetch } from '/utils.js';
+
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const form = e.target;
       const data = new URLSearchParams(new FormData(form));
 
       try {
-        const res = await fetch('https://api.kingburger.site/auth/login-step', {
+        const res = await apiFetch('https://api.kingburger.site/auth/login-step', {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: data

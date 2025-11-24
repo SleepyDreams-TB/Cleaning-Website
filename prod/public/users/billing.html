@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <link rel="icon" href="/Cleaning-Website/assets/wipe.ico" type="image/x-icon">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Edit Billing Information</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-cover bg-center bg-no-repeat bg-fixed text-gray-800"
+  style="background-image: url('../assets/cleaningbg.jpg');">
+
+  <header class="bg-black shadow p-4 flex justify-between items-center">
+    <h1 class="text-pink-600 font-bold">Sparkle Clean</h1>
+    <nav>
+      <div id="navbar-container"></div>
+    </nav>
+  </header>
+
+  <main class="max-w-3xl mx-auto py-12 bg-white/70 backdrop-blur-sm rounded shadow-md p-8 mt-10">
+    <h2 class="text-2xl font-bold mb-6 text-center">Edit Billing Information</h2>
+    <p id="billingMessage" class="text-center text-red-600 mb-4"></p>
+
+    <form id="billingForm" class="space-y-4">
+      <div>
+        <label for="address_name" class="block font-semibold">Address Name</label>
+        <input type="text" id="address_name" class="w-full border rounded px-3 py-2" required>
+      </div>
+      <div>
+        <label for="street" class="block font-semibold">Street</label>
+        <input type="text" id="street" class="w-full border rounded px-3 py-2" required>
+      </div>
+      <div>
+        <label for="city" class="block font-semibold">City</label>
+        <input type="text" id="city" class="w-full border rounded px-3 py-2" required>
+      </div>
+      <div>
+        <label for="state" class="block font-semibold">State</label>
+        <input type="text" id="state" class="w-full border rounded px-3 py-2" required>
+      </div>
+      <div>
+        <label for="zip" class="block font-semibold">Zip Code</label>
+        <input type="text" id="zip" class="w-full border rounded px-3 py-2" required>
+      </div>
+      <div>
+        <label for="country" class="block font-semibold">Country</label>
+        <input type="text" id="country" class="w-full border rounded px-3 py-2" required>
+      </div>
+
+      <button type="submit" class="bg-pink-600 text-white py-2 px-4 rounded hover:bg-pink-700 w-full font-semibold">
+        Save Billing Info
+      </button>
+    </form>
+  </main>
+
+  <footer class="text-center text-sm py-6 bg-gray-100 mt-12">
+    © 2025 Sparkle Clean. All rights reserved.
+  </footer>
+
+  <script type="module">
+    import { initNavbar } from '/navbar.js';
+    initNavbar("navbar-container");
+  </script>
+  <script type="module" src="/billing.js"></script>
+</body>
+
+</html>

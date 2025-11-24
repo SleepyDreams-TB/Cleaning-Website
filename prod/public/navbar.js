@@ -5,31 +5,34 @@ export async function initNavbar(containerId = "navbar-container") {
   try {
     // Load navbar HTML
     const response = await fetch("/navbar.html");
+    if (!response.ok) throw new Error("Failed to fetch navbar HTML");
     container.innerHTML = await response.text();
 
     const dropdownContainer = container.querySelector("#dropdownContainer");
     if (!dropdownContainer) return;
 
+    // Check login token
     const token = localStorage.getItem("jwt");
     if (!token) {
       dropdownContainer.innerHTML = `
-        <span class="text-white">Guest</span>
+        <span>Guest</span>
         (<a href="/login.html" class="text-pink-600 hover:underline">Login</a>)
       `;
       return;
     }
 
+    // Fetch user info
     try {
-      const res = await fetch('https://api.kingburger.site/users/dashboard/info', {
-        headers: { 'Authorization': `Bearer ${token}` }
+      const res = await fetch("https://api.kingburger.site/users/dashboard/info", {
+        headers: { "Authorization": `Bearer ${token}` }
       });
-      if (!res.ok) throw new Error('Invalid token');
+      if (!res.ok) throw new Error("Invalid token");
       const data = await res.json();
-      const userName = data.loggedIn_User || 'User';
+      const userName = data.loggedIn_User || "User";
 
-      // Inject dual-button layout
+      // Inject username link + dropdown toggle
       dropdownContainer.innerHTML = `
-        <!-- Username direct link -->
+        <!-- Username link -->
         <a href="/users/profile.html" class="bg-pink-600 text-white px-4 py-2 rounded">
           ${userName}
         </a>
@@ -47,7 +50,7 @@ export async function initNavbar(containerId = "navbar-container") {
         </div>
       `;
 
-      // Dropdown JS
+      // Dropdown toggle logic
       const dropdownButton = dropdownContainer.querySelector("#userDropdownButton");
       const dropdownMenu = dropdownContainer.querySelector("#userDropdownMenu");
       const logoutLink = dropdownContainer.querySelector("#logoutLink");
@@ -74,9 +77,9 @@ export async function initNavbar(containerId = "navbar-container") {
       }
 
     } catch (err) {
-      console.error("Failed to load user dropdown:", err);
+      console.error("Failed to fetch user info:", err);
       dropdownContainer.innerHTML = `
-        <span class="text-white">Guest</span>
+        <span>Guest</span>
         (<a href="/login.html" class="text-pink-600 hover:underline">Login</a>)
       `;
     }

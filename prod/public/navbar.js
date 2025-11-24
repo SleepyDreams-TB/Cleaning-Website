@@ -37,6 +37,7 @@ export async function initNavbar(containerId = "navbar-container") {
           ${userName}
         </a>
 
+        
         <!-- Dropdown toggle -->
         <div class="relative inline-block text-left">
           <button id="userDropdownButton" class="bg-pink-600 text-white px-4 py-2 rounded">

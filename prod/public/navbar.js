@@ -8,13 +8,13 @@ export async function initNavbar(containerId = "navbar-container") {
     container.innerHTML = await response.text();
 
     // Find the profile container inside the navbar
-    const profileContainer = container.querySelector("#profileContainer");
-    if (!profileContainer) return;
+    const dropdownContainer = container.querySelector("#dropdownContainer");
+    if (!dropdownContainer) return;
 
     // Check if user is logged in
     const token = localStorage.getItem("jwt");
     if (!token) {
-      profileContainer.innerHTML = `<span class="text-white">Guest</span>
+      dropdownContainer.innerHTML = `<span class="text-white">Guest</span>
         (<a href="/login.html" class="text-pink-600 hover:underline">Login</a>)`;
       return;
     }
@@ -29,10 +29,11 @@ export async function initNavbar(containerId = "navbar-container") {
       const data = await res.json();
 
       const userName = data.loggedIn_User || 'User';
-      profileContainer.innerHTML = `
+      dropdownContainer.innerHTML = `
+        <button class="text-white mr-2">${userName}</button>
         <div class="relative inline-block text-left">
           <button id="userDropdownButton" class="bg-pink-600 text-white px-4 py-2 rounded">
-            ${userName}
+                <i class="bi bi-list" style="font-size: 1.5rem;"></i>
           </button>
           <div id="userDropdownMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
             <a href="/users/profile.html" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Profile</a>
@@ -44,9 +45,9 @@ export async function initNavbar(containerId = "navbar-container") {
       `;
 
       // Attach dropdown logic
-      const dropdownButton = profileContainer.querySelector("#userDropdownButton");
-      const dropdownMenu = profileContainer.querySelector("#userDropdownMenu");
-      const logoutLink = profileContainer.querySelector("#logoutLink");
+      const dropdownButton = dropdownContainer.querySelector("#userDropdownButton");
+      const dropdownMenu = dropdownContainer.querySelector("#userDropdownMenu");
+      const logoutLink = dropdownContainer.querySelector("#logoutLink");
 
       if (dropdownButton && dropdownMenu) {
         dropdownButton.addEventListener("click", e => {
@@ -71,7 +72,7 @@ export async function initNavbar(containerId = "navbar-container") {
 
     } catch (err) {
       console.error("Failed to load user dropdown:", err);
-      profileContainer.innerHTML = `<span class="text-white">Guest</span>
+      dropdownContainer.innerHTML = `<span class="text-white">Guest</span>
         (<a href="/login.html" class="text-pink-600 hover:underline">Login</a>)`;
     }
 

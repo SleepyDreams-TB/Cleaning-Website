@@ -34,7 +34,7 @@ function fetchBillingInfo(userId) {
       if (data.success && data.user.billing_info?.billing_address) {
         const addresses = Object.entries(data.user.billing_info.billing_address);
         if (addresses.length > 0) {
-          const [addressName, info] = entries[0];
+          const [addressName, info] = addresses[0];
 
           document.getElementById("address_name").value = addressName || "";
           document.getElementById("street").value = info.street || "";

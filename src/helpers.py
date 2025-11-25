@@ -42,11 +42,9 @@ def get_user_id_from_token(authorization: str):
         raise HTTPException(status_code=401, detail="Invalid token")
     
 # ------------------- Helper: Billing Info Helper -------------------
-def billing_info_helper(token):
-    user_id = get_user_id_from_token(token)
-    doc = db.users.find_one({"_id": ObjectId(user_id)})
-    billing_address = doc.get("billing_info", {}).get("billing_address")
-    return billing_address
+def billing_info_helper(current_user: dict) -> dict:
+        return current_user.get("billing_info", {}).get("billing_address", {})
+
 
 # ------------------- Helper: Get Client IP from request -------------------
 def get_origin_ip(request: Request) -> str:

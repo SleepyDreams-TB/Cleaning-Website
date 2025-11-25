@@ -61,8 +61,8 @@ billingForm.addEventListener("submit", async (e) => {
     address_name: document.getElementById("address_name").value.trim(),
     street: document.getElementById("street").value.trim(),
     city: document.getElementById("city").value.trim(),
-    state: document.getElementById("state").value.trim(),
-    zip: document.getElementById("zip").value.trim(),
+    suburb: document.getElementById("suburb").value.trim(),
+    postal_code: document.getElementById("postal_code").value.trim(),
     country: document.getElementById("country").value.trim(),
   };
 

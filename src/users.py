@@ -147,58 +147,38 @@ async def update_user_profile(user_id: str, user_data: dict, current_user = Depe
         print(f"❌ Error updating user {user_id}: {error}")
         raise HTTPException(status_code=500, detail=f"Server error: {str(error)}")
     
+# ==================== ADD/UPDATE BILLING ADDRESS ====================
 @router.post("/update/billing/address")
 async def add_or_update_billing_address(request: Request, current_user = Depends(get_current_user)):
-    """
-    Update a user's billing information by their ID
-    Requires authentication (must be logged in)
-    
-    Example: POST /users/update/billing/68f7a75bbe7aff100435ab4e
-    Header: Authorization: Bearer your-jwt-token
-    Body: {
-        "card_number": "1234567890123456",
-        "expiry_date": "12/25",
-        "cvv": "123",
-        ...
-    }
-    """
-    user_id = current_user["_id"]
     billing_address = await request.json()
     address_name = billing_address.get("address_name")
+
+    if not address_name:
+        raise HTTPException(status_code=400, detail="Address name is required")
+
+    # Remove address_name from the object to store the rest
+    billing_address.pop("address_name")
+
     try:
-        # Ensure the user is updating their own billing info
-        if str(current_user["_id"]) != user_id:
-            raise HTTPException(status_code=403, detail="Not authorized to update this billing info")
-        
-
-        # Update the billing info in database
-        if not address_name:
-            raise HTTPException(status_code=400, detail="Address name is required")
-
-        address_name = billing_address.pop("address_name")
         update_result = users_collection.update_one(
-            {"_id": ObjectId(user_id)},
+            {"_id": ObjectId(current_user["_id"])},
             {"$set": {f"billing_info.billing_address.{address_name}": billing_address}},
-            upsert=True # Create the field if it doesn't exist
+            upsert=True
         )
-        
+
         if update_result.matched_count == 0:
             raise HTTPException(status_code=404, detail="User not found")
-        
+
         return {
             "success": True,
             "message": "Billing information updated successfully"
         }
-    
-    except InvalidId:
-        raise HTTPException(status_code=400, detail="Invalid user ID format")
-    
-    except HTTPException:
-        raise
-    
+
     except Exception as error:
-        print(f"❌ Error updating billing info for user {user_id}: {error}")
+        print(f"❌ Error updating billing info for user {current_user['_id']}: {error}")
         raise HTTPException(status_code=500, detail=f"Server error: {str(error)}")
+
+# ==================== DELETE USER PROFILE ====================
 
 @router.delete("/{user_id}")
 async def delete_user_profile(user_id: str, current_user = Depends(get_current_user)):

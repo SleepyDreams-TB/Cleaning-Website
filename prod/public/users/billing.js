@@ -32,14 +32,15 @@ function fetchBillingInfo(userId) {
     .then(res => res.json())
     .then(data => {
       if (data.success && data.user.billing_info?.billing_address) {
-        const addresses = Object.values(data.user.billing_info.billing_address);
+        const addresses = Object.entries(data.user.billing_info.billing_address);
         if (addresses.length > 0) {
-          const info = addresses[0]; // load first address
-          document.getElementById("address_name").value = info.address_name || "";
+          const [addressName, info] = entries[0];
+
+          document.getElementById("address_name").value = addressName || "";
           document.getElementById("street").value = info.street || "";
           document.getElementById("city").value = info.city || "";
-          document.getElementById("state").value = info.state || "";
-          document.getElementById("zip").value = info.zip || "";
+          document.getElementById("suburb").value = info.suburb || "";
+          document.getElementById("postal_code").value = info.postal_code || "";
           document.getElementById("country").value = info.country || "";
         } else {
           billingMessage.textContent = "No billing info configured yet.";

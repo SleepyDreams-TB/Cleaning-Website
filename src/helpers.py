@@ -9,7 +9,12 @@ from typing import cast
 import logging
 import sys
 from pythonjsonlogger.jsonlogger import JsonFormatter
+from pymongo import MongoClient
+from bson import ObjectId
 
+# Database setup (assuming MongoDB)
+client = MongoClient(os.getenv("MONGODB_URI"))
+db = client['cleaning_website']
 SECRET_KEY = cast(str, os.getenv("SECRET_KEY"))
 ALGORITHM = cast(str, os.getenv("ALGORITHM", "HS256"))
 
@@ -35,6 +40,13 @@ def get_user_id_from_token(authorization: str):
         return user_id
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
+    
+# ------------------- Helper: Billing Info Helper -------------------
+def billing_info_helper(token):
+    user_id = get_user_id_from_token(token)
+    doc = db.users.find_one({"_id": ObjectId(user_id)})
+    billing_address = doc.get("billing_info", {}).get("billing_address")
+    return billing_address
 
 # ------------------- Helper: Get Client IP from request -------------------
 def get_origin_ip(request: Request) -> str:

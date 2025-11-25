@@ -12,6 +12,7 @@ import argon2
 
 # Import the auth dependency
 from auth import get_current_user
+from helpers import billing_info_helper
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -73,15 +74,14 @@ async def get_dashboard_info(current_user = Depends(get_current_user)):
     Example: GET /users/dashboard/info
     Header: Authorization: Bearer your-jwt-token
     """
-
-
-
+    
     return {
         "success": True,
         "loggedIn_User": {current_user['firstName']},
         "user_id": str(current_user["_id"]),
         "userName": current_user.get("userName"),
-        "email": current_user.get("email")
+        "email": current_user.get("email"),
+        "billing_address": billing_info_helper(current_user)
     }
 
 # Note: Additional user-related routes (e.g., update profile, delete account) TO-DO here.

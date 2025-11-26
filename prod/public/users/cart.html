@@ -109,7 +109,7 @@
   renderCart();
 
 
-  input.addEventListener("change", (e) => {
+  qtyInput.addEventListener("change", (e) => {
     let value = parseInt(e.target.value);
     if (isNaN(value) || value < 1) value = 1;
     if (value > 5) value = 5;

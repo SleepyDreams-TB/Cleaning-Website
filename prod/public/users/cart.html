@@ -71,9 +71,9 @@
   const cancelBtn = document.getElementById("cancel-order-btn");
   const checkoutBtn = document.getElementById("checkoutBtn");
 
-  const input = document.getElementById("quantity-selector__input");
-  const minusBtn = document.getElementById("reduceQuantity");
-  const plusBtn = document.getElementById("increaseQuantity");
+  const qtyInput = div.querySelector("input");
+  const minusBtn = div.querySelector(".minus");
+  const plusBtn = div.querySelector(".plus");
 
   // Render cart on page and attach delete buttons
   function renderCart() {
@@ -86,13 +86,13 @@
         div.className = "bg-white p-4 rounded shadow flex justify-between items-center gap-2";
         div.innerHTML = `
         <span>${item.name} x ${item.quantity}</span>
-        <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-700">Delete</button>
         <div class="quantity-selector">
-          <button id ="reduceQuantity" aria-label="Reduce quantity of ${item.name}">−</button>
+          <button id ="reduceQuantity" class="minus" aria-label="Reduce quantity of ${item.name}">−</button>
           <input id="quantity-selector__input" type="number" step="1" min="1" max="5" aria-label="Quantity of ${item.name}." value="1">
-          <button id ="increaseQuantity" aria-label="Increase quantity of ${item.name}">＋</button>
+          <button id ="increaseQuantity" class="plus" aria-label="Increase quantity of ${item.name}">＋</button>
           <span>R${(item.price * item.quantity).toFixed(2)}</span>
         </div>
+        <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-700">Delete</button>
       `;
         const delBtn = div.querySelector("button");
         delBtn.addEventListener("click", () => {
@@ -113,6 +113,7 @@
     if (isNaN(value) || value < 1) value = 1;
     if (value > 5) value = 5;
     e.target.value = value;
+    item.quantity = value;
     renderCart();
   });
 
@@ -120,6 +121,7 @@
     let currentValue = parseInt(input.value);
     if (currentValue > 1) {
       input.value = currentValue - 1;
+      item.quantity = parseInt(qtyInput.value);
       renderCart();
     }
   });
@@ -127,6 +129,7 @@
     let currentValue = parseInt(input.value);
     if (currentValue < 5) {
       input.value = currentValue + 1;
+      item.quantity = parseInt(qtyInput.value);
       renderCart();
     }
   });

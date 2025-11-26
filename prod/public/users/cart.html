@@ -74,8 +74,8 @@
   function updateQuantity(item, qtyInput, newVal) {
     if (isNaN(newVal) || newVal < 1) newVal = 1;
     if (newVal > 5) newVal = 5;
-    qtyInput.value = newVal;
     item.quantity = newVal;
+    qtyInput.value = newVal;
     renderCart();
   }
 

@@ -71,9 +71,14 @@
   const cancelBtn = document.getElementById("cancel-order-btn");
   const checkoutBtn = document.getElementById("checkoutBtn");
 
+  function updateQuantity(item, qtyInput, newVal) {
+    if (isNaN(newVal) || newVal < 1) newVal = 1;
+    if (newVal > 5) newVal = 5;
+    qtyInput.value = newVal;
+    item.quantity = newVal;
+    renderCart();
+  }
 
-
-  // Render cart on page and attach delete buttons
   function renderCart() {
     cartContainer.innerHTML = "";
     if (cart.length === 0) {
@@ -81,55 +86,32 @@
     } else {
       cart.forEach(item => {
         const div = document.createElement("div");
-
         div.className = "bg-white p-4 rounded shadow flex justify-between items-center gap-2";
+
         div.innerHTML = `
-        <span>${item.name} x ${item.quantity}</span>
-        <div class="quantity-selector">
-          <button id ="reduceQuantity" class="minus" aria-label="Reduce quantity of ${item.name}">−</button>
-          <input id="quantity-selector__input" type="number" step="1" min="1" max="5" aria-label="Quantity of ${item.name}." value="1">
-          <button id ="increaseQuantity" class="plus" aria-label="Increase quantity of ${item.name}">＋</button>
-        </div>
-        <span>R${(item.price * item.quantity).toFixed(2)}</span>
-        <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-700">Delete</button>
-      `;
+          <span>${item.name} x ${item.quantity}</span>
+          <div class="quantity-selector flex items-center gap-1">
+            <button class="minus bg-gray-200 px-2 py-1 rounded">−</button>
+            <input type="number" step="1" min="1" max="5" value="${item.quantity}" class="w-16 text-center border rounded px-1">
+            <button class="plus bg-gray-200 px-2 py-1 rounded">＋</button>
+          </div>
+          <span>R${(item.price * item.quantity).toFixed(2)}</span>
+          <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-700">Delete</button>
+        `;
 
         const qtyInput = div.querySelector("input");
-
-        qtyInput.addEventListener("change", (e) => {
-          let value = parseInt(e.target.value);
-          if (isNaN(value) || value < 1) value = 1;
-          if (value > 5) value = 5;
-          e.target.value = value;
-          item.quantity = value;
-          renderCart();
-        });
         const minusBtn = div.querySelector(".minus");
-
-        minusBtn.addEventListener("click", () => {
-          let currentValue = parseInt(qtyInput.value);
-          if (currentValue > 1) {
-            input.value = currentValue - 1;
-            item.quantity = parseInt(qtyInput.value);
-            renderCart();
-          }
-        });
-
         const plusBtn = div.querySelector(".plus");
+        const delBtn = div.querySelector("button:last-of-type");
 
-        plusBtn.addEventListener("click", () => {
-          let currentValue = parseInt(qtyInput.value);
-          if (currentValue < 5) {
-            input.value = currentValue + 1;
-            item.quantity = parseInt(qtyInput.value);
-            renderCart();
-          }
-        });
-        const delBtn = div.querySelector("button");
+        qtyInput.addEventListener("change", e => updateQuantity(item, qtyInput, parseInt(e.target.value)));
+        minusBtn.addEventListener("click", () => updateQuantity(item, qtyInput, parseInt(qtyInput.value) - 1));
+        plusBtn.addEventListener("click", () => updateQuantity(item, qtyInput, parseInt(qtyInput.value) + 1));
         delBtn.addEventListener("click", () => {
           cart = deleteCartItem(item._id);
           renderCart();
         });
+
         cartContainer.appendChild(div);
       });
     }
@@ -137,7 +119,6 @@
   }
 
   renderCart();
-
 
   // Clear cart
   document.getElementById("clear-cart").addEventListener("click", () => {
@@ -157,7 +138,7 @@
       const div = document.createElement("div");
       div.className = "flex justify-between mb-2";
       div.innerHTML = `<span>${item.name} x ${item.quantity}</span>
-                     <span>R${(item.price * item.quantity).toFixed(2)}</span>`;
+                       <span>R${(item.price * item.quantity).toFixed(2)}</span>`;
       orderDetails.appendChild(div);
     });
 
@@ -178,7 +159,6 @@
     if (cart.length === 0) return alert("Cart is empty!");
     await createPayment("eft", recalcTotal(cart));
   });
-
 </script>
 
 <script type="module">

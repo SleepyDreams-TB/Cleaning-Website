@@ -104,7 +104,7 @@
 
 /* Buttons */
 .quantity-selector button {
-  background-color: #007bff;
+  background-color: red;
   color: #fff;
   border: none;
   font-size: 18px;
@@ -115,7 +115,7 @@
 
 /* Hover effect */
 .quantity-selector button:hover {
-  background-color: #0056b3;
+  background-color: red;
   transform: scale(1.1);
 }
 

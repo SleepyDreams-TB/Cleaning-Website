@@ -81,9 +81,7 @@
     } else {
       cart.forEach(item => {
         const div = document.createElement("div");
-        const qtyInput = div.querySelector("input");
-        const minusBtn = div.querySelector(".minus");
-        const plusBtn = div.querySelector(".plus");
+
         div.className = "bg-white p-4 rounded shadow flex justify-between items-center gap-2";
         div.innerHTML = `
         <span>${item.name} x ${item.quantity}</span>
@@ -95,6 +93,38 @@
         <span>R${(item.price * item.quantity).toFixed(2)}</span>
         <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-700">Delete</button>
       `;
+
+        const qtyInput = div.querySelector("input");
+
+        qtyInput.addEventListener("change", (e) => {
+          let value = parseInt(e.target.value);
+          if (isNaN(value) || value < 1) value = 1;
+          if (value > 5) value = 5;
+          e.target.value = value;
+          item.quantity = value;
+          renderCart();
+        });
+        const minusBtn = div.querySelector(".minus");
+
+        minusBtn.addEventListener("click", () => {
+          let currentValue = parseInt(qtyInput.value);
+          if (currentValue > 1) {
+            input.value = currentValue - 1;
+            item.quantity = parseInt(qtyInput.value);
+            renderCart();
+          }
+        });
+
+        const plusBtn = div.querySelector(".plus");
+
+        plusBtn.addEventListener("click", () => {
+          let currentValue = parseInt(qtyInput.value);
+          if (currentValue < 5) {
+            input.value = currentValue + 1;
+            item.quantity = parseInt(qtyInput.value);
+            renderCart();
+          }
+        });
         const delBtn = div.querySelector("button");
         delBtn.addEventListener("click", () => {
           cart = deleteCartItem(item._id);
@@ -107,33 +137,6 @@
   }
 
   renderCart();
-
-
-  qtyInput.addEventListener("change", (e) => {
-    let value = parseInt(e.target.value);
-    if (isNaN(value) || value < 1) value = 1;
-    if (value > 5) value = 5;
-    e.target.value = value;
-    item.quantity = value;
-    renderCart();
-  });
-
-  minusBtn.addEventListener("click", () => {
-    let currentValue = parseInt(qtyInput.value);
-    if (currentValue > 1) {
-      input.value = currentValue - 1;
-      item.quantity = parseInt(qtyInput.value);
-      renderCart();
-    }
-  });
-  plusBtn.addEventListener("click", () => {
-    let currentValue = parseInt(qtyInput.value);
-    if (currentValue < 5) {
-      input.value = currentValue + 1;
-      item.quantity = parseInt(qtyInput.value);
-      renderCart();
-    }
-  });
 
 
   // Clear cart

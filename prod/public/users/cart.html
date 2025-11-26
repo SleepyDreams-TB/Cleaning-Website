@@ -53,96 +53,101 @@
     </div>
   </div>
 
-  <script type="module">
-    import { getCart, clearCart, deleteCartItem, recalcTotal, createPayment } from "./cart.js";
-
-    let cart = getCart();
-
-    const cartContainer = document.getElementById("cart-items");
-    const totalEl = document.getElementById("total-price");
-    const orderModel = document.getElementById("orderModel");
-    const orderDetails = document.getElementById("order-details");
-    const confirmBtn = document.getElementById("confirm-order-btn");
-    const cancelBtn = document.getElementById("cancel-order-btn");
-    const checkoutBtn = document.getElementById("checkoutBtn");
-
-    // Render cart on page and attach delete buttons
-    function renderCart() {
-      cartContainer.innerHTML = "";
-      if (cart.length === 0) {
-        cartContainer.innerHTML = `<p class="text-center text-gray-500">Your cart is empty.</p>`;
-      } else {
-        cart.forEach(item => {
-          const div = document.createElement("div");
-          div.className = "bg-white p-4 rounded shadow flex justify-between items-center gap-2";
-          div.innerHTML = `
-        <span>${item.name} x ${item.quantity}</span>
-        <span>R${(item.price * item.quantity).toFixed(2)}</span>
-        <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-700">Delete</button>
-      `;
-          const delBtn = div.querySelector("button");
-          delBtn.addEventListener("click", () => {
-            cart = deleteCartItem(item._id);
-            renderCart();
-          });
-          cartContainer.appendChild(div);
-        });
-      }
-      totalEl.textContent = recalcTotal(cart).toFixed(2);
-    }
-
-    renderCart();
-
-    // Clear cart
-    document.getElementById("clear-cart").addEventListener("click", () => {
-      clearCart();
-      cart = [];
-      renderCart();
-      alert("Cart cleared!");
-    });
-
-    // Show order modal
-    confirmBtn.addEventListener("click", () => {
-      if (cart.length === 0) return alert("Cart is empty!");
-      orderModel.classList.add("show");
-      orderDetails.innerHTML = "";
-
-      cart.forEach(item => {
-        const div = document.createElement("div");
-        div.className = "flex justify-between mb-2";
-        div.innerHTML = `<span>${item.name} x ${item.quantity}</span>
-                     <span>R${(item.price * item.quantity).toFixed(2)}</span>`;
-        orderDetails.appendChild(div);
-      });
-
-      const totalDiv = document.createElement("div");
-      totalDiv.className = "flex justify-between font-bold mt-4";
-      totalDiv.innerHTML = `<span>Total:</span><span>R${recalcTotal(cart).toFixed(2)}</span>`;
-      orderDetails.appendChild(totalDiv);
-    });
-
-    // Close modal
-    cancelBtn.addEventListener("click", () => orderModel.classList.remove("show"));
-    orderModel.addEventListener("click", e => {
-      if (e.target === orderModel) orderModel.classList.remove("show");
-    });
-
-    // Checkout
-    checkoutBtn.addEventListener("click", async () => {
-      if (cart.length === 0) return alert("Cart is empty!");
-      await createPayment("eft", recalcTotal(cart));
-    });
-
-  </script>
-
-  <script type="module">
-    import { initNavbar } from '/navbar.js';
-    initNavbar("navbar-container");
-  </script>
-
   <footer class="bg-black text-white text-center p-4 mt-8">
     © 2025 Sparkle Clean. All rights reserved.
   </footer>
 </body>
+
+<script type="module">
+  import { getCart, clearCart, deleteCartItem, recalcTotal, createPayment } from "./cart.js";
+
+  let cart = getCart();
+
+  const cartContainer = document.getElementById("cart-items");
+  const totalEl = document.getElementById("total-price");
+  const orderModel = document.getElementById("orderModel");
+  const orderDetails = document.getElementById("order-details");
+  const confirmBtn = document.getElementById("confirm-order-btn");
+  const cancelBtn = document.getElementById("cancel-order-btn");
+  const checkoutBtn = document.getElementById("checkoutBtn");
+
+  // Render cart on page and attach delete buttons
+  function renderCart() {
+    cartContainer.innerHTML = "";
+    if (cart.length === 0) {
+      cartContainer.innerHTML = `<p class="text-center text-gray-500">Your cart is empty.</p>`;
+    } else {
+      cart.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "bg-white p-4 rounded shadow flex justify-between items-center gap-2";
+        div.innerHTML = `
+        <span>${item.name} x ${item.quantity}</span>
+        <span>R${(item.price * item.quantity).toFixed(2)}</span>
+        <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-700">Delete</button>
+        <div class="wc-block-components-quantity-selector">
+          <input class="wc-block-components-quantity-selector__input" type="number" step="1" min="1" max="2" aria-label="Quantity of Diamond 18K Gold Plated Bracelet in your cart." value="1">
+            <button aria-label="Reduce quantity of Diamond 18K Gold Plated Bracelet" class="wc-block-components-quantity-selector__button wc-block-components-quantity-selector__button--minus" disabled="">−</button>
+          <button aria-label="Increase quantity of Diamond 18K Gold Plated Bracelet" class="wc-block-components-quantity-selector__button wc-block-components-quantity-selector__button--plus">＋</button>
+        </div>
+      `;
+        const delBtn = div.querySelector("button");
+        delBtn.addEventListener("click", () => {
+          cart = deleteCartItem(item._id);
+          renderCart();
+        });
+        cartContainer.appendChild(div);
+      });
+    }
+    totalEl.textContent = recalcTotal(cart).toFixed(2);
+  }
+
+  renderCart();
+
+  // Clear cart
+  document.getElementById("clear-cart").addEventListener("click", () => {
+    clearCart();
+    cart = [];
+    renderCart();
+    alert("Cart cleared!");
+  });
+
+  // Show order modal
+  confirmBtn.addEventListener("click", () => {
+    if (cart.length === 0) return alert("Cart is empty!");
+    orderModel.classList.add("show");
+    orderDetails.innerHTML = "";
+
+    cart.forEach(item => {
+      const div = document.createElement("div");
+      div.className = "flex justify-between mb-2";
+      div.innerHTML = `<span>${item.name} x ${item.quantity}</span>
+                     <span>R${(item.price * item.quantity).toFixed(2)}</span>`;
+      orderDetails.appendChild(div);
+    });
+
+    const totalDiv = document.createElement("div");
+    totalDiv.className = "flex justify-between font-bold mt-4";
+    totalDiv.innerHTML = `<span>Total:</span><span>R${recalcTotal(cart).toFixed(2)}</span>`;
+    orderDetails.appendChild(totalDiv);
+  });
+
+  // Close modal
+  cancelBtn.addEventListener("click", () => orderModel.classList.remove("show"));
+  orderModel.addEventListener("click", e => {
+    if (e.target === orderModel) orderModel.classList.remove("show");
+  });
+
+  // Checkout
+  checkoutBtn.addEventListener("click", async () => {
+    if (cart.length === 0) return alert("Cart is empty!");
+    await createPayment("eft", recalcTotal(cart));
+  });
+
+</script>
+
+<script type="module">
+  import { initNavbar } from '/navbar.js';
+  initNavbar("navbar-container");
+</script>
 
 </html>

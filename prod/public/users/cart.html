@@ -76,7 +76,7 @@
     if (newVal > 5) newVal = 5;
     item.quantity = newVal;
     qtyInput.value = newVal;
-    renderCart();
+    totalEl.textContent = recalcTotal(cart).toFixed(2);
   }
 
   function renderCart() {

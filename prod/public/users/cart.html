@@ -71,9 +71,7 @@
   const cancelBtn = document.getElementById("cancel-order-btn");
   const checkoutBtn = document.getElementById("checkoutBtn");
 
-  const qtyInput = div.querySelector("input");
-  const minusBtn = div.querySelector(".minus");
-  const plusBtn = div.querySelector(".plus");
+
 
   // Render cart on page and attach delete buttons
   function renderCart() {
@@ -83,6 +81,9 @@
     } else {
       cart.forEach(item => {
         const div = document.createElement("div");
+        const qtyInput = div.querySelector("input");
+        const minusBtn = div.querySelector(".minus");
+        const plusBtn = div.querySelector(".plus");
         div.className = "bg-white p-4 rounded shadow flex justify-between items-center gap-2";
         div.innerHTML = `
         <span>${item.name} x ${item.quantity}</span>

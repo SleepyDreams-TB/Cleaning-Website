@@ -5,7 +5,7 @@ import fs from "fs";
 
 const app = express();
 app.use("/images", express.static(path.join(process.cwd(), "images")));
-
+app.use("/test", express.static(path.join(process.cwd(), "html")));
 const PORT = process.env.PORT || 3000;
 
 // GitHub repo details

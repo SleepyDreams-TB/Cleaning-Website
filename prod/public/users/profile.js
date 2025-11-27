@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const email = document.getElementById('email')?.value || "";
     if (!username) return;
     try {
-      const res = await apiFetch('/api/check_user_avail', {
+      const res = await apiFetch('/users/check_user_avail', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, email })

@@ -56,10 +56,6 @@ app.options('/upload', (req, res) => {
 });
 
 app.post('/upload', upload.single('file'), async (req, res) => {
-  const origin = req.headers.origin;
-  if (!origin || origin !== 'https://kingburger.site') {
-    return res.status(403).send('Forbidden: Invalid origin');
-  }
 
   if (!req.file) return res.status(400).send('No file uploaded');
 

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+
+  <form id="uploadForm" enctype="multipart/form-data">
+    <input type="file" id="fileInput" name="image" accept="image/*">
+    <button>Upload</button>
+  </form>
+
+  <script>
+    const userId = "690484f201c8c4891dd96393";
+
+    document.getElementById("uploadForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const file = document.getElementById("fileInput").files[0];
+      if (!file) return alert("Please select a file");
+
+      const ext = file.type.split("/")[1]; // get extension from MIME type
+      const fd = new FormData();
+      fd.append('file', file, `${userId}.${ext}`);
+
+      try {
+        const res = await fetch("https://media.kingburger.site/upload", {
+          method: "POST",
+          body: fd
+        });
+
+        const text = await res.text(); // server responds with plain text
+        console.log(text);
+        alert("Uploaded to GitHub: " + text);
+
+      } catch (err) {
+        console.error(err);
+        alert("Upload failed: " + err.message);
+      }
+    });
+  </script>
+
+</body>
+
+</html>

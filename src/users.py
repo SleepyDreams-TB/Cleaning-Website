@@ -77,6 +77,7 @@ async def get_dashboard_info(current_user = Depends(get_current_user)):
     
     return {
         "success": True,
+        "profileImageUrl": current_user.get("profileImageUrl"),
         "loggedIn_User": current_user['firstName'],
         "user_id": str(current_user["_id"]),
         "userName": current_user.get("userName"),

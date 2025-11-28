@@ -29,11 +29,11 @@ export async function initNavbar(containerId = "navbar-container") {
       if (!res.ok) throw new Error("Invalid token");
       const data = await res.json();
       const userName = data.loggedIn_User || "User";
-      const profileImageUrl = data.profileImageUrl || "https://media.kingburger.site/images/default-profile.png";
+      const profile_ImageUrl = data.profileImageUrl || "https://media.kingburger.site/images/default-profile.png";
       // Inject username link + dropdown toggle
       dropdownContainer.innerHTML = `
         <!-- Username link -->
-        <img src="${profileImageURL}" alt="Profile Icon" class="profile-icon" style="width:40px; height:40px; border-radius:50%;">
+        <img src="${profile_ImageURL}" alt="Profile Icon" class="profile-icon" style="width:40px; height:40px; border-radius:50%;">
         <a class="bg-pink-600 text-white px-4 py-2 rounded">
           ${userName}
         </a>

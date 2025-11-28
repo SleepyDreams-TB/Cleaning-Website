@@ -33,7 +33,7 @@ export async function initNavbar(containerId = "navbar-container") {
       // Inject username link + dropdown toggle
       dropdownContainer.innerHTML = `
         <!-- Username link -->
-        <img src="${profile_ImageURL}" alt="Profile Icon" class="profile-icon" style="width:40px; height:40px; border-radius:50%;">
+        <img src="${profile_ImageUrl}" alt="Profile Icon" class="profile-icon" style="width:40px; height:40px; border-radius:50%;">
         <a class="bg-pink-600 text-white px-4 py-2 rounded">
           ${userName}
         </a>

@@ -81,7 +81,7 @@
   async function loadNavbar() {
     const container = document.getElementById("navbar-container");
     try {
-      const response = await apiFetch("/navbar.html");
+      const response = await apiFetch("/navbar");
       container.innerHTML = await response.text();
 
       const module = await import('/navbar.js');

@@ -3,14 +3,14 @@ import { apiFetch } from '/utils.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const JWT = localStorage.getItem("jwt");
-  if (!JWT) return window.location.href = "../index.html";
+  if (!JWT) return window.location.href = "../index";
 
   let userId;
   try {
     const payload = jwt_decode(JWT);
     userId = payload.user_id;
   } catch {
-    return window.location.href = "../index.html";
+    return window.location.href = "../index";
   }
 
   // apiFetch user and populate form

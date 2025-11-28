@@ -85,7 +85,7 @@
     async function loadNavbar() {
       const container = document.getElementById("navbar-container");
       try {
-        const response = await apiFetch("/navbar.html");
+        const response = await apiFetch("/navbar");
         container.innerHTML = await response.text();
 
         // Dynamically import JS logic after HTML injection

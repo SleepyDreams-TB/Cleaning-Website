@@ -4,7 +4,7 @@ export async function initNavbar(containerId = "navbar-container") {
 
   try {
     // Load navbar HTML
-    const response = await fetch("/navbar.html");
+    const response = await fetch("/navbar");
     if (!response.ok) throw new Error("Failed to fetch navbar HTML");
     container.innerHTML = await response.text();
 
@@ -16,7 +16,7 @@ export async function initNavbar(containerId = "navbar-container") {
     if (!token) {
       dropdownContainer.innerHTML = `
         <span>Guest</span>
-        (<a href="/login.html" class="text-pink-600 hover:underline">Login</a>)
+        (<a href="/login" class="text-pink-600 hover:underline">Login</a>)
       `;
       return;
     }
@@ -45,10 +45,10 @@ export async function initNavbar(containerId = "navbar-container") {
             <i class="bi bi-list"></i>
           </button>
           <div id="userDropdownMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-            <a href="/users/profile.html" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Profile</a>
-            <a href="/users/billing.html" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Billing</a>
-            <a href="/users/cart.html" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Cart</a>
-            <a href="/users/orders.html" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Orders</a>
+            <a href="/users/profile" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Profile</a>
+            <a href="/users/billing" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Billing</a>
+            <a href="/users/cart" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Cart</a>
+            <a href="/users/orders" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Orders</a>
             <a href="#" id="logoutLink" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Logout</a>
           </div>
         </div>
@@ -76,7 +76,7 @@ export async function initNavbar(containerId = "navbar-container") {
         logoutLink.addEventListener("click", e => {
           e.preventDefault();
           localStorage.removeItem("jwt");
-          window.location.href = "/index.html";
+          window.location.href = "/index";
         });
       }
 
@@ -84,7 +84,7 @@ export async function initNavbar(containerId = "navbar-container") {
       console.error("Failed to fetch user info:", err);
       dropdownContainer.innerHTML = `
         <span>Guest</span>
-        (<a href="/login.html" class="text-pink-600 hover:underline">Login</a>)
+        (<a href="/login" class="text-pink-600 hover:underline">Login</a>)
       `;
     }
 

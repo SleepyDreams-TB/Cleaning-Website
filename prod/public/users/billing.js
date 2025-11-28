@@ -2,9 +2,9 @@ const billingForm = document.getElementById("billingForm");
 const billingMessage = document.getElementById("billingMessage");
 const token = localStorage.getItem("jwt");
 
-// Redirect to 401.html if user is not logged in
+// Redirect to 401 if user is not logged in
 if (!token) {
-  window.location.href = "/401.html";
+  window.location.href = "/redirects/401";
 } else {
   fetch("https://api.kingburger.site/users/dashboard/info", {
     headers: { Authorization: `Bearer ${token}` },

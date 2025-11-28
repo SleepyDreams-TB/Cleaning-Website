@@ -1,10 +1,11 @@
 {
-    "name": "cleaning-site-frontend",
-    "version": "1.0.0",
-    "scripts": {
-      "start": "node cleaning-site-app.js"
-    },
-    "dependencies": {
-      "express": "^4.18.2"
-    }
+  "name": "cleaning-site-frontend",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node cleaning-site-app.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongodb": "^5.7.0"
   }
+}

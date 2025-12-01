@@ -2,8 +2,6 @@
 import { apiFetch } from '/utils.js';
 
 function notifyUser(message) {
-  // Replace with custom UI notifications if you have one
-  // For now, we'll use alert
   alert(message);
   console.log("User notification:", message);
 }
@@ -28,7 +26,9 @@ export function saveCart(cart) {
 
 export function addToCart(product) {
   const cart = getCart();
-  const existingItem = cart.find(item => item.id === product.id);
+  // Use _id if it exists, otherwise use id
+  const itemId = product._id || product.id;
+  const existingItem = cart.find(item => (item._id || item.id) === itemId);
 
   if (existingItem) {
     existingItem.quantity += 1;
@@ -48,7 +48,8 @@ export function clearCart() {
 export function deleteCartItem(id) {
   let cart = getCart();
   const initialLength = cart.length;
-  cart = cart.filter(item => item.id !== id);
+  // Match against both _id and id for flexibility
+  cart = cart.filter(item => (item._id || item.id) !== id);
   saveCart(cart);
   console.log(`Deleted item ${id} from cart. Removed ${initialLength - cart.length} items.`);
   return cart;

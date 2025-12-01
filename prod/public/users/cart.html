@@ -60,7 +60,7 @@
 </footer>
 
 <script type="module">
-  import { getCart, clearCart, deleteCartItem, recalcTotal, createPayment } from "./cart.js";
+  import { getCart, clearCart, deleteCartItem, recalcTotal, createPayment, saveCart } from "./cart.js";
 
   let cart = getCart();
 
@@ -73,10 +73,18 @@
   const checkoutBtn = document.getElementById("checkoutBtn");
 
   function updateQuantity(item, qtyInput, newVal) {
+    // Validate and constrain the value
     if (isNaN(newVal) || newVal < 1) newVal = 1;
     if (newVal > 5) newVal = 5;
+
+    // Update the item's quantity
     item.quantity = newVal;
     qtyInput.value = newVal;
+
+    // Save the updated cart to localStorage
+    saveCart(cart);
+
+    // Update the total display
     totalEl.textContent = recalcTotal(cart).toFixed(2);
   }
 
@@ -90,16 +98,16 @@
         div.className = "bg-white p-4 rounded shadow flex justify-between items-center gap-2";
 
         div.innerHTML = `
-          <img src="${item.image_url}" alt="${item.name}" class="w-16 h-16 object-cover rounded">
-          <span>${item.name}</span>
-          <div class="quantity-selector flex items-center gap-1">
-            <button class="minus bg-gray-200 px-2 py-1 rounded">−</button>
-            <input type="number" step="1" min="1" max="5" value="${item.quantity}" class="w-16 text-center border rounded px-1">
-            <button class="plus bg-gray-200 px-2 py-1 rounded">＋</button>Quantity: 
-          </div>
-          <span>R${(item.price * item.quantity).toFixed(2)}</span>
-          <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-700">Delete</button>
-        `;
+        <img src="${item.image_url}" alt="${item.name}" class="w-16 h-16 object-cover rounded">
+        <span>${item.name}</span>
+        <div class="quantity-selector flex items-center gap-1">Quantity:
+          <button class="minus bg-gray-200 px-2 py-1 rounded">−</button>
+          <input type="number" step="1" min="1" max="5" value="${item.quantity}" class="w-16 text-center border rounded px-1">
+          <button class="plus bg-gray-200 px-2 py-1 rounded">＋</button> 
+        </div>
+        <span>R${(item.price * item.quantity).toFixed(2)}</span>
+        <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-700">Delete</button>
+      `;
 
         const qtyInput = div.querySelector("input");
         const minusBtn = div.querySelector(".minus");
@@ -140,7 +148,7 @@
       const div = document.createElement("div");
       div.className = "flex justify-between mb-2";
       div.innerHTML = `<span>${item.name} x ${item.quantity}</span>
-                       <span>R${(item.price * item.quantity).toFixed(2)}</span>`;
+                     <span>R${(item.price * item.quantity).toFixed(2)}</span>`;
       orderDetails.appendChild(div);
     });
 

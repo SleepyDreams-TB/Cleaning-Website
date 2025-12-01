@@ -34,14 +34,11 @@ export async function initNavbar(containerId = "navbar-container") {
       dropdownContainer.innerHTML = `
         <!-- Username link -->
         <img src="${profile_ImageUrl}" alt="Profile Icon" class="profile-icon" style="width:40px; height:40px; border-radius:50%;">
-        <a class="bg-pink-600 text-white px-4 py-2 rounded">
-          ${userName}
-        </a>
-
-        
+              
         <!-- Dropdown toggle -->
         <div class="relative inline-block text-left">
           <button id="userDropdownButton" class="bg-pink-600 text-white px-4 py-2 rounded">
+            ${userName}
             <i class="bi bi-list"></i>
           </button>
           <div id="userDropdownMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">

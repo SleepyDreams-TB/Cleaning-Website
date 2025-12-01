@@ -53,10 +53,11 @@
     </div>
   </div>
 
-  <footer class="bg-black text-white text-center p-4 mt-8">
-    © 2025 Sparkle Clean. All rights reserved.
-  </footer>
+
 </body>
+<footer class="bg-black text-white text-center p-4 mt-8">
+  © 2025 Sparkle Clean. All rights reserved.
+</footer>
 
 <script type="module">
   import { getCart, clearCart, deleteCartItem, recalcTotal, createPayment } from "./cart.js";
@@ -89,11 +90,12 @@
         div.className = "bg-white p-4 rounded shadow flex justify-between items-center gap-2";
 
         div.innerHTML = `
-          <span>${item.name} x ${item.quantity}</span>
+          <img src="${item.image_url}" alt="${item.name}" class="w-16 h-16 object-cover rounded">
+          <span>${item.name}</span>
           <div class="quantity-selector flex items-center gap-1">
             <button class="minus bg-gray-200 px-2 py-1 rounded">−</button>
             <input type="number" step="1" min="1" max="5" value="${item.quantity}" class="w-16 text-center border rounded px-1">
-            <button class="plus bg-gray-200 px-2 py-1 rounded">＋</button>
+            <button class="plus bg-gray-200 px-2 py-1 rounded">＋</button>Quantity: 
           </div>
           <span>R${(item.price * item.quantity).toFixed(2)}</span>
           <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-700">Delete</button>

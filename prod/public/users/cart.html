@@ -105,18 +105,31 @@
           <input type="number" step="1" min="1" max="5" value="${item.quantity}" class="w-16 text-center border rounded px-1">
           <button class="plus bg-gray-200 px-2 py-1 rounded">＋</button> 
         </div>
-        <span>R${(item.price * item.quantity).toFixed(2)}</span>
+        <span class="item-total">R${(item.price * item.quantity).toFixed(2)}</span>
         <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-700">Delete</button>
       `;
-
         const qtyInput = div.querySelector("input");
+        const itemTotalSpan = div.querySelector(".item-total");
         const minusBtn = div.querySelector(".minus");
         const plusBtn = div.querySelector(".plus");
         const delBtn = div.querySelector("button:last-of-type");
 
-        qtyInput.addEventListener("change", e => updateQuantity(item, qtyInput, parseInt(e.target.value)));
-        minusBtn.addEventListener("click", () => updateQuantity(item, qtyInput, parseInt(qtyInput.value) - 1));
-        plusBtn.addEventListener("click", () => updateQuantity(item, qtyInput, parseInt(qtyInput.value) + 1));
+        qtyInput.addEventListener("change", e => {
+          updateQuantity(item, qtyInput, parseInt(e.target.value));
+          itemTotalSpan.textContent = `R${(item.price * item.quantity).toFixed(2)}`;
+        });
+
+        minusBtn.addEventListener("click", () => {
+          const newVal = parseInt(qtyInput.value) - 1;
+          if (newVal >= 1) updateQuantity(item, qtyInput, newVal);
+          itemTotalSpan.textContent = `R${(item.price * item.quantity).toFixed(2)}`;
+
+        });
+        plusBtn.addEventListener("click", () => {
+          const newVal = parseInt(qtyInput.value) + 1;
+          if (newVal <= 5) updateQuantity(item, qtyInput, newVal);
+          itemTotalSpan.textContent = `R${(item.price * item.quantity).toFixed(2)}`;
+        });
         delBtn.addEventListener("click", () => {
           cart = deleteCartItem(item._id);
           renderCart();

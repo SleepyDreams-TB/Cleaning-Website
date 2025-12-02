@@ -25,10 +25,13 @@ async def create_order(request: Request, authorization: str = Header(None)):
     data = await request.json()
     items = data.get("items", [])
     payment_type = data.get("payment_type", "unknown")
+    delivery_info = data.get("delivery_info")
 
     if not items:
         raise HTTPException(status_code=400, detail="No items provided for order")
-
+    if not delivery_info:
+        raise HTTPException(status_code=400, detail="Delivery information is required")
+    
     total = sum(item["price"] * item["quantity"] for item in items)
     merchant_reference = generate_merchant_reference()
 
@@ -38,7 +41,8 @@ async def create_order(request: Request, authorization: str = Header(None)):
                 merchant_reference=merchant_reference,
                 user_id=user_id,
                 total=total,
-                payment_type=payment_type
+                payment_type=payment_type,
+                delivery_info=delivery_info
             )
             db.add(new_order)
             db.flush()
@@ -114,6 +118,7 @@ def get_user_orders(
                 "payment_type": o.payment_type,
                 "status": o.status,
                 "created_at": o.created_at.isoformat(),
+                "delivery_info": o.delivery_info,
                 "items": [{"name": i.name, "price": i.price, "quantity": i.quantity} for i in o.items],
             }
             for o in orders

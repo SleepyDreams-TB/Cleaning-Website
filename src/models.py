@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey
 from sqlalchemy.orm import declarative_base, relationship
 from datetime import datetime, timezone
-
+from sqlalchemy.dialects.postgresql import JSON
 Base = declarative_base()
 
 # --- SQLAlchemy Models ---
@@ -13,6 +13,7 @@ class Order(Base):
     user_id = Column(String(24), nullable=False)
     total = Column(Float, nullable=False)
     payment_type = Column(String(50), nullable=False)
+    delivery_info = Column(JSON, nullable=True)
     status = Column(String(50), default="pending")
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))

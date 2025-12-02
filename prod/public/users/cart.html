@@ -42,16 +42,21 @@
     <div class="order-content">
       <h2>Order Summary</h2>
       <div id="order-details"></div>
-      <div class="mt-4 space-x-2">
-        <button id="checkoutBtn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-          Proceed to checkout
-        </button>
-        <button id="cancel-order-btn" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-          Cancel
-        </button>
+      <div id="billing-info" class="mt-4">
+        <h3 class="font-bold mb-2">Billing Information</h3>
+        <select id="billing-address-select" class="w-full border rounded px-2 py-1">
+          <option value="" disabled selected>Choose Your Delivery Address</option>
+        </select>
+        <div class="mt-4 space-x-2">
+          <button id="checkoutBtn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+            Proceed to checkout
+          </button>
+          <button id="cancel-order-btn" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+            Cancel
+          </button>
+        </div>
       </div>
     </div>
-  </div>
 
 
 </body>
@@ -60,7 +65,8 @@
 </footer>
 
 <script type="module">
-  import { getCart, clearCart, deleteCartItem, recalcTotal, createPayment, saveCart } from "./cart.js";
+  import { getCart, clearCart, deleteCartItem, recalcTotal, createPayment, saveCart, getBillingInfoAddress } from "./cart.js";
+
 
   let cart = getCart();
 
@@ -152,7 +158,7 @@
   });
 
   // Show order modal
-  confirmBtn.addEventListener("click", () => {
+  confirmBtn.addEventListener("click", async () => {
     if (cart.length === 0) return alert("Cart is empty!");
     orderModel.classList.add("show");
     orderDetails.innerHTML = "";
@@ -164,6 +170,20 @@
                      <span>R${(item.price * item.quantity).toFixed(2)}</span>`;
       orderDetails.appendChild(div);
     });
+
+
+    const token = localStorage.getItem("jwt");
+    const addresses = await getBillingInfoAddress(token);
+
+    if (addresses) {
+      Object.keys(addresses).forEach(addressType => {
+        const addr = addresses[addressType];
+        const option = document.createElement("option");
+        option.value = addressType;
+        option.textContent = `${addr.street}, ${addr.suburb}, ${addr.city}, ${addr.postal_code}`;
+        addressSelect.appendChild(option);
+      });
+    }
 
     const totalDiv = document.createElement("div");
     totalDiv.className = "flex justify-between font-bold mt-4";
@@ -177,10 +197,19 @@
     if (e.target === orderModel) orderModel.classList.remove("show");
   });
 
+  let selectedAddressType = null;
+
+  const addressSelect = document.getElementById("billing-address-select");
+  addressSelect.addEventListener("change", (e) => {
+    selectedAddressType = e.target.value;
+  });
+
   // Checkout
   checkoutBtn.addEventListener("click", async () => {
     if (cart.length === 0) return alert("Cart is empty!");
-    await createPayment("eft", recalcTotal(cart));
+    if (!selectedAddressType) return alert("Please select a delivery address!");
+
+    await createPayment("eft", recalcTotal(cart), deliveryAddress = selectedAddressType);
   });
 </script>
 

@@ -59,6 +59,35 @@ export function recalcTotal(cart) {
   return cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 }
 
+// ----- Fetch Billing Info -----
+export async function getBllingInfoAddress(token) {
+
+  if (!token) {
+    notifyUser("Please log in");
+    return null;
+  }
+  try {
+    const res = await fetch("https://api.kingburger.site/users/dashboard/info", {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error("Invalid token");
+    const data = await res.json();
+    const billing_info = data.billing_info
+
+    if (!billing_info || !billing_info.billing_addresses) {
+      notifyUser('No billing information found. Please add a billing address in the "Billing Section".');
+      return null;
+    }
+
+    const addresses = billing_info.billing_addresses;
+    return addresses
+  } catch (err) {
+    console.error("Failed to fetch billing info:", err);
+    notifyUser("Could not fetch billing info. Please try again.");
+    return null;
+  }
+}
+
 // ----- Create Order in Backend -----
 export async function createBackendOrder(payment_type) {
   const cart = getCart();
@@ -78,6 +107,14 @@ export async function createBackendOrder(payment_type) {
   }
 
   try {
+    const addresses = await getBillingInfoAddress(token);
+    const deliveryAddress = addresses[addressType];
+
+    if (!deliveryAddress) {
+      notifyUser("Invalid delivery address selected.");
+      return null;
+    }
+
     const res = await apiFetch("https://api.kingburger.site/api/orders", {
       method: "POST",
       headers: {
@@ -86,7 +123,15 @@ export async function createBackendOrder(payment_type) {
       },
       body: JSON.stringify({
         payment_type,
-        items: cart
+        items: cart,
+        delivery_info: {
+          type: addressType,
+          street: deliveryAddress.street,
+          city: deliveryAddress.city,
+          suburb: deliveryAddress.suburb,
+          postal_code: deliveryAddress.postal_code,
+          country: deliveryAddress.country
+        }
       })
     });
 
@@ -104,9 +149,9 @@ export async function createBackendOrder(payment_type) {
 }
 
 // ----- Create Payment -----
-export async function createPayment(payment_type, amount) {
+export async function createPayment(payment_type, amount, deliveryAddress) {
   try {
-    const orderData = await createBackendOrder(payment_type);
+    const orderData = await createBackendOrder(payment_type, deliveryAddress);
     if (!orderData || !orderData.merchant_reference) {
       notifyUser("We could not create your order. Please try again.");
       return;

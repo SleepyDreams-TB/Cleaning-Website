@@ -18,21 +18,24 @@ export async function initNavbar(containerId = "navbar-container") {
         <span>Guest</span>
         (<a href="/login" class="text-pink-600 hover:underline">Login</a>)
       `;
-      window.location.href = "/index";
-      return;
-    }
+      if (window.location.pathname === "/" || window.location.pathname === "/index") {
+        return;
+      } else {
+        window.location.href = "/index";
+        return;
+      }
 
-    // Fetch user info
-    try {
-      const res = await fetch("https://api.kingburger.site/users/dashboard/info", {
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-      if (!res.ok) throw new Error("Invalid token");
-      const data = await res.json();
-      const userName = data.loggedIn_User || "User";
-      const profile_ImageUrl = data.profileImageUrl || "https://media.kingburger.site/images/default-profile.png";
-      // Inject username link + dropdown toggle
-      dropdownContainer.innerHTML = `
+      // Fetch user info
+      try {
+        const res = await fetch("https://api.kingburger.site/users/dashboard/info", {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error("Invalid token");
+        const data = await res.json();
+        const userName = data.loggedIn_User || "User";
+        const profile_ImageUrl = data.profileImageUrl || "https://media.kingburger.site/images/default-profile.png";
+        // Inject username link + dropdown toggle
+        dropdownContainer.innerHTML = `
         <!-- Username link -->
         <img src="${profile_ImageUrl}" alt="Profile Icon" class="profile-icon" style="width:40px; height:40px; border-radius:50%;">
               
@@ -52,42 +55,42 @@ export async function initNavbar(containerId = "navbar-container") {
         </div>
       `;
 
-      // Dropdown toggle logic
-      const dropdownButton = dropdownContainer.querySelector("#userDropdownButton");
-      const dropdownMenu = dropdownContainer.querySelector("#userDropdownMenu");
-      const logoutLink = dropdownContainer.querySelector("#logoutLink");
+        // Dropdown toggle logic
+        const dropdownButton = dropdownContainer.querySelector("#userDropdownButton");
+        const dropdownMenu = dropdownContainer.querySelector("#userDropdownMenu");
+        const logoutLink = dropdownContainer.querySelector("#logoutLink");
 
-      if (dropdownButton && dropdownMenu) {
-        dropdownButton.addEventListener("click", e => {
-          e.stopPropagation();
-          dropdownMenu.classList.toggle("hidden");
-        });
+        if (dropdownButton && dropdownMenu) {
+          dropdownButton.addEventListener("click", e => {
+            e.stopPropagation();
+            dropdownMenu.classList.toggle("hidden");
+          });
 
-        document.addEventListener("click", e => {
-          if (!dropdownButton.contains(e.target) && !dropdownMenu.contains(e.target)) {
-            dropdownMenu.classList.add("hidden");
-          }
-        });
-      }
+          document.addEventListener("click", e => {
+            if (!dropdownButton.contains(e.target) && !dropdownMenu.contains(e.target)) {
+              dropdownMenu.classList.add("hidden");
+            }
+          });
+        }
 
-      if (logoutLink) {
-        logoutLink.addEventListener("click", e => {
-          e.preventDefault();
-          localStorage.removeItem("jwt");
-          window.location.href = "/index";
-        });
-      }
+        if (logoutLink) {
+          logoutLink.addEventListener("click", e => {
+            e.preventDefault();
+            localStorage.removeItem("jwt");
+            window.location.href = "/index";
+          });
+        }
 
-    } catch (err) {
-      console.error("Failed to fetch user info:", err);
-      dropdownContainer.innerHTML = `
+      } catch (err) {
+        console.error("Failed to fetch user info:", err);
+        dropdownContainer.innerHTML = `
         <span>Guest</span>
         (<a href="/login" class="text-pink-600 hover:underline">Login</a>)
       `;
-    }
+      }
 
-  } catch (err) {
-    console.error("Failed to load navbar:", err);
-    container.innerHTML = "<p class='text-red-500'>Navbar failed to load</p>";
+    } catch (err) {
+      console.error("Failed to load navbar:", err);
+      container.innerHTML = "<p class='text-red-500'>Navbar failed to load</p>";
+    }
   }
-}

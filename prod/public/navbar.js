@@ -4,7 +4,7 @@ export async function initNavbar(containerId = "navbar-container") {
 
   try {
     // Load navbar HTML
-    const response = await apiFetch("/navbar");
+    const response = await fetch("/navbar");
     if (!response.ok) throw new Error("Failed to fetch navbar HTML");
     container.innerHTML = await response.text();
 
@@ -23,7 +23,7 @@ export async function initNavbar(containerId = "navbar-container") {
 
     // Fetch user info
     try {
-      const res = await apiFetch("https://api.kingburger.site/users/dashboard/info", {
+      const res = await fetch("https://api.kingburger.site/users/dashboard/info", {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (!res.ok) throw new Error("Invalid token");

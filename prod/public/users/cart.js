@@ -88,7 +88,7 @@ export async function getBillingInfoAddress(token) {
 }
 
 // ----- Create Order in Backend -----
-export async function createBackendOrder(payment_type) {
+export async function createBackendOrder(payment_type, addressType) {
   const cart = getCart();
   console.log("Current cart:", cart);
 

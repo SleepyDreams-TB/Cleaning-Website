@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="/products/checkout.css">
 </head>
 
-<body class="bg-cover bg-center bg-no-repeat bg-fixed text-gray-800"
+<body class="bg-cover bg-center bg-no-repeat bg-fixed text-gray-800 flex flex-col min-h-screen"
   style="background-image: url('../assets/cleaningbg.jpg');">
 
   <header class="bg-black shadow p-4 flex justify-between items-center">
@@ -19,7 +19,7 @@
     </nav>
   </header>
 
-  <main class="container mx-auto py-12 px-4">
+  <main class="flex-1 container mx-auto py-12 px-4">
     <h2 class="text-3xl font-bold text-center mb-8">Your Cart</h2>
     <div id="cart-items" class="space-y-4"></div>
 
@@ -36,37 +36,35 @@
       </button>
     </div>
   </main>
-</body>
-<footer class="bg-black text-white text-center p-4 mt-8">
-  © 2025 Sparkle Clean. All rights reserved.
-</footer>
-<!-- Order Summary Modal -->
-<div id="orderModel" class="order-summary">
-  <div class="order-content">
-    <h2>Order Summary</h2>
-    <div id="order-details"></div>
-    <div id="billing-info" class="mt-4">
-      <h3 class="font-bold mb-2">Billing Information</h3>
-      <select id="billing-address-select" class="w-full border rounded px-2 py-1">
-        <option value="" disabled selected>Choose Your Delivery Address</option>
-      </select>
-      <div class="mt-4 space-x-2">
-        <button id="checkoutBtn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-          Proceed to checkout
-        </button>
-        <button id="cancel-order-btn" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-          Cancel
-        </button>
+
+  <!-- Order Summary Modal -->
+  <div id="orderModel" class="order-summary">
+    <div class="order-content">
+      <h2>Order Summary</h2>
+      <div id="order-details"></div>
+      <div id="billing-info" class="mt-4">
+        <h3 class="font-bold mb-2">Billing Information</h3>
+        <select id="billing-address-select" class="w-full border rounded px-2 py-1">
+          <option value="" disabled selected>Choose Your Delivery Address</option>
+        </select>
+        <div class="mt-4 space-x-2">
+          <button id="checkoutBtn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+            Proceed to checkout
+          </button>
+          <button id="cancel-order-btn" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+            Cancel
+          </button>
+        </div>
       </div>
     </div>
   </div>
 
-
-
+  <footer class="bg-black text-white text-center p-4 mt-auto">
+    © 2025 Sparkle Clean. All rights reserved.
+  </footer>
 
   <script type="module">
     import { getCart, clearCart, deleteCartItem, recalcTotal, createPayment, saveCart, getBillingInfoAddress } from "./cart.js";
-
 
     let cart = getCart();
 
@@ -77,20 +75,17 @@
     const confirmBtn = document.getElementById("confirm-order-btn");
     const cancelBtn = document.getElementById("cancel-order-btn");
     const checkoutBtn = document.getElementById("checkoutBtn");
+    const addressSelect = document.getElementById("billing-address-select");
 
     function updateQuantity(item, qtyInput, newVal) {
-      // Validate and constrain the value
       if (isNaN(newVal) || newVal < 1) newVal = 1;
       if (newVal > 5) newVal = 5;
 
-      // Update the item's quantity
       item.quantity = newVal;
       qtyInput.value = newVal;
 
-      // Save the updated cart to localStorage
       saveCart(cart);
 
-      // Update the total display
       totalEl.textContent = recalcTotal(cart).toFixed(2);
     }
 
@@ -104,16 +99,16 @@
           div.className = "bg-white p-4 rounded shadow flex justify-between items-center gap-2";
 
           div.innerHTML = `
-        <img src="${item.image_url}" alt="${item.name}" class="w-16 h-16 object-cover rounded">
-        <span>${item.name}</span>
-        <div class="quantity-selector flex items-center gap-1">Quantity:
-          <button class="minus bg-gray-200 px-2 py-1 rounded">−</button>
-          <input type="number" step="1" min="1" max="5" value="${item.quantity}" class="w-16 text-center border rounded px-1">
-          <button class="plus bg-gray-200 px-2 py-1 rounded">＋</button> 
-        </div>
-        <span class="item-total">R${(item.price * item.quantity).toFixed(2)}</span>
-        <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-700">Delete</button>
-      `;
+            <img src="${item.image_url}" alt="${item.name}" class="w-16 h-16 object-cover rounded">
+            <span>${item.name}</span>
+            <div class="quantity-selector flex items-center gap-1">Quantity:
+              <button class="minus bg-gray-200 px-2 py-1 rounded">−</button>
+              <input type="number" step="1" min="1" max="5" value="${item.quantity}" class="w-16 text-center border rounded px-1">
+              <button class="plus bg-gray-200 px-2 py-1 rounded">＋</button> 
+            </div>
+            <span class="item-total">R${(item.price * item.quantity).toFixed(2)}</span>
+            <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-700">Delete</button>
+          `;
           const qtyInput = div.querySelector("input");
           const itemTotalSpan = div.querySelector(".item-total");
           const minusBtn = div.querySelector(".minus");
@@ -129,13 +124,14 @@
             const newVal = parseInt(qtyInput.value) - 1;
             if (newVal >= 1) updateQuantity(item, qtyInput, newVal);
             itemTotalSpan.textContent = `R${(item.price * item.quantity).toFixed(2)}`;
-
           });
+
           plusBtn.addEventListener("click", () => {
             const newVal = parseInt(qtyInput.value) + 1;
             if (newVal <= 5) updateQuantity(item, qtyInput, newVal);
             itemTotalSpan.textContent = `R${(item.price * item.quantity).toFixed(2)}`;
           });
+
           delBtn.addEventListener("click", () => {
             cart = deleteCartItem(item._id);
             renderCart();
@@ -149,7 +145,6 @@
 
     renderCart();
 
-    // Clear cart
     document.getElementById("clear-cart").addEventListener("click", () => {
       clearCart();
       cart = [];
@@ -157,7 +152,6 @@
       alert("Cart cleared!");
     });
 
-    // Show order modal
     confirmBtn.addEventListener("click", async () => {
       if (cart.length === 0) return alert("Cart is empty!");
       orderModel.classList.add("show");
@@ -167,15 +161,15 @@
         const div = document.createElement("div");
         div.className = "flex justify-between mb-2";
         div.innerHTML = `<span>${item.name} x ${item.quantity}</span>
-                     <span>R${(item.price * item.quantity).toFixed(2)}</span>`;
+                       <span>R${(item.price * item.quantity).toFixed(2)}</span>`;
         orderDetails.appendChild(div);
       });
-
 
       const token = localStorage.getItem("jwt");
       const addresses = await getBillingInfoAddress(token);
 
       if (addresses) {
+        addressSelect.innerHTML = `<option value="" disabled selected>Choose Your Delivery Address</option>`;
         Object.keys(addresses).forEach(addressType => {
           const addr = addresses[addressType];
           const option = document.createElement("option");
@@ -191,7 +185,6 @@
       orderDetails.appendChild(totalDiv);
     });
 
-    // Close modal
     cancelBtn.addEventListener("click", () => orderModel.classList.remove("show"));
     orderModel.addEventListener("click", e => {
       if (e.target === orderModel) orderModel.classList.remove("show");
@@ -199,12 +192,10 @@
 
     let selectedAddressType = null;
 
-    const addressSelect = document.getElementById("billing-address-select");
     addressSelect.addEventListener("change", (e) => {
       selectedAddressType = e.target.value;
     });
 
-    // Checkout
     checkoutBtn.addEventListener("click", async () => {
       if (cart.length === 0) return alert("Cart is empty!");
       if (!selectedAddressType) return alert("Please select a delivery address!");
@@ -217,5 +208,7 @@
     import { initNavbar } from '/navbar.js';
     initNavbar("navbar-container");
   </script>
+
+</body>
 
 </html>

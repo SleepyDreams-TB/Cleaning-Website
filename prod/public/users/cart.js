@@ -74,12 +74,12 @@ export async function getBillingInfoAddress(token) {
     const data = await res.json();
     const billing_address = data.billing_address
 
-    if (!billing_addresses) {
+    if (!billing_address) {
       notifyUser('No billing information found. Please add a billing address in the "Billing Section".');
       return null;
     }
 
-    return billing_addresses
+    return billing_address
   } catch (err) {
     console.error("Failed to fetch billing info:", err);
     notifyUser("Could not fetch billing info. Please try again.");

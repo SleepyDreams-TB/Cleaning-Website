@@ -6,7 +6,7 @@ const token = localStorage.getItem("jwt");
 if (!token) {
   window.location.href = "/redirects/401";
 } else {
-  fetch("https://api.kingburger.site/users/dashboard/info", {
+  apiFetch("https://api.kingburger.site/users/dashboard/info", {
     headers: { Authorization: `Bearer ${token}` },
   })
     .then(res => res.json())

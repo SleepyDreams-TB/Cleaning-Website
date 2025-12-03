@@ -67,7 +67,7 @@ export async function getBillingInfoAddress(token) {
     return null;
   }
   try {
-    const res = await fetch("https://api.kingburger.site/users/dashboard/info", {
+    const res = await apiFetch("https://api.kingburger.site/users/dashboard/info", {
       headers: { "Authorization": `Bearer ${token}` }
     });
     if (!res.ok) throw new Error("Invalid token");

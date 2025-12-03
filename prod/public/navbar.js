@@ -18,6 +18,7 @@ export async function initNavbar(containerId = "navbar-container") {
         <span>Guest</span>
         (<a href="/login" class="text-pink-600 hover:underline">Login</a>)
       `;
+      window.location.href = "/index";
       return;
     }
 

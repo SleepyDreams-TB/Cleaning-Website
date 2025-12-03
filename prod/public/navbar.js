@@ -30,7 +30,13 @@ export async function initNavbar(containerId = "navbar-container") {
       const res = await fetch("https://api.kingburger.site/users/dashboard/info", {
         headers: { "Authorization": `Bearer ${token}` }
       });
-      if (!res.ok) throw new Error("Invalid token");
+      if (!res.ok) {
+        localStorage.removeItem("jwt");
+        if (window.location.pathname !== "/" && window.location.pathname !== "/index") {
+          window.location.href = "/index";
+
+        } throw new Error("Invalid token");
+      }
       const data = await res.json();
       const userName = data.loggedIn_User || "User";
       const profile_ImageUrl = data.profileImageUrl || "https://media.kingburger.site/images/default-profile.png";

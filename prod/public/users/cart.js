@@ -72,15 +72,14 @@ export async function getBillingInfoAddress(token) {
     });
     if (!res.ok) throw new Error("Invalid token");
     const data = await res.json();
-    const billing_info = data.billing_info
+    const billing_address = data.billing_address
 
-    if (!billing_info || !billing_info.billing_addresses) {
+    if (!billing_addresses) {
       notifyUser('No billing information found. Please add a billing address in the "Billing Section".');
       return null;
     }
 
-    const addresses = billing_info.billing_addresses;
-    return addresses
+    return billing_addresses
   } catch (err) {
     console.error("Failed to fetch billing info:", err);
     notifyUser("Could not fetch billing info. Please try again.");

@@ -209,7 +209,7 @@
     if (cart.length === 0) return alert("Cart is empty!");
     if (!selectedAddressType) return alert("Please select a delivery address!");
 
-    await createPayment("eft", recalcTotal(cart), deliveryAddress = selectedAddressType);
+    await createPayment("eft", recalcTotal(cart), selectedAddressType);
   });
 </script>
 

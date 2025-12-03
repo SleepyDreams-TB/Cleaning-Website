@@ -60,7 +60,7 @@ export function recalcTotal(cart) {
 }
 
 // ----- Fetch Billing Info -----
-export async function getBllingInfoAddress(token) {
+export async function getBillingInfoAddress(token) {
 
   if (!token) {
     notifyUser("Please log in");

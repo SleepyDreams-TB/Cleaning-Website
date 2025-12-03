@@ -36,74 +36,74 @@
       </button>
     </div>
   </main>
-
-  <!-- Order Summary Modal -->
-  <div id="orderModel" class="order-summary">
-    <div class="order-content">
-      <h2>Order Summary</h2>
-      <div id="order-details"></div>
-      <div id="billing-info" class="mt-4">
-        <h3 class="font-bold mb-2">Billing Information</h3>
-        <select id="billing-address-select" class="w-full border rounded px-2 py-1">
-          <option value="" disabled selected>Choose Your Delivery Address</option>
-        </select>
-        <div class="mt-4 space-x-2">
-          <button id="checkoutBtn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-            Proceed to checkout
-          </button>
-          <button id="cancel-order-btn" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
-
-
 </body>
 <footer class="bg-black text-white text-center p-4 mt-8">
   © 2025 Sparkle Clean. All rights reserved.
 </footer>
+<!-- Order Summary Modal -->
+<div id="orderModel" class="order-summary">
+  <div class="order-content">
+    <h2>Order Summary</h2>
+    <div id="order-details"></div>
+    <div id="billing-info" class="mt-4">
+      <h3 class="font-bold mb-2">Billing Information</h3>
+      <select id="billing-address-select" class="w-full border rounded px-2 py-1">
+        <option value="" disabled selected>Choose Your Delivery Address</option>
+      </select>
+      <div class="mt-4 space-x-2">
+        <button id="checkoutBtn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+          Proceed to checkout
+        </button>
+        <button id="cancel-order-btn" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
 
-<script type="module">
-  import { getCart, clearCart, deleteCartItem, recalcTotal, createPayment, saveCart, getBillingInfoAddress } from "./cart.js";
 
 
-  let cart = getCart();
 
-  const cartContainer = document.getElementById("cart-items");
-  const totalEl = document.getElementById("total-price");
-  const orderModel = document.getElementById("orderModel");
-  const orderDetails = document.getElementById("order-details");
-  const confirmBtn = document.getElementById("confirm-order-btn");
-  const cancelBtn = document.getElementById("cancel-order-btn");
-  const checkoutBtn = document.getElementById("checkoutBtn");
+  <script type="module">
+    import { getCart, clearCart, deleteCartItem, recalcTotal, createPayment, saveCart, getBillingInfoAddress } from "./cart.js";
 
-  function updateQuantity(item, qtyInput, newVal) {
-    // Validate and constrain the value
-    if (isNaN(newVal) || newVal < 1) newVal = 1;
-    if (newVal > 5) newVal = 5;
 
-    // Update the item's quantity
-    item.quantity = newVal;
-    qtyInput.value = newVal;
+    let cart = getCart();
 
-    // Save the updated cart to localStorage
-    saveCart(cart);
+    const cartContainer = document.getElementById("cart-items");
+    const totalEl = document.getElementById("total-price");
+    const orderModel = document.getElementById("orderModel");
+    const orderDetails = document.getElementById("order-details");
+    const confirmBtn = document.getElementById("confirm-order-btn");
+    const cancelBtn = document.getElementById("cancel-order-btn");
+    const checkoutBtn = document.getElementById("checkoutBtn");
 
-    // Update the total display
-    totalEl.textContent = recalcTotal(cart).toFixed(2);
-  }
+    function updateQuantity(item, qtyInput, newVal) {
+      // Validate and constrain the value
+      if (isNaN(newVal) || newVal < 1) newVal = 1;
+      if (newVal > 5) newVal = 5;
 
-  function renderCart() {
-    cartContainer.innerHTML = "";
-    if (cart.length === 0) {
-      cartContainer.innerHTML = `<p class="text-center text-gray-500">Your cart is empty.</p>`;
-    } else {
-      cart.forEach(item => {
-        const div = document.createElement("div");
-        div.className = "bg-white p-4 rounded shadow flex justify-between items-center gap-2";
+      // Update the item's quantity
+      item.quantity = newVal;
+      qtyInput.value = newVal;
 
-        div.innerHTML = `
+      // Save the updated cart to localStorage
+      saveCart(cart);
+
+      // Update the total display
+      totalEl.textContent = recalcTotal(cart).toFixed(2);
+    }
+
+    function renderCart() {
+      cartContainer.innerHTML = "";
+      if (cart.length === 0) {
+        cartContainer.innerHTML = `<p class="text-center text-gray-500">Your cart is empty.</p>`;
+      } else {
+        cart.forEach(item => {
+          const div = document.createElement("div");
+          div.className = "bg-white p-4 rounded shadow flex justify-between items-center gap-2";
+
+          div.innerHTML = `
         <img src="${item.image_url}" alt="${item.name}" class="w-16 h-16 object-cover rounded">
         <span>${item.name}</span>
         <div class="quantity-selector flex items-center gap-1">Quantity:
@@ -114,108 +114,108 @@
         <span class="item-total">R${(item.price * item.quantity).toFixed(2)}</span>
         <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-700">Delete</button>
       `;
-        const qtyInput = div.querySelector("input");
-        const itemTotalSpan = div.querySelector(".item-total");
-        const minusBtn = div.querySelector(".minus");
-        const plusBtn = div.querySelector(".plus");
-        const delBtn = div.querySelector("button:last-of-type");
+          const qtyInput = div.querySelector("input");
+          const itemTotalSpan = div.querySelector(".item-total");
+          const minusBtn = div.querySelector(".minus");
+          const plusBtn = div.querySelector(".plus");
+          const delBtn = div.querySelector("button:last-of-type");
 
-        qtyInput.addEventListener("change", e => {
-          updateQuantity(item, qtyInput, parseInt(e.target.value));
-          itemTotalSpan.textContent = `R${(item.price * item.quantity).toFixed(2)}`;
-        });
+          qtyInput.addEventListener("change", e => {
+            updateQuantity(item, qtyInput, parseInt(e.target.value));
+            itemTotalSpan.textContent = `R${(item.price * item.quantity).toFixed(2)}`;
+          });
 
-        minusBtn.addEventListener("click", () => {
-          const newVal = parseInt(qtyInput.value) - 1;
-          if (newVal >= 1) updateQuantity(item, qtyInput, newVal);
-          itemTotalSpan.textContent = `R${(item.price * item.quantity).toFixed(2)}`;
+          minusBtn.addEventListener("click", () => {
+            const newVal = parseInt(qtyInput.value) - 1;
+            if (newVal >= 1) updateQuantity(item, qtyInput, newVal);
+            itemTotalSpan.textContent = `R${(item.price * item.quantity).toFixed(2)}`;
 
-        });
-        plusBtn.addEventListener("click", () => {
-          const newVal = parseInt(qtyInput.value) + 1;
-          if (newVal <= 5) updateQuantity(item, qtyInput, newVal);
-          itemTotalSpan.textContent = `R${(item.price * item.quantity).toFixed(2)}`;
-        });
-        delBtn.addEventListener("click", () => {
-          cart = deleteCartItem(item._id);
-          renderCart();
-        });
+          });
+          plusBtn.addEventListener("click", () => {
+            const newVal = parseInt(qtyInput.value) + 1;
+            if (newVal <= 5) updateQuantity(item, qtyInput, newVal);
+            itemTotalSpan.textContent = `R${(item.price * item.quantity).toFixed(2)}`;
+          });
+          delBtn.addEventListener("click", () => {
+            cart = deleteCartItem(item._id);
+            renderCart();
+          });
 
-        cartContainer.appendChild(div);
-      });
+          cartContainer.appendChild(div);
+        });
+      }
+      totalEl.textContent = recalcTotal(cart).toFixed(2);
     }
-    totalEl.textContent = recalcTotal(cart).toFixed(2);
-  }
 
-  renderCart();
-
-  // Clear cart
-  document.getElementById("clear-cart").addEventListener("click", () => {
-    clearCart();
-    cart = [];
     renderCart();
-    alert("Cart cleared!");
-  });
 
-  // Show order modal
-  confirmBtn.addEventListener("click", async () => {
-    if (cart.length === 0) return alert("Cart is empty!");
-    orderModel.classList.add("show");
-    orderDetails.innerHTML = "";
-
-    cart.forEach(item => {
-      const div = document.createElement("div");
-      div.className = "flex justify-between mb-2";
-      div.innerHTML = `<span>${item.name} x ${item.quantity}</span>
-                     <span>R${(item.price * item.quantity).toFixed(2)}</span>`;
-      orderDetails.appendChild(div);
+    // Clear cart
+    document.getElementById("clear-cart").addEventListener("click", () => {
+      clearCart();
+      cart = [];
+      renderCart();
+      alert("Cart cleared!");
     });
 
+    // Show order modal
+    confirmBtn.addEventListener("click", async () => {
+      if (cart.length === 0) return alert("Cart is empty!");
+      orderModel.classList.add("show");
+      orderDetails.innerHTML = "";
 
-    const token = localStorage.getItem("jwt");
-    const addresses = await getBillingInfoAddress(token);
-
-    if (addresses) {
-      Object.keys(addresses).forEach(addressType => {
-        const addr = addresses[addressType];
-        const option = document.createElement("option");
-        option.value = addressType;
-        option.textContent = `${addr.street}, ${addr.suburb}, ${addr.city}, ${addr.postal_code}`;
-        addressSelect.appendChild(option);
+      cart.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "flex justify-between mb-2";
+        div.innerHTML = `<span>${item.name} x ${item.quantity}</span>
+                     <span>R${(item.price * item.quantity).toFixed(2)}</span>`;
+        orderDetails.appendChild(div);
       });
-    }
 
-    const totalDiv = document.createElement("div");
-    totalDiv.className = "flex justify-between font-bold mt-4";
-    totalDiv.innerHTML = `<span>Total:</span><span>R${recalcTotal(cart).toFixed(2)}</span>`;
-    orderDetails.appendChild(totalDiv);
-  });
 
-  // Close modal
-  cancelBtn.addEventListener("click", () => orderModel.classList.remove("show"));
-  orderModel.addEventListener("click", e => {
-    if (e.target === orderModel) orderModel.classList.remove("show");
-  });
+      const token = localStorage.getItem("jwt");
+      const addresses = await getBillingInfoAddress(token);
 
-  let selectedAddressType = null;
+      if (addresses) {
+        Object.keys(addresses).forEach(addressType => {
+          const addr = addresses[addressType];
+          const option = document.createElement("option");
+          option.value = addressType;
+          option.textContent = `${addr.street}, ${addr.suburb}, ${addr.city}, ${addr.postal_code}`;
+          addressSelect.appendChild(option);
+        });
+      }
 
-  const addressSelect = document.getElementById("billing-address-select");
-  addressSelect.addEventListener("change", (e) => {
-    selectedAddressType = e.target.value;
-  });
+      const totalDiv = document.createElement("div");
+      totalDiv.className = "flex justify-between font-bold mt-4";
+      totalDiv.innerHTML = `<span>Total:</span><span>R${recalcTotal(cart).toFixed(2)}</span>`;
+      orderDetails.appendChild(totalDiv);
+    });
 
-  // Checkout
-  checkoutBtn.addEventListener("click", async () => {
-    if (cart.length === 0) return alert("Cart is empty!");
-    if (!selectedAddressType) return alert("Please select a delivery address!");
+    // Close modal
+    cancelBtn.addEventListener("click", () => orderModel.classList.remove("show"));
+    orderModel.addEventListener("click", e => {
+      if (e.target === orderModel) orderModel.classList.remove("show");
+    });
 
-    await createPayment("eft", recalcTotal(cart), selectedAddressType);
-  });
-</script>
+    let selectedAddressType = null;
 
-<script type="module">
-  import { initNavbar } from '/navbar.js';
-  initNavbar("navbar-container");
-</script>
+    const addressSelect = document.getElementById("billing-address-select");
+    addressSelect.addEventListener("change", (e) => {
+      selectedAddressType = e.target.value;
+    });
+
+    // Checkout
+    checkoutBtn.addEventListener("click", async () => {
+      if (cart.length === 0) return alert("Cart is empty!");
+      if (!selectedAddressType) return alert("Please select a delivery address!");
+
+      await createPayment("eft", recalcTotal(cart), selectedAddressType);
+    });
+  </script>
+
+  <script type="module">
+    import { initNavbar } from '/navbar.js';
+    initNavbar("navbar-container");
+  </script>
 
 </html>

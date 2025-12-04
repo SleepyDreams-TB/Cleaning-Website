@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Protected - Test</title>
+  <script>
+    (function () {
+      // change 'jwt' to your token key if different (e.g. 'token' or 'accessToken')
+      var token = localStorage.getItem('jwt');
+      // basic presence check; optionally validate structure: token && token.split('.').length === 3
+      if (!token) {
+        // use replace so user can't navigate back to this page
+        window.location.replace('/index');
+      }
+    })();
+  </script>
+</head>
+
+<body>
+  <h1>Protected Page</h1>
+  <p>If you see this, a JWT token was found in localStorage.</p>
+</body>
+
+</html>

@@ -3,10 +3,10 @@ from fastapi import APIRouter
 router = APIRouter()
 
 # ------------------- Password Generator -------------------
-letters = list("abcdefghjklmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ")
+letters = list("abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ")
 numbers = list("23456789")
 symbols = list("!#$.")
-cases = [0, 0, 1, 1, 2]
+cases = [0, 0, 1, 1]
 
 @router.post("/password/{length}")
 async def generate_password(length: int):
@@ -19,6 +19,5 @@ async def generate_password(length: int):
             password += random.choice(letters)
         elif case == 1:
             password += random.choice(numbers)
-        else:
-            password += random.choice(symbols)
+    password += "!"
     return {"password": password}

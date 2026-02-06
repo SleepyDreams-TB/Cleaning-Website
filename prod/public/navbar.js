@@ -46,7 +46,7 @@ export async function initNavbar(containerId = "navbar-container") {
       // Inject username link + dropdown toggle
       dropdownContainer.innerHTML = `
         <!-- Profile Image -->
-        <img src="${profile_ImageUrl}" alt="Profile Icon" class="profile-icon" style="width:40px; height:40px; border-radius:50%; border: 2px solid #ec4899; cursor: pointer; transition: all 0.3s;">
+        <img src="${profile_ImageUrl}" alt="Profile Icon" class="profile-icon" style="width:40px; height:40px; border-radius:50%; border: 2px solid #667eea; cursor: pointer; transition: all 0.3s;">
               
         <!-- Dropdown toggle -->
         <div class="relative inline-block text-left">

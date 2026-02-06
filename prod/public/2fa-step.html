@@ -71,7 +71,7 @@
       <div class="col-lg-6">
         <div class="card p-5 text-center">
           <h4 class="fw-bold mb-3" style="color:#ff1f6b;">Two-Factor Authentication</h4>
-          <p id="qrMessage" hidden>Scan the QR code below with your authenticator app.</p>
+          <p id="qrMessage" class="mb-4">Enter the 6-digit code from your authenticator app.</p>
 
           <div class="qr-placeholder" hidden>
             <img id="qrImage" src="" alt="QR Code">
@@ -93,20 +93,6 @@
 
   <script type="module">
     import { apiFetch } from '/utils.js';
-
-    // Show QR code from localStorage
-    document.addEventListener('DOMContentLoaded', () => {
-      const qrPlaceholder = document.querySelector('.qr-placeholder');
-      const qrImage = document.getElementById('qrImage');
-      const qrCode = localStorage.getItem('qr_code');
-      if (qrCode) {
-        qrPlaceholder.removeAttribute('hidden');
-        document.getElementById('qrMessage').removeAttribute('hidden');
-        qrImage.src = qrCode;
-      } else {
-        qrPlaceholder.setAttribute('hidden', true);
-      }
-    });
 
     // Handle 2FA verification
     document.getElementById('verifyForm').addEventListener('submit', async (e) => {

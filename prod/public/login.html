@@ -84,6 +84,7 @@
 
         if (!result.registered) {
           localStorage.setItem('qr_code', result.qr_code);
+          window.location.href = '/2fa-setup';
           return;
         }
 

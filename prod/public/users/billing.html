@@ -7,55 +7,331 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Edit Billing Information</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+
+    .billing-container {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .billing-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 40px;
+      border-radius: 20px 20px 0 0;
+      text-align: center;
+    }
+
+    .billing-header h2 {
+      font-size: 32px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .billing-header p {
+      opacity: 0.9;
+      font-size: 14px;
+    }
+
+    .form-section {
+      padding: 40px;
+    }
+
+    .form-group {
+      margin-bottom: 24px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      color: #1f2937;
+      margin-bottom: 8px;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-group label i {
+      color: #667eea;
+      font-size: 16px;
+    }
+
+    .form-input {
+      width: 100%;
+      border: 2px solid #e5e7eb;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 14px;
+      transition: all 0.3s;
+      background: white;
+      font-family: inherit;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .form-input:disabled {
+      background: #f9fafb;
+      color: #6b7280;
+      cursor: not-allowed;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .form-grid.full {
+      grid-template-columns: 1fr;
+    }
+
+    .btn-submit {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 14px 32px;
+      border-radius: 10px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 16px;
+      margin-top: 32px;
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .success-message {
+      background: #d1fae5;
+      border-left: 4px solid #10b981;
+      color: #065f46;
+      padding: 14px 16px;
+      border-radius: 8px;
+      margin-bottom: 24px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      font-weight: 500;
+    }
+
+    .success-message.show {
+      display: flex;
+      animation: slideDown 0.3s ease;
+    }
+
+    .error-message {
+      background: #fee2e2;
+      border-left: 4px solid #ef4444;
+      color: #991b1b;
+      padding: 14px 16px;
+      border-radius: 8px;
+      margin-bottom: 24px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      font-weight: 500;
+    }
+
+    .error-message.show {
+      display: flex;
+      animation: slideDown 0.3s ease;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .info-box {
+      background: #eff6ff;
+      border-left: 4px solid #667eea;
+      padding: 14px 16px;
+      border-radius: 8px;
+      margin-bottom: 24px;
+      font-size: 14px;
+      color: #1f2937;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .divider {
+      height: 1px;
+      background: #e5e7eb;
+      margin: 32px 0;
+    }
+
+    @media (max-width: 768px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .billing-container {
+        margin: 16px;
+      }
+
+      .form-section {
+        padding: 24px;
+      }
+
+      .billing-header {
+        padding: 30px 20px;
+      }
+
+      .billing-header h2 {
+        font-size: 24px;
+      }
+    }
+  </style>
 </head>
 
-<body class="bg-cover bg-center bg-no-repeat bg-fixed text-gray-800"
-  style="background-image: url('../assets/cleaningbg.jpg');">
+<body>
 
   <header class="bg-black shadow p-4 flex justify-between items-center">
+    <h1 class="text-pink-600 font-bold text-2xl"><i class="fas fa-sparkles"></i> Sparkle Clean</h1>
     <nav>
       <div id="navbar-container"></div>
     </nav>
   </header>
 
-  <main class="max-w-3xl mx-auto py-12 bg-white/70 backdrop-blur-sm rounded shadow-md p-8 mt-10">
-    <h2 class="text-2xl font-bold mb-6 text-center">Edit Billing Information</h2>
-    <p id="billingMessage" class="text-center text-red-600 mb-4"></p>
+  <main class="container mx-auto py-12 pb-12">
+    <div class="billing-container">
 
-    <form id="billingForm" class="space-y-4">
-      <div>
-        <label for="address_name" class="block font-semibold">Address Name</label>
-        <input type="text" id="address_name" class="w-full border rounded px-3 py-2" required>
-      </div>
-      <div>
-        <label for="street" class="block font-semibold">Street</label>
-        <input type="text" id="street" class="w-full border rounded px-3 py-2" required>
-      </div>
-      <div>
-        <label for="city" class="block font-semibold">City</label>
-        <input type="text" id="city" class="w-full border rounded px-3 py-2" required>
-      </div>
-      <div>
-        <label for="suburb" class="block font-semibold">suburb</label>
-        <input type="text" id="suburb" class="w-full border rounded px-3 py-2" required>
-      </div>
-      <div>
-        <label for="postal_code" class="block font-semibold">Zip Code</label>
-        <input type="text" id="postal_code" class="w-full border rounded px-3 py-2" required>
-      </div>
-      <div>
-        <label for="country" class="block font-semibold">Country</label>
-        <input type="text" id="country" class="w-full border rounded px-3 py-2" required>
+      <!-- Header -->
+      <div class="billing-header">
+        <h2>
+          <i class="fas fa-map-marker-alt"></i> Billing Information
+        </h2>
+        <p>Manage your delivery addresses</p>
       </div>
 
-      <button type="submit" class="bg-pink-600 text-white py-2 px-4 rounded hover:bg-pink-700 w-full font-semibold">
-        Save Billing Info
-      </button>
-    </form>
+      <!-- Form Content -->
+      <div class="form-section">
+        <!-- Success Message -->
+        <div id="successMessage" class="success-message">
+          <i class="fas fa-check-circle"></i>
+          <span>Billing information saved successfully!</span>
+        </div>
+
+        <!-- Error Message -->
+        <div id="billingMessage" class="error-message"></div>
+
+        <!-- Info Box -->
+        <div class="info-box">
+          <i class="fas fa-info-circle"></i>
+          <span>Add or update your delivery addresses. You can save multiple addresses for convenience.</span>
+        </div>
+
+        <!-- Billing Form -->
+        <form id="billingForm" class="space-y-0">
+
+          <!-- Address Name -->
+          <div class="form-group">
+            <label for="address_name">
+              <i class="fas fa-tag"></i> Address Name
+            </label>
+            <input type="text" id="address_name" class="form-input" placeholder="e.g., Home, Office, Apartment"
+              required>
+            <p class="text-sm text-gray-500 mt-2">Give this address a memorable name</p>
+          </div>
+
+          <div class="divider"></div>
+
+          <!-- Address Details Grid -->
+          <div class="form-grid">
+            <!-- Street -->
+            <div class="form-group">
+              <label for="street">
+                <i class="fas fa-road"></i> Street Address
+              </label>
+              <input type="text" id="street" class="form-input" placeholder="123 Main Street" required>
+            </div>
+
+            <!-- Suburb -->
+            <div class="form-group">
+              <label for="suburb">
+                <i class="fas fa-location-dot"></i> Suburb
+              </label>
+              <input type="text" id="suburb" class="form-input" placeholder="e.g., Sandton" required>
+            </div>
+
+            <!-- City -->
+            <div class="form-group">
+              <label for="city">
+                <i class="fas fa-building"></i> City
+              </label>
+              <input type="text" id="city" class="form-input" placeholder="e.g., Johannesburg" required>
+            </div>
+
+            <!-- Postal Code -->
+            <div class="form-group">
+              <label for="postal_code">
+                <i class="fas fa-envelope"></i> Postal Code
+              </label>
+              <input type="text" id="postal_code" class="form-input" placeholder="e.g., 2000" required>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <!-- Country -->
+          <div class="form-group form-grid full">
+            <label for="country">
+              <i class="fas fa-globe"></i> Country
+            </label>
+            <input type="text" id="country" class="form-input" placeholder="e.g., South Africa" value="South Africa"
+              required>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="btn-submit">
+            <i class="fas fa-save"></i> Save Billing Information
+          </button>
+        </form>
+      </div>
+    </div>
   </main>
 
-  <footer class="text-center text-sm py-6 bg-gray-100 mt-12">
-    © 2025 Sparkle Clean. All rights reserved.
+  <footer class="text-center text-white text-sm py-8 mt-12">
+    © 2025 Sparkle Clean. All rights reserved. ✨
   </footer>
 
   <script type="module">
@@ -63,6 +339,27 @@
     initNavbar("navbar-container");
   </script>
   <script type="module" src="billing.js"></script>
+
+  <script>
+    // Success message display helper
+    window.showSuccessMessage = function () {
+      const successMsg = document.getElementById('successMessage');
+      successMsg.classList.add('show');
+      setTimeout(() => {
+        successMsg.classList.remove('show');
+      }, 3000);
+    };
+
+    // Error message display helper
+    window.showErrorMessage = function (message) {
+      const errorMsg = document.getElementById('billingMessage');
+      errorMsg.textContent = message;
+      errorMsg.classList.add('show');
+      setTimeout(() => {
+        errorMsg.classList.remove('show');
+      }, 5000);
+    };
+  </script>
 </body>
 
 </html>

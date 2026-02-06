@@ -1,0 +1,5 @@
+[build]
+providers = ["python"]
+
+[phases.setup]
+cmds = ["apt-get update && apt-get install -y postgresql-client libpq-dev"]

@@ -1,5 +1,9 @@
 [build]
 providers = ["python"]
 
+[[build.tools]]
+name = "postgresql"
+version = "15"
+
 [phases.setup]
-cmds = ["apt-get update && apt-get install -y postgresql-client libpq-dev"]
+cmds = ["apt-get update", "apt-get install -y postgresql-client libpq-dev libpq5"]

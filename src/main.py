@@ -36,7 +36,11 @@ async def lifespan(app: FastAPI):
     Application lifespan manager for startup and shutdown events.
     Logs application initialization details including Python and OpenSSL versions.
     """
-    init_db()
+    try:
+        init_db()
+        print("✅ Database initialized successfully")
+    except Exception as e:
+        print(f"⚠️ Database init failed (non-blocking): {e}")
     print("🚀 Starting application...")
     print(f"🐍 Python version: {sys.version}")
     print(f"🔒 OpenSSL version: {ssl.OPENSSL_VERSION}")
@@ -111,7 +115,7 @@ print("✅ All routers registered")
 if __name__ == "__main__":
     import uvicorn
 
-    port = int(os.environ.get("PORT", 10000))
+    port = int(os.environ.get("PORT", 8080))
     print(f"🌐 Starting server on port {port}...")
 
     uvicorn.run(

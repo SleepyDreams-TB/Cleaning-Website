@@ -14,9 +14,11 @@ export async function initNavbar(containerId = "navbar-container") {
     // Check login token
     const token = localStorage.getItem("jwt");
     if (!token) {
+      // Show Login Button
       dropdownContainer.innerHTML = `
-        <span>Guest</span>
-        (<a href="/login" class="text-pink-600 hover:underline">Login</a>)
+        <a href="/login" id="loginButton" class="login-btn">
+          <i class="fas fa-sign-in-alt"></i> Login
+        </a>
       `;
 
       if (window.location.pathname !== "/" && window.location.pathname !== "/index") {
@@ -34,29 +36,41 @@ export async function initNavbar(containerId = "navbar-container") {
         localStorage.removeItem("jwt");
         if (window.location.pathname !== "/" && window.location.pathname !== "/index") {
           window.location.href = "/index";
-
-        } throw new Error("Invalid token");
+        }
+        throw new Error("Invalid token");
       }
       const data = await res.json();
       const userName = data.loggedIn_User || "User";
       const profile_ImageUrl = data.profileImageUrl || "https://media.kingburger.site/images/default-profile.png";
+
       // Inject username link + dropdown toggle
       dropdownContainer.innerHTML = `
-        <!-- Username link -->
-        <img src="${profile_ImageUrl}" alt="Profile Icon" class="profile-icon" style="width:40px; height:40px; border-radius:50%;">
+        <!-- Profile Image -->
+        <img src="${profile_ImageUrl}" alt="Profile Icon" class="profile-icon" style="width:40px; height:40px; border-radius:50%; border: 2px solid #ec4899; cursor: pointer; transition: all 0.3s;">
               
         <!-- Dropdown toggle -->
         <div class="relative inline-block text-left">
-          <button id="userDropdownButton" class="bg-pink-600 text-white px-4 py-2 rounded">
+          <button id="userDropdownButton" class="flex items-center gap-2 bg-gradient-to-r from-pink-600 to-pink-700 text-white px-4 py-2 rounded-lg font-semibold hover:shadow-lg transition-all duration-300" style="font-size: 14px;">
             ${userName}
-            <i class="bi bi-list"></i>
+            <i class="bi bi-list text-lg"></i>
           </button>
-          <div id="userDropdownMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-            <a href="/users/profile" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Profile</a>
-            <a href="/users/billing" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Billing</a>
-            <a href="/users/cart" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Cart</a>
-            <a href="/users/orders" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Orders</a>
-            <a href="#" id="logoutLink" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Logout</a>
+          <div id="userDropdownMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50 border border-gray-100">
+            <a href="/users/profile" class="flex items-center gap-3 px-4 py-3 text-gray-800 hover:bg-pink-50 hover:text-pink-600 transition-all">
+              <i class="fas fa-user text-pink-600"></i> Profile
+            </a>
+            <a href="/users/billing" class="flex items-center gap-3 px-4 py-3 text-gray-800 hover:bg-pink-50 hover:text-pink-600 transition-all">
+              <i class="fas fa-credit-card text-pink-600"></i> Billing
+            </a>
+            <a href="/cart" class="flex items-center gap-3 px-4 py-3 text-gray-800 hover:bg-pink-50 hover:text-pink-600 transition-all">
+              <i class="fas fa-shopping-cart text-pink-600"></i> Cart
+            </a>
+            <a href="/users/orders" class="flex items-center gap-3 px-4 py-3 text-gray-800 hover:bg-pink-50 hover:text-pink-600 transition-all">
+              <i class="fas fa-box text-pink-600"></i> Orders
+            </a>
+            <hr class="my-1">
+            <a href="#" id="logoutLink" class="flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-all font-semibold">
+              <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
           </div>
         </div>
       `;
@@ -64,16 +78,20 @@ export async function initNavbar(containerId = "navbar-container") {
       // Dropdown toggle logic
       const dropdownButton = dropdownContainer.querySelector("#userDropdownButton");
       const dropdownMenu = dropdownContainer.querySelector("#userDropdownMenu");
+      const profileIcon = dropdownContainer.querySelector(".profile-icon");
       const logoutLink = dropdownContainer.querySelector("#logoutLink");
 
       if (dropdownButton && dropdownMenu) {
-        dropdownButton.addEventListener("click", e => {
+        const toggleDropdown = (e) => {
           e.stopPropagation();
           dropdownMenu.classList.toggle("hidden");
-        });
+        };
+
+        dropdownButton.addEventListener("click", toggleDropdown);
+        profileIcon?.addEventListener("click", toggleDropdown);
 
         document.addEventListener("click", e => {
-          if (!dropdownButton.contains(e.target) && !dropdownMenu.contains(e.target)) {
+          if (!dropdownButton.contains(e.target) && !dropdownMenu.contains(e.target) && !profileIcon?.contains(e.target)) {
             dropdownMenu.classList.add("hidden");
           }
         });
@@ -89,9 +107,11 @@ export async function initNavbar(containerId = "navbar-container") {
 
     } catch (err) {
       console.error("Failed to fetch user info:", err);
+      // Show Login Button on error
       dropdownContainer.innerHTML = `
-        <span>Guest</span>
-        (<a href="/login" class="text-pink-600 hover:underline">Login</a>)
+        <a href="/login" id="loginButton" class="login-btn">
+          <i class="fas fa-sign-in-alt"></i> Login
+        </a>
       `;
     }
 

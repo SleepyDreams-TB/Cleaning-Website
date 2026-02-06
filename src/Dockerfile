@@ -2,10 +2,12 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# Install PostgreSQL client libraries
+# Install PostgreSQL client libraries AND build tools
 RUN apt-get update && apt-get install -y \
     postgresql-client \
     libpq-dev \
+    gcc \
+    python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements

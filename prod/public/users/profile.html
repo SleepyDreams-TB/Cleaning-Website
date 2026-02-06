@@ -7,75 +7,379 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sparkle Cleaning Services - Profile</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+
+    .profile-container {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .profile-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 40px;
+      border-radius: 20px 20px 0 0;
+      text-align: center;
+    }
+
+    .profile-header h2 {
+      font-size: 32px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .profile-header p {
+      opacity: 0.9;
+      font-size: 14px;
+    }
+
+    .form-group {
+      margin-bottom: 24px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      color: #1f2937;
+      margin-bottom: 8px;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .input-wrapper {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .form-input {
+      flex: 1;
+      border: 2px solid #e5e7eb;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 14px;
+      transition: all 0.3s;
+      background: white;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .form-input:disabled {
+      background: #f9fafb;
+      color: #6b7280;
+      cursor: not-allowed;
+    }
+
+    .edit-btn {
+      width: 40px;
+      height: 40px;
+      border: none;
+      background: #f3f4f6;
+      color: #667eea;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 18px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .edit-btn:hover {
+      background: #667eea;
+      color: white;
+      transform: scale(1.1);
+    }
+
+    .hint-text {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .hint-text.error {
+      color: #ef4444;
+    }
+
+    .hint-text.success {
+      color: #10b981;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 14px 32px;
+      border-radius: 10px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 16px;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .form-section {
+      padding: 30px;
+    }
+
+    .form-section-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: #1f2937;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #e5e7eb;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .form-section-title i {
+      color: #667eea;
+    }
+
+    .divider {
+      height: 1px;
+      background: #e5e7eb;
+      margin: 30px 0;
+    }
+
+    .success-message {
+      background: #d1fae5;
+      border-left: 4px solid #10b981;
+      color: #065f46;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .success-message.show {
+      display: flex;
+    }
+
+    .error-message {
+      background: #fee2e2;
+      border-left: 4px solid #ef4444;
+      color: #991b1b;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .error-message.show {
+      display: flex;
+    }
+
+    .readonly-field {
+      background: #f9fafb;
+      color: #6b7280;
+    }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .field-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .profile-container {
+        margin: 16px;
+      }
+
+      .form-section {
+        padding: 20px;
+      }
+    }
+  </style>
 </head>
 
-<body class="bg-cover bg-center bg-no-repeat bg-fixed text-gray-800"
-  style="background-image: url('../assets/cleaningbg.jpg');">
+<body>
 
   <!-- Header -->
   <header class="bg-black shadow p-4 flex justify-between items-center">
-    <h1 class="text-pink-600 font-bold">Sparkle Clean</h1>
+    <h1 class="text-pink-600 font-bold text-2xl"><i class="fas fa-sparkles"></i> Sparkle Clean</h1>
     <nav>
       <div id="navbar-container"></div>
     </nav>
   </header>
 
-  <main class="max-w-xl mx-auto mt-8 bg-white p-6 rounded shadow">
-    <h2 class="text-2xl font-bold mb-4">User Profile</h2>
+  <main class="max-w-4xl mx-auto my-12 pb-12">
+    <div class="profile-container">
 
-    <!-- First Name -->
-    <label>First Name:</label>
-    <div class="flex items-center mb-2">
-      <input type="text" id="fname" disabled class="border p-1 rounded flex-1" />
-      <button type="button" id="editFnameBtn" class="ml-2 text-gray-600">✏️</button>
+      <!-- Profile Header -->
+      <div class="profile-header">
+        <i class="fas fa-user-circle text-6xl mb-4 opacity-90"></i>
+        <h2>My Profile</h2>
+        <p>Manage your account information and preferences</p>
+      </div>
+
+      <!-- Form Content -->
+      <div class="form-section">
+        <!-- Success/Error Messages -->
+        <div id="successMessage" class="success-message">
+          <i class="fas fa-check-circle"></i>
+          <span id="successText">Profile updated successfully!</span>
+        </div>
+
+        <div id="errorMessage" class="error-message">
+          <i class="fas fa-exclamation-circle"></i>
+          <span id="errorText">An error occurred. Please try again.</span>
+        </div>
+
+        <!-- Personal Information Section -->
+        <div class="form-section-title">
+          <i class="fas fa-user"></i> Personal Information
+        </div>
+
+        <div class="field-grid">
+          <!-- First Name -->
+          <div class="form-group">
+            <label>First Name</label>
+            <div class="input-wrapper">
+              <input type="text" id="fname" disabled class="form-input" />
+              <button type="button" id="editFnameBtn" class="edit-btn" title="Edit">
+                <i class="fas fa-edit"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Last Name -->
+          <div class="form-group">
+            <label>Last Name</label>
+            <div class="input-wrapper">
+              <input type="text" id="lname" disabled class="form-input" />
+              <button type="button" id="editLnameBtn" class="edit-btn" title="Edit">
+                <i class="fas fa-edit"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Contact Information Section -->
+        <div class="form-section-title">
+          <i class="fas fa-envelope"></i> Contact Information
+        </div>
+
+        <div class="form-group">
+          <label>Email Address</label>
+          <div class="input-wrapper">
+            <input type="email" id="email" disabled class="form-input" />
+            <button type="button" id="editEmailBtn" class="edit-btn" title="Edit">
+              <i class="fas fa-edit"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Cell Phone Number</label>
+          <div class="input-wrapper">
+            <input type="text" id="cellnumber" disabled class="form-input" />
+            <button type="button" id="editCellBtn" class="edit-btn" title="Edit">
+              <i class="fas fa-edit"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Account Information Section -->
+        <div class="form-section-title">
+          <i class="fas fa-lock"></i> Account Information
+        </div>
+
+        <div class="form-group">
+          <label>Username</label>
+          <div class="input-wrapper">
+            <input type="text" id="username" disabled class="form-input" />
+            <button type="button" id="editUsernameBtn" class="edit-btn" title="Edit">
+              <i class="fas fa-edit"></i>
+            </button>
+          </div>
+          <p class="hint-text">
+            <i class="fas fa-info-circle"></i>
+            Must be unique and at least 3 characters
+          </p>
+        </div>
+
+        <div class="form-group">
+          <label>Password</label>
+          <div class="input-wrapper">
+            <input type="password" id="password" disabled class="form-input" />
+            <button type="button" id="editPasswordBtn" class="edit-btn" title="Edit">
+              <i class="fas fa-edit"></i>
+            </button>
+          </div>
+          <p class="hint-text">
+            <i class="fas fa-shield-alt"></i>
+            Min 12 chars: 1 uppercase, 1 lowercase, 1 number, 1 special character
+          </p>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Account Details Section -->
+        <div class="form-section-title">
+          <i class="fas fa-calendar"></i> Account Details
+        </div>
+
+        <div class="form-group">
+          <label>Account Created Date</label>
+          <div class="input-wrapper">
+            <input type="text" id="createdDate" readonly class="form-input readonly-field" />
+          </div>
+          <p class="hint-text">This date cannot be changed</p>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Update Button -->
+        <button id="updateBtn" class="btn-primary">
+          <i class="fas fa-save"></i> Save Changes
+        </button>
+      </div>
     </div>
-
-    <!-- Last Name -->
-    <label>Last Name:</label>
-    <div class="flex items-center mb-2">
-      <input type="text" id="lname" disabled class="border p-1 rounded flex-1" />
-      <button type="button" id="editLnameBtn" class="ml-2 text-gray-600">✏️</button>
-    </div>
-
-    <!-- Email -->
-    <label>Email:</label>
-    <div class="flex items-center mb-2">
-      <input type="email" id="email" disabled class="border p-1 rounded flex-1" />
-      <button type="button" id="editEmailBtn" class="ml-2 text-gray-600">✏️</button>
-    </div>
-
-    <!-- Cell Number -->
-    <label>Cell Number:</label>
-    <div class="flex items-center mb-2">
-      <input type="text" id="cellnumber" disabled class="border p-1 rounded flex-1" />
-      <button type="button" id="editCellBtn" class="ml-2 text-gray-600">✏️</button>
-    </div>
-
-    <!-- Created Date (readonly) -->
-    <label>Created Date:</label>
-    <input type="text" id="createdDate" readonly class="border p-1 rounded mb-4 w-full" />
-
-    <!-- Username -->
-    <label>Username:</label>
-    <div class="flex items-center mb-2">
-      <input type="text" id="username" disabled class="border p-1 rounded flex-1" />
-      <button type="button" id="editUsernameBtn" class="ml-2 text-gray-600">✏️</button>
-    </div>
-    <p id="username-hint" class="text-sm text-gray-500 mb-4">Must be unique</p>
-
-    <!-- Password -->
-    <label>Password:</label>
-    <div class="flex items-center mb-2">
-      <input type="password" id="password" disabled class="border p-1 rounded flex-1" />
-      <button type="button" id="editPasswordBtn" class="ml-2 text-gray-600">✏️</button>
-    </div>
-    <p id="password-hint" class="text-sm text-gray-500 mb-4">
-      Must contain 1 lowercase, 1 uppercase, 1 number, 1 special character, min 12 chars
-    </p>
-
-    <!-- Update Button -->
-    <button id="updateBtn" class="bg-pink-600 text-white px-4 py-2 rounded mt-4 hover:bg-pink-700">Update
-      Profile</button>
   </main>
 
   <!-- Scripts -->

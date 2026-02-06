@@ -256,6 +256,7 @@ def login_step(userName: str = Form(...), password: str = Form(...)):
                 return JSONResponse({
                     "success": True,
                     "user_id": str(user["_id"]),
+                    "registered": False,
                     "qr_code": f"data:image/png;base64,{result['qr_image']}",
                     "message": "2FA not registered, please scan QR code"
                 }, status_code=200)
@@ -263,6 +264,7 @@ def login_step(userName: str = Form(...), password: str = Form(...)):
                 return JSONResponse({
                     "success": True,
                     "user_id": str(user["_id"]),
+                    "registered": True,
                     "message": "2FA already registered, proceed to login"
                 }, status_code=200)
         except Exception as e:

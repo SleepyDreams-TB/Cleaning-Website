@@ -99,11 +99,12 @@
     // Check if user is new or existing and show appropriate message
     document.addEventListener('DOMContentLoaded', () => {
       const qrCode = localStorage.getItem('qr_code');
+      const registered = localStorage.getItem('registered');
       const qrMessage = document.getElementById('qrMessage');
       const qrPlaceholder = document.querySelector('.qr-placeholder');
       const qrImage = document.getElementById('qrImage');
 
-      if (qrCode != 'undefined') {
+      if (registered) {
         // New user - show QR code
         qrMessage.textContent = 'Scan the QR code below with your authenticator app, then enter the 6-digit code.';
         qrPlaceholder.removeAttribute('hidden');

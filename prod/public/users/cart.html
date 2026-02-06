@@ -6,61 +6,305 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cart - Sparkle Clean</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="/products/checkout.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+
+    .cart-container {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .cart-item {
+      background: white;
+      border-radius: 15px;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+
+    .cart-item:hover {
+      border-color: #667eea;
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+      transform: translateY(-5px);
+    }
+
+    .quantity-control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #f3f4f6;
+      border-radius: 10px;
+      padding: 4px;
+    }
+
+    .quantity-control button {
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.2s;
+      background: white;
+      color: #667eea;
+    }
+
+    .quantity-control button:hover {
+      background: #667eea;
+      color: white;
+      transform: scale(1.1);
+    }
+
+    .quantity-control input {
+      width: 50px;
+      border: none;
+      background: white;
+      text-align: center;
+      font-weight: 600;
+      color: #667eea;
+    }
+
+    .price-tag {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 10px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-danger {
+      background: #ef4444;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+      transform: scale(1.05);
+    }
+
+    .order-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(5px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .order-modal.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .order-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .order-item:last-child {
+      border-bottom: none;
+    }
+
+    .order-total {
+      display: flex;
+      justify-content: space-between;
+      padding-top: 16px;
+      border-top: 2px solid #667eea;
+      font-size: 20px;
+      font-weight: bold;
+      color: #667eea;
+    }
+
+    .empty-cart {
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    .empty-cart i {
+      font-size: 80px;
+      color: #d1d5db;
+      margin-bottom: 20px;
+    }
+
+    .summary-box {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      border-radius: 15px;
+      margin-top: 30px;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-size: 16px;
+    }
+
+    .summary-total {
+      display: flex;
+      justify-content: space-between;
+      font-size: 24px;
+      font-weight: bold;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .badge {
+      display: inline-block;
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+  </style>
 </head>
 
-<body class="bg-cover bg-center bg-no-repeat bg-fixed text-gray-800 flex flex-col min-h-screen"
-  style="background-image: url('../assets/cleaningbg.jpg');">
+<body>
 
   <header class="bg-black shadow p-4 flex justify-between items-center">
-    <h1 class="text-pink-600 font-bold">Sparkle Clean</h1>
+    <h1 class="text-pink-600 font-bold text-2xl"><i class="fas fa-sparkles"></i> Sparkle Clean</h1>
     <nav>
       <div id="navbar-container"></div>
     </nav>
   </header>
 
-  <main class="flex-1 container mx-auto py-12 px-4">
-    <h2 class="text-3xl font-bold text-center mb-8">Your Cart</h2>
-    <div id="cart-items" class="space-y-4"></div>
+  <main class="container mx-auto py-12 px-4">
+    <div class="cart-container p-8">
+      <div class="flex items-center justify-between mb-8">
+        <h2 class="text-4xl font-bold text-gray-800">
+          <i class="fas fa-shopping-cart text-purple-600 mr-3"></i>Your Shopping Cart
+        </h2>
+        <span id="item-count" class="badge">0 items</span>
+      </div>
 
-    <div class="mt-6 text-right text-xl font-bold">
-      Total: R<span id="total-price">0</span>
-    </div>
+      <div id="cart-items" class="space-y-4 mb-8"></div>
 
-    <div class="text-right mt-6 space-x-2">
-      <button id="clear-cart" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-        Clear Cart
-      </button>
-      <button id="confirm-order-btn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-        Confirm Order
-      </button>
+      <!-- Summary Section -->
+      <div id="cart-summary" class="summary-box">
+        <div class="summary-row">
+          <span><i class="fas fa-box mr-2"></i>Subtotal:</span>
+          <span>R<span id="subtotal-price">0</span></span>
+        </div>
+        <div class="summary-total">
+          <span><i class="fas fa-receipt mr-2"></i>Total:</span>
+          <span>R<span id="total-price">0.00</span></span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex gap-4 mt-8 justify-end flex-wrap">
+        <button id="continue-shopping" class="btn-primary">
+          <i class="fas fa-arrow-left"></i> Continue Shopping
+        </button>
+        <button id="clear-cart" class="btn-danger">
+          <i class="fas fa-trash"></i> Clear Cart
+        </button>
+        <button id="confirm-order-btn" class="btn-primary">
+          <i class="fas fa-check-circle"></i> Proceed to Checkout
+        </button>
+      </div>
     </div>
   </main>
 
   <!-- Order Summary Modal -->
-  <div id="orderModel" class="order-summary">
-    <div class="order-content">
-      <h2>Order Summary</h2>
-      <div id="order-details"></div>
-      <div id="billing-info" class="mt-4">
-        <h3 class="font-bold mb-2">Billing Information</h3>
-        <select id="billing-address-select" class="w-full border rounded px-2 py-1">
-          <option value="" disabled selected>Choose Your Delivery Address</option>
+  <div id="orderModel" class="order-modal">
+    <div class="modal-content">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-gray-800">
+          <i class="fas fa-receipt text-purple-600 mr-2"></i>Order Summary
+        </h2>
+        <button id="modal-close" class="text-gray-400 hover:text-gray-600 text-2xl">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div id="order-details" class="mb-6"></div>
+
+      <div id="billing-info" class="mt-6">
+        <h3 class="font-bold mb-3 text-gray-700">
+          <i class="fas fa-map-marker-alt text-purple-600 mr-2"></i>Delivery Address
+        </h3>
+        <select id="billing-address-select"
+          class="w-full border-2 border-gray-200 rounded-10 px-4 py-3 focus:border-purple-600 focus:outline-none mb-6">
+          <option value="" disabled selected>📍 Choose Your Delivery Address</option>
         </select>
-        <div class="mt-4 space-x-2">
-          <button id="checkoutBtn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-            Proceed to checkout
+
+        <div class="flex gap-3 justify-end">
+          <button id="cancel-order-btn" class="btn-danger">
+            <i class="fas fa-times"></i> Cancel
           </button>
-          <button id="cancel-order-btn" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-            Cancel
+          <button id="checkoutBtn" class="btn-primary">
+            <i class="fas fa-credit-card"></i> Pay Now
           </button>
         </div>
       </div>
     </div>
   </div>
 
-  <footer class="bg-black text-white text-center p-4 mt-auto">
-    © 2025 Sparkle Clean. All rights reserved.
+  <footer class="bg-black text-white text-center p-4 mt-12">
+    © 2025 Sparkle Clean. All rights reserved. ✨
   </footer>
 
   <script type="module">
@@ -70,12 +314,16 @@
 
     const cartContainer = document.getElementById("cart-items");
     const totalEl = document.getElementById("total-price");
+    const subtotalEl = document.getElementById("subtotal-price");
+    const itemCountEl = document.getElementById("item-count");
     const orderModel = document.getElementById("orderModel");
     const orderDetails = document.getElementById("order-details");
     const confirmBtn = document.getElementById("confirm-order-btn");
     const cancelBtn = document.getElementById("cancel-order-btn");
     const checkoutBtn = document.getElementById("checkoutBtn");
     const addressSelect = document.getElementById("billing-address-select");
+    const continueShoppingBtn = document.getElementById("continue-shopping");
+    const modalCloseBtn = document.getElementById("modal-close");
 
     function updateQuantity(item, qtyInput, newVal) {
       if (isNaN(newVal) || newVal < 1) newVal = 1;
@@ -85,51 +333,80 @@
       qtyInput.value = newVal;
 
       saveCart(cart);
+      updateSummary();
+    }
 
-      totalEl.textContent = recalcTotal(cart).toFixed(2);
+    function updateSummary() {
+      const total = recalcTotal(cart);
+      totalEl.textContent = total.toFixed(2);
+      subtotalEl.textContent = total.toFixed(2);
+      itemCountEl.textContent = `${cart.length} ${cart.length === 1 ? 'item' : 'items'}`;
     }
 
     function renderCart() {
       cartContainer.innerHTML = "";
+
       if (cart.length === 0) {
-        cartContainer.innerHTML = `<p class="text-center text-gray-500">Your cart is empty.</p>`;
+        cartContainer.innerHTML = `
+          <div class="empty-cart">
+            <i class="fas fa-inbox"></i>
+            <p class="text-gray-500 text-lg">Your cart is empty</p>
+            <p class="text-gray-400 text-sm mt-2">Add some cleaning services to get started!</p>
+          </div>
+        `;
       } else {
-        cart.forEach(item => {
+        cart.forEach((item, index) => {
           const div = document.createElement("div");
-          div.className = "bg-white p-4 rounded shadow flex justify-between items-center gap-2";
+          div.className = "cart-item p-6";
 
           div.innerHTML = `
-            <img src="${item.image_url}" alt="${item.name}" class="w-16 h-16 object-cover rounded">
-            <span>${item.name}</span>
-            <div class="quantity-selector flex items-center gap-1">Quantity:
-              <button class="minus bg-gray-200 px-2 py-1 rounded">−</button>
-              <input type="number" step="1" min="1" max="5" value="${item.quantity}" class="w-16 text-center border rounded px-1">
-              <button class="plus bg-gray-200 px-2 py-1 rounded">＋</button> 
+            <div class="flex gap-6 items-start">
+              <img src="${item.image_url}" alt="${item.name}" class="w-24 h-24 object-cover rounded-12">
+              
+              <div class="flex-1">
+                <h3 class="font-bold text-lg text-gray-800 mb-2">${item.name}</h3>
+                <p class="text-gray-600 text-sm mb-4">Quantity & Price</p>
+                
+                <div class="flex items-center justify-between">
+                  <div class="quantity-control">
+                    <button class="minus">−</button>
+                    <input type="number" step="1" min="1" max="5" value="${item.quantity}" readonly>
+                    <button class="plus">＋</button> 
+                  </div>
+                  <div class="price-tag">R${(item.price * item.quantity).toFixed(2)}</div>
+                  <button class="btn-danger delete-btn">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </div>
             </div>
-            <span class="item-total">R${(item.price * item.quantity).toFixed(2)}</span>
-            <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-700">Delete</button>
           `;
+
           const qtyInput = div.querySelector("input");
-          const itemTotalSpan = div.querySelector(".item-total");
           const minusBtn = div.querySelector(".minus");
           const plusBtn = div.querySelector(".plus");
-          const delBtn = div.querySelector("button:last-of-type");
+          const delBtn = div.querySelector(".delete-btn");
+          const priceTag = div.querySelector(".price-tag");
 
           qtyInput.addEventListener("change", e => {
             updateQuantity(item, qtyInput, parseInt(e.target.value));
-            itemTotalSpan.textContent = `R${(item.price * item.quantity).toFixed(2)}`;
+            priceTag.textContent = `R${(item.price * item.quantity).toFixed(2)}`;
           });
 
           minusBtn.addEventListener("click", () => {
             const newVal = parseInt(qtyInput.value) - 1;
-            if (newVal >= 1) updateQuantity(item, qtyInput, newVal);
-            itemTotalSpan.textContent = `R${(item.price * item.quantity).toFixed(2)}`;
+            if (newVal >= 1) {
+              updateQuantity(item, qtyInput, newVal);
+              priceTag.textContent = `R${(item.price * item.quantity).toFixed(2)}`;
+            }
           });
 
           plusBtn.addEventListener("click", () => {
             const newVal = parseInt(qtyInput.value) + 1;
-            if (newVal <= 5) updateQuantity(item, qtyInput, newVal);
-            itemTotalSpan.textContent = `R${(item.price * item.quantity).toFixed(2)}`;
+            if (newVal <= 5) {
+              updateQuantity(item, qtyInput, newVal);
+              priceTag.textContent = `R${(item.price * item.quantity).toFixed(2)}`;
+            }
           });
 
           delBtn.addEventListener("click", () => {
@@ -140,28 +417,36 @@
           cartContainer.appendChild(div);
         });
       }
-      totalEl.textContent = recalcTotal(cart).toFixed(2);
+
+      updateSummary();
     }
 
     renderCart();
 
     document.getElementById("clear-cart").addEventListener("click", () => {
-      clearCart();
-      cart = [];
-      renderCart();
-      alert("Cart cleared!");
+      if (confirm("Are you sure you want to clear your cart?")) {
+        clearCart();
+        cart = [];
+        renderCart();
+      }
+    });
+
+    continueShoppingBtn.addEventListener("click", () => {
+      window.location.href = "/products";
     });
 
     confirmBtn.addEventListener("click", async () => {
-      if (cart.length === 0) return alert("Cart is empty!");
+      if (cart.length === 0) return alert("Your cart is empty!");
       orderModel.classList.add("show");
       orderDetails.innerHTML = "";
 
       cart.forEach(item => {
         const div = document.createElement("div");
-        div.className = "flex justify-between mb-2";
-        div.innerHTML = `<span>${item.name} x ${item.quantity}</span>
-                       <span>R${(item.price * item.quantity).toFixed(2)}</span>`;
+        div.className = "order-item";
+        div.innerHTML = `
+          <span class="font-semibold text-gray-800">${item.name} × ${item.quantity}</span>
+          <span class="font-bold text-purple-600">R${(item.price * item.quantity).toFixed(2)}</span>
+        `;
         orderDetails.appendChild(div);
       });
 
@@ -169,7 +454,7 @@
       const addresses = await getBillingInfoAddress(token);
 
       if (addresses) {
-        addressSelect.innerHTML = `<option value="" disabled selected>Choose Your Delivery Address</option>`;
+        addressSelect.innerHTML = `<option value="" disabled selected>📍 Choose Your Delivery Address</option>`;
         Object.keys(addresses).forEach(addressType => {
           const addr = addresses[addressType];
           const option = document.createElement("option");
@@ -180,12 +465,13 @@
       }
 
       const totalDiv = document.createElement("div");
-      totalDiv.className = "flex justify-between font-bold mt-4";
+      totalDiv.className = "order-total";
       totalDiv.innerHTML = `<span>Total:</span><span>R${recalcTotal(cart).toFixed(2)}</span>`;
       orderDetails.appendChild(totalDiv);
     });
 
     cancelBtn.addEventListener("click", () => orderModel.classList.remove("show"));
+    modalCloseBtn.addEventListener("click", () => orderModel.classList.remove("show"));
     orderModel.addEventListener("click", e => {
       if (e.target === orderModel) orderModel.classList.remove("show");
     });
@@ -197,7 +483,7 @@
     });
 
     checkoutBtn.addEventListener("click", async () => {
-      if (cart.length === 0) return alert("Cart is empty!");
+      if (cart.length === 0) return alert("Your cart is empty!");
       if (!selectedAddressType) return alert("Please select a delivery address!");
 
       await createPayment("eft", recalcTotal(cart), selectedAddressType);

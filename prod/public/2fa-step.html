@@ -55,7 +55,6 @@
 
     #qrImage {
       max-width: 200px;
-      display: none;
     }
 
     #qrMessage {
@@ -71,8 +70,11 @@
       <div class="col-lg-6">
         <div class="card p-5 text-center">
           <h4 class="fw-bold mb-3" style="color:#ff1f6b;">Two-Factor Authentication</h4>
-          <p id="qrMessage" class="mb-4">Enter the 6-digit code from your authenticator app.</p>
 
+          <!-- Message changes based on if user is new or existing -->
+          <p id="qrMessage" class="mb-4"></p>
+
+          <!-- QR Code (only shows for new users) -->
           <div class="qr-placeholder" hidden>
             <img id="qrImage" src="" alt="QR Code">
           </div>
@@ -93,6 +95,24 @@
 
   <script type="module">
     import { apiFetch } from '/utils.js';
+
+    // Check if user is new or existing and show appropriate message
+    document.addEventListener('DOMContentLoaded', () => {
+      const qrCode = localStorage.getItem('qr_code');
+      const qrMessage = document.getElementById('qrMessage');
+      const qrPlaceholder = document.querySelector('.qr-placeholder');
+      const qrImage = document.getElementById('qrImage');
+
+      if (qrCode) {
+        // New user - show QR code
+        qrMessage.textContent = 'Scan the QR code below with your authenticator app, then enter the 6-digit code.';
+        qrPlaceholder.removeAttribute('hidden');
+        qrImage.src = qrCode;
+      } else {
+        // Existing user - just enter code
+        qrMessage.textContent = 'Enter the 6-digit code from your authenticator app.';
+      }
+    });
 
     // Handle 2FA verification
     document.getElementById('verifyForm').addEventListener('submit', async (e) => {

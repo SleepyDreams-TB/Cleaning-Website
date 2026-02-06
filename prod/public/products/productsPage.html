@@ -5,33 +5,309 @@
   <link rel="icon" href="wipe.ico" type="image/x-icon">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sparkle Cleaning Services</title>
+  <title>Sparkle Cleaning Services - Products</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+
+    .hero-section {
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.95), rgba(118, 75, 162, 0.95));
+      color: white;
+      padding: 60px 20px;
+      text-align: center;
+      border-bottom: 4px solid #ec4899;
+    }
+
+    .hero-section h2 {
+      font-size: 48px;
+      font-weight: bold;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    .hero-section p {
+      font-size: 18px;
+      opacity: 0.9;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .products-container {
+      background: transparent;
+      padding: 40px 0;
+    }
+
+    .product-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .product-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 50px rgba(102, 126, 234, 0.3);
+    }
+
+    .product-image {
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
+      background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .product-image-wrapper {
+      position: relative;
+      overflow: hidden;
+      height: 220px;
+    }
+
+    .product-image-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+
+    .product-card:hover .product-image-wrapper img {
+      transform: scale(1.1);
+    }
+
+    .product-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: linear-gradient(135deg, #ec4899, #db2777);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .product-content {
+      padding: 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .product-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1f2937;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .product-name i {
+      color: #667eea;
+      font-size: 16px;
+    }
+
+    .product-description {
+      color: #6b7280;
+      font-size: 14px;
+      margin-bottom: 16px;
+      flex-grow: 1;
+      line-height: 1.5;
+    }
+
+    .product-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 16px;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .product-price {
+      font-size: 24px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .add-to-cart-btn {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .add-to-cart-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    .add-to-cart-btn:active {
+      transform: translateY(0);
+    }
+
+    .add-to-cart-btn.added {
+      background: #10b981;
+    }
+
+    .loading-spinner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 20px;
+    }
+
+    .spinner {
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top: 4px solid white;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .empty-state {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 15px;
+      padding: 60px 20px;
+      text-align: center;
+      color: #6b7280;
+    }
+
+    .empty-state i {
+      font-size: 64px;
+      color: #d1d5db;
+      margin-bottom: 20px;
+    }
+
+    .error-state {
+      background: #fee2e2;
+      border: 2px solid #ef4444;
+      border-radius: 15px;
+      padding: 30px;
+      text-align: center;
+      color: #991b1b;
+    }
+
+    .error-state i {
+      font-size: 48px;
+      margin-bottom: 16px;
+      display: block;
+    }
+
+    .filters-section {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 32px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filter-btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 2px solid #e5e7eb;
+      background: white;
+      color: #6b7280;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .filter-btn:hover,
+    .filter-btn.active {
+      border-color: #667eea;
+      background: #f0f4ff;
+      color: #667eea;
+    }
+
+    @media (max-width: 768px) {
+      .hero-section h2 {
+        font-size: 32px;
+      }
+
+      .products-container {
+        padding: 24px 0;
+      }
+
+      .product-card {
+        border-radius: 12px;
+      }
+    }
+  </style>
 </head>
 
-<body class="bg-cover bg-center bg-no-repeat bg-fixed text-gray-800"
-  style="background-image: url('../assets/cleaningbg.jpg');">
+<body>
 
   <!-- Header -->
   <header class="bg-black shadow p-4 flex justify-between items-center">
+    <h1 class="text-pink-600 font-bold text-2xl"><i class="fas fa-sparkles"></i> Sparkle Clean</h1>
     <nav>
       <div id="navbar-container"></div>
     </nav>
   </header>
 
-  <!-- Products Section -->
-  <section class="container mx-auto py-12 px-4">
-    <h2 class="text-3xl font-bold text-center mb-8 text-pink-600">Our Cleaning Products</h2>
-
-    <!-- Product Grid Container -->
-    <div id="productsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      <!-- Products will be dynamically inserted here -->
-    </div>
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <h2>
+      <i class="fas fa-shopping-bags"></i> Our Products
+    </h2>
+    <p>Premium cleaning supplies for a sparkling clean home</p>
   </section>
 
+  <!-- Main Content -->
+  <main class="container mx-auto px-4 py-12">
+
+    <!-- Products Grid Container -->
+    <div id="productsContainer" class="products-container">
+      <!-- Loading state -->
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+      </div>
+    </div>
+  </main>
+
   <!-- Footer -->
-  <footer class="text-center text-sm py-6 bg-gray-100 mt-16">
-    © 2025 Sparkle Clean. All rights reserved.
+  <footer class="text-center text-white text-sm py-8 mt-12 bg-black">
+    © 2025 Sparkle Clean. All rights reserved. ✨
   </footer>
 
   <!-- Navbar Script -->
@@ -47,52 +323,91 @@
     import { addToCart } from '/users/cart.js';
     import { apiFetch } from '/utils.js';
 
+    let allProducts = [];
+
     async function fetchProducts() {
       try {
         const response = await apiFetch('https://api.kingburger.site/products/');
         const data = await response.json();
-        const products = data.products || [];
-        renderProducts(products);
+        allProducts = data.products || [];
+        renderProducts(allProducts);
       } catch (err) {
         console.error("Failed to Fetch products:", err);
         const container = document.getElementById('productsContainer');
-        container.innerHTML = "<p class='text-red-600 text-center col-span-3'>Failed to load products. Please try again later.</p>";
+        container.innerHTML = `
+          <div class="error-state col-span-1 md:col-span-2 lg:col-span-3">
+            <i class="fas fa-exclamation-circle"></i>
+            <h3 class="text-xl font-bold mb-2">Failed to Load Products</h3>
+            <p>We couldn't load the products. Please try refreshing the page.</p>
+          </div>
+        `;
       }
     }
 
     function renderProducts(products) {
       const container = document.getElementById('productsContainer');
+
       if (!products.length) {
-        container.innerHTML = "<p class='text-gray-500 text-center col-span-3'>No products available at the moment.</p>";
+        container.innerHTML = `
+          <div class="empty-state col-span-1 md:col-span-2 lg:col-span-3">
+            <i class="fas fa-inbox"></i>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">No Products Available</h3>
+            <p>Check back soon for new cleaning products!</p>
+          </div>
+        `;
         return;
       }
 
-      container.innerHTML = products.map(product => `
-        <div class="bg-white rounded-lg shadow-lg p-6 hover:shadow-2xl transition-shadow duration-300">
-          <img src="${product.image_url || 'placeholder.jpg'}" alt="${product.name}" 
-               class="w-full h-48 object-cover rounded-md mb-4">
-          <h3 class="text-xl font-semibold mb-2">${product.name}</h3>
-          <p class="text-gray-600 mb-4">${product.description || 'No description available'}</p>
-          <div class="flex justify-between items-center">
-            <span class="text-pink-600 font-bold text-lg">R${product.price}</span>
-            <button class="bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700 transition-colors add-to-cart-btn" data-id="${product.id}">
-              Add to Cart
-            </button>
-          </div>
+      container.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          ${products.map(product => `
+            <div class="product-card">
+              <!-- Image -->
+              <div class="product-image-wrapper">
+                <img src="${product.image_url || 'placeholder.jpg'}" alt="${product.name}">
+                <div class="product-badge">
+                  <i class="fas fa-star"></i> Premium
+                </div>
+              </div>
+
+              <!-- Content -->
+              <div class="product-content">
+                <h3 class="product-name">
+                  <i class="fas fa-spray-can"></i> ${product.name}
+                </h3>
+                <p class="product-description">${product.description || 'Quality cleaning product for your home'}</p>
+              </div>
+
+              <!-- Footer -->
+              <div class="product-footer">
+                <span class="product-price">R${parseFloat(product.price).toFixed(2)}</span>
+                <button class="add-to-cart-btn" data-id="${product.id || product._id}" data-product='${JSON.stringify(product)}'>
+                  <i class="fas fa-cart-plus"></i> Add
+                </button>
+              </div>
+            </div>
+          `).join('')}
         </div>
-      `).join('');
+      `;
 
       // Add click event listeners
       document.querySelectorAll('.add-to-cart-btn').forEach(button => {
-        button.addEventListener('click', () => {
-          const productId = button.getAttribute('data-id');
-          const product = products.find(p => String(p.id) === productId || String(p._id) === productId);
-          if (product) {
-            console.log("Adding product to cart:", product);
-            addToCart(product);
-          } else {
-            console.error("Product not found for ID:", productId);
-          }
+        button.addEventListener('click', (e) => {
+          const productData = JSON.parse(button.getAttribute('data-product'));
+          console.log("Adding product to cart:", productData);
+
+          // Add visual feedback
+          const originalText = button.innerHTML;
+          button.innerHTML = '<i class="fas fa-check"></i> Added!';
+          button.classList.add('added');
+
+          addToCart(productData);
+
+          // Reset button after 2 seconds
+          setTimeout(() => {
+            button.innerHTML = originalText;
+            button.classList.remove('added');
+          }, 2000);
         });
       });
     }

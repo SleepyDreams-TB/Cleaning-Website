@@ -82,8 +82,12 @@
           return;
         }
 
+        if (!res.registered) {
+          localStorage.setItem('qr_code', result.qr_code);
+          return;
+        }
+
         // Save QR code & user ID for 2FA
-        localStorage.setItem('qr_code', result.qr_code);
         localStorage.setItem('user_id', result.user_id);
 
         // Redirect to 2FA

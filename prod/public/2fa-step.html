@@ -93,17 +93,18 @@
 
   <script type="module">
     import { apiFetch } from '/utils.js';
-    const qrPlaceholder = document.querySelector('.qr-placeholder');
 
     // Show QR code from localStorage
     document.addEventListener('DOMContentLoaded', () => {
+      const qrPlaceholder = document.querySelector('.qr-placeholder');
       const qrImage = document.getElementById('qrImage');
       const qrCode = localStorage.getItem('qr_code');
       if (qrCode) {
+        qrPlaceholder.removeAttribute('hidden');
+        document.getElementById('qrMessage').removeAttribute('hidden');
         qrImage.src = qrCode;
-        qrImage.style.display = 'block';
       } else {
-        qrPlaceholder.style.display = 'none';
+        qrPlaceholder.setAttribute('hidden', true);
       }
     });
 

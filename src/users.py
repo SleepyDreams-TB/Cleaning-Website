@@ -20,7 +20,7 @@ router = APIRouter(prefix="/users", tags=["users"])
 MONGO_URI = os.getenv("MONGO_URI", "your-mongo-connection-string")
 client = MongoClient(MONGO_URI, tls=True, tlsAllowInvalidCertificates=False)
 db = client["cleaning_website"]
-users_collection = db["usersCleaningSite"]
+users_collection = db["store_users"]
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")

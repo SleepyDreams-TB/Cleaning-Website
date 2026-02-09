@@ -29,7 +29,7 @@ router = APIRouter(prefix="/auth", tags=["authentication"])
 MONGO_URI = cast(str, os.getenv("MONGO_URI"))
 client = MongoClient(MONGO_URI, tls=True, tlsAllowInvalidCertificates=False)
 db = client["cleaning_website"]
-users_collection = db["usersCleaningSite"]
+users_collection = db["store_users"]
 
 # JWT Settings
 SECRET_KEY = cast(str, os.getenv("SECRET_KEY"))

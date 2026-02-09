@@ -13,7 +13,7 @@ async function connectDB() {
     if (!db) {
         const client = new MongoClient(MONGO_URI);
         await client.connect();
-        db = client.db("cleaning_website");
+        db = client.db("kingburgerstore_db");
     }
     return db;
 }

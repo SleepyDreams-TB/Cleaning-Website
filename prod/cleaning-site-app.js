@@ -37,7 +37,7 @@ app.post('/users/check_user_avail', async (req, res) => {
         if (!username && !email) return res.status(400).json({ error: "Username or email is required" });
 
         const database = await connectDB();
-        const usersCollection = database.collection("usersCleaningSite");
+        const usersCollection = database.collection("store_users");
 
         const user = await usersCollection.findOne({
             $or: [

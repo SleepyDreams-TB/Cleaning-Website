@@ -61,7 +61,7 @@ export async function initNavbar(containerId = "navbar-container") {
             <a href="/users/billing" class="flex items-center gap-3 px-4 py-3 text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition-all">
               <i class="fas fa-credit-card text-blue-600"></i> Billing
             </a>
-            <a href="users/cart" class="flex items-center gap-3 px-4 py-3 text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition-all">
+            <a href="/users/cart" class="flex items-center gap-3 px-4 py-3 text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition-all">
               <i class="fas fa-shopping-cart text-blue-600"></i> Cart
             </a>
             <a href="/users/orders" class="flex items-center gap-3 px-4 py-3 text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition-all">

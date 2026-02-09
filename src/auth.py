@@ -28,7 +28,7 @@ router = APIRouter(prefix="/auth", tags=["authentication"])
 # MongoDB connection
 MONGO_URI = cast(str, os.getenv("MONGO_URI"))
 client = MongoClient(MONGO_URI, tls=True, tlsAllowInvalidCertificates=False)
-db = client["cleaning_website"]
+db = client["kingburgerstore_db"]
 users_collection = db["store_users"]
 
 # JWT Settings

@@ -19,7 +19,7 @@ router = APIRouter(prefix="/users", tags=["users"])
 # MongoDB connection
 MONGO_URI = os.getenv("MONGO_URI", "your-mongo-connection-string")
 client = MongoClient(MONGO_URI, tls=True, tlsAllowInvalidCertificates=False)
-db = client["cleaning_website"]
+db = client["kingburgerstore_db"]
 users_collection = db["store_users"]
 
 SECRET_KEY = os.getenv("SECRET_KEY")

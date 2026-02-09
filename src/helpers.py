@@ -14,7 +14,7 @@ from bson import ObjectId
 
 # Database setup (assuming MongoDB)
 client = MongoClient(os.getenv("MONGODB_URI"))
-db = client['cleaning_website']
+db = client['kingburgerstore_db']
 SECRET_KEY = cast(str, os.getenv("SECRET_KEY"))
 ALGORITHM = cast(str, os.getenv("ALGORITHM", "HS256"))
 

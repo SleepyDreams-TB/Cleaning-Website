@@ -9,6 +9,7 @@ const PORT = process.env.PORT || 3000;
 // MongoDB connection
 const MONGO_URI = process.env.MONGO_URI;
 let db;
+
 async function connectDB() {
     if (!db) {
         const client = new MongoClient(MONGO_URI);
@@ -18,11 +19,9 @@ async function connectDB() {
     return db;
 }
 
-// Parse JSON bodies
+// ==================== Middleware ====================
 app.use(express.json());
-
-// Serve static files
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.urlencoded({ extended: true }));
 
 // Log all requests
 app.use((req, res, next) => {
@@ -30,11 +29,19 @@ app.use((req, res, next) => {
     next();
 });
 
-// ==================== Username/Email availability check ====================
+// ==================== Static Files ====================
+// Serve static files from public folder (CSS, JS, images, etc.)
+app.use(express.static(path.join(__dirname, 'public')));
+
+// ==================== API Routes ====================
+
+// Username/Email availability check
 app.post('/users/check_user_avail', async (req, res) => {
     try {
         const { username, email } = req.body;
-        if (!username && !email) return res.status(400).json({ error: "Username or email is required" });
+        if (!username && !email) {
+            return res.status(400).json({ error: "Username or email is required" });
+        }
 
         const database = await connectDB();
         const usersCollection = database.collection("store_users");
@@ -53,7 +60,12 @@ app.post('/users/check_user_avail', async (req, res) => {
     }
 });
 
-// ==================== Catch-all route for HTML / 404 ====================
+// ==================== Health Check ====================
+app.get('/health', (req, res) => {
+    res.json({ status: 'Server is running' });
+});
+
+// ==================== Catch-all Route for HTML Pages / 404 ====================
 app.get('*', (req, res) => {
     const requestedPath = req.path === '/' ? '/index' : req.path;
     const filePath = path.join(__dirname, 'public', requestedPath + '.html');
@@ -65,11 +77,18 @@ app.get('*', (req, res) => {
         if (fs.existsSync(fallbackPath)) {
             res.status(404).sendFile(fallbackPath);
         } else {
-            res.status(404).send('404 Not Found');
+            res.status(404).json({ error: '404 Not Found' });
         }
     }
 });
 
+// ==================== Error Handling ====================
+app.use((err, req, res, next) => {
+    console.error('❌ Server error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+});
+
+// ==================== Start Server ====================
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`🚀 Server running on port ${PORT}`);
 });

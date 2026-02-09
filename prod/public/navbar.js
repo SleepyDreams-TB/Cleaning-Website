@@ -50,22 +50,22 @@ export async function initNavbar(containerId = "navbar-container") {
               
         <!-- Dropdown toggle -->
         <div class="relative inline-block text-left">
-          <button id="userDropdownButton" class="flex items-center gap-2 bg-gradient-to-r from-pink-600 to-pink-700 text-white px-4 py-2 rounded-lg font-semibold hover:shadow-lg transition-all duration-300" style="font-size: 14px;">
+          <button id="userDropdownButton" class="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-lg font-semibold hover:shadow-lg transition-all duration-300" style="font-size: 14px;">
             ${userName}
             <i class="bi bi-list text-lg"></i>
           </button>
           <div id="userDropdownMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50 border border-gray-100">
-            <a href="/users/profile" class="flex items-center gap-3 px-4 py-3 text-gray-800 hover:bg-pink-50 hover:text-pink-600 transition-all">
-              <i class="fas fa-user text-pink-600"></i> Profile
+            <a href="/users/profile" class="flex items-center gap-3 px-4 py-3 text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition-all">
+              <i class="fas fa-user text-blue-600"></i> Profile
             </a>
-            <a href="/users/billing" class="flex items-center gap-3 px-4 py-3 text-gray-800 hover:bg-pink-50 hover:text-pink-600 transition-all">
-              <i class="fas fa-credit-card text-pink-600"></i> Billing
+            <a href="/users/billing" class="flex items-center gap-3 px-4 py-3 text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition-all">
+              <i class="fas fa-credit-card text-blue-600"></i> Billing
             </a>
-            <a href="/cart" class="flex items-center gap-3 px-4 py-3 text-gray-800 hover:bg-pink-50 hover:text-pink-600 transition-all">
-              <i class="fas fa-shopping-cart text-pink-600"></i> Cart
+            <a href="users/cart" class="flex items-center gap-3 px-4 py-3 text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition-all">
+              <i class="fas fa-shopping-cart text-blue-600"></i> Cart
             </a>
-            <a href="/users/orders" class="flex items-center gap-3 px-4 py-3 text-gray-800 hover:bg-pink-50 hover:text-pink-600 transition-all">
-              <i class="fas fa-box text-pink-600"></i> Orders
+            <a href="/users/orders" class="flex items-center gap-3 px-4 py-3 text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition-all">
+              <i class="fas fa-box text-blue-600"></i> Orders
             </a>
             <hr class="my-1">
             <a href="#" id="logoutLink" class="flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-all font-semibold">

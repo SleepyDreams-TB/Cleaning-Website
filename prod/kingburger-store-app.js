@@ -6,6 +6,10 @@ const { MongoClient } = require('mongodb');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+import express from "express";
+import bodyParser from "body-parser";
+import Mailjet from "node-mailjet";
+
 // MongoDB connection
 const MONGO_URI = process.env.MONGO_URI;
 let db;
@@ -34,6 +38,62 @@ app.use((req, res, next) => {
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ==================== API Routes ====================
+
+//mailer via mailjet API
+const mailjet = require('node-mailjet').connect(
+    process.env.MJ_APIKEY_PUBLIC,
+    process.env.MJ_APIKEY_PRIVATE
+)
+app.post("/mail/contact", async (req, res) => {
+    try {
+        const name = req.body.name?.trim();
+        const email = req.body.email?.trim();
+        const message = req.body.message?.trim();
+
+        if (!name || !email || !message) {
+            return res.status(400).send("All fields are required.");
+        }
+
+        const request = mailjet.post("send", { version: "v3.1" }).request({
+            Messages: [
+                {
+                    From: {
+                        Email: email,
+                        Name: name,
+                    },
+                    To: [
+                        {
+                            Email: "tiaanburger1112@gmail.com",
+                            Name: "Tiaan Burger",
+                        },
+                    ],
+                    Subject: `New Inquiry from ${name}`,
+                    TextPart: `Name: ${name}\nEmail: ${email}\nMessage:\n${message}`,
+                },
+            ],
+        });
+
+        await request;
+        res.status(200).send("Thank you! Your message has been sent.");
+    } catch (err) {
+        console.error("Mailjet error:", err);
+        res.status(500).send("Oops! Something went wrong. Please try again.");
+    }
+});
+
+// Catch non-POST requests
+app.all("/mail/contact", (req, res) => {
+    res.status(403).send("There was a problem with your submission.");
+});
+
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+// Catch non-POST requests
+app.all("/mail/contact", (req, res) => {
+    res.status(403).send("There was a problem with your submission.");
+});
+
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 // Username/Email availability check
 app.post('/users/check_user_avail', async (req, res) => {

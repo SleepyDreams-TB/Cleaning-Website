@@ -1,6 +1,4 @@
 // ----- Notification Helper -----
-
-
 function notifyUser(message) {
   alert(message);
   console.log("User notification:", message);

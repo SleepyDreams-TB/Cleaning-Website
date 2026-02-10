@@ -413,7 +413,7 @@
 
         // Send to PHP email handler using FormData
         // PHP script will handle htmlspecialchars() and sanitization
-        const response = await fetch('mail/contact.php', {
+        const response = await fetch('/mail/contact', {
           method: 'POST',
           body: formData
         });

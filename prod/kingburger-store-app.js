@@ -2,7 +2,6 @@ import express from "express";
 import path from "path";
 import fs from "fs";
 import { MongoClient } from "mongodb";
-import bodyParser from "body-parser";
 import Mailjet from "node-mailjet";
 
 import { fileURLToPath } from "url";
@@ -31,7 +30,7 @@ async function connectDB() {
 
 // ==================== Middleware ====================
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true })); //body parser
 
 // Log all requests
 app.use((req, res, next) => {
@@ -46,7 +45,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // ==================== API Routes ====================
 
 //mailer via mailjet API
-const mailjet = require('node-mailjet').connect(
+const mailjet = Mailjet.apiconnect(
     process.env.MJ_APIKEY_PUBLIC,
     process.env.MJ_APIKEY_PRIVATE
 )
@@ -92,14 +91,11 @@ app.all("/mail/contact", (req, res) => {
     res.status(403).send("There was a problem with your submission.");
 });
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
 // Catch non-POST requests
 app.all("/mail/contact", (req, res) => {
     res.status(403).send("There was a problem with your submission.");
 });
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 // Username/Email availability check
 app.post('/users/check_user_avail', async (req, res) => {

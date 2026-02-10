@@ -6,7 +6,6 @@ const { MongoClient } = require('mongodb');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-import express from "express";
 import bodyParser from "body-parser";
 import Mailjet from "node-mailjet";
 

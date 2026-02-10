@@ -1,5 +1,5 @@
 // profile.js
-import { fetch } from '/utils.js';
+
 
 document.addEventListener('DOMContentLoaded', () => {
   const JWT = localStorage.getItem("jwt");

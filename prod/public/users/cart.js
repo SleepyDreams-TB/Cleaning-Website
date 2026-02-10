@@ -1,5 +1,5 @@
 // ----- Notification Helper -----
-import { fetch } from '/utils.js';
+
 
 function notifyUser(message) {
   alert(message);

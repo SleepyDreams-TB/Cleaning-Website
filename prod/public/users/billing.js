@@ -1,7 +1,7 @@
 const billingForm = document.getElementById("billingForm");
 const billingMessage = document.getElementById("billingMessage");
 const token = localStorage.getItem("jwt");
-import { fetch } from '/utils.js';
+
 
 
 // Redirect to 401 if user is not logged in

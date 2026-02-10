@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <link rel="icon" href="/assets/clean.ico" type="image/x-icon">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description"
+    content="Professional cleaning services for residential, office, and move-in/out needs. Affordable rates and flexible scheduling." />
+  <title>Professional Cleaning Services - Book Now</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    :root {
+      --color-primary: #9333ea;
+      --color-primary-light: #a855f7;
+      --color-secondary: #3b82f6;
+      --color-bg-dark: #111827;
+      --color-bg-darker: #0f172a;
+      --color-text-light: #f3f4f6;
+      --color-text-muted: #d1d5db;
+      --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: linear-gradient(135deg, #1f2937 0%, var(--color-bg-dark) 100%);
+      color: var(--color-text-light);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    main {
+      flex: 1;
+    }
+
+    /* Hero Section */
+    .hero-section {
+      background: linear-gradient(135deg, rgba(147, 51, 234, 0.15) 0%, rgba(59, 130, 246, 0.15) 100%);
+      backdrop-filter: blur(10px);
+      border-bottom: 2px solid rgba(147, 51, 234, 0.2);
+    }
+
+    .hero-title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 16px;
+      line-height: 1.2;
+    }
+
+    /* Service Card */
+    .service-card {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(147, 51, 234, 0.1);
+      transition: var(--transition-smooth);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .service-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 8px 25px rgba(147, 51, 234, 0.2);
+    }
+
+    .service-header {
+      background: linear-gradient(135deg, rgba(147, 51, 234, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+      padding: 20px;
+      border-bottom: 2px solid rgba(147, 51, 234, 0.2);
+    }
+
+    .service-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--color-primary);
+      margin-bottom: 8px;
+    }
+
+    .service-price {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--color-secondary);
+    }
+
+    .service-content {
+      padding: 24px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .service-description {
+      color: #4b5563;
+      margin-bottom: 16px;
+      line-height: 1.6;
+    }
+
+    .service-features {
+      list-style: none;
+      padding: 0;
+      margin: 16px 0;
+    }
+
+    .service-features li {
+      color: #4b5563;
+      padding: 8px 0;
+      padding-left: 24px;
+      position: relative;
+    }
+
+    .service-features li:before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: var(--color-primary);
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+
+    .time-estimate {
+      background: rgba(147, 51, 234, 0.05);
+      padding: 16px;
+      border-radius: 8px;
+      margin: 16px 0;
+      border-left: 4px solid var(--color-primary);
+    }
+
+    .time-estimate-title {
+      font-weight: 700;
+      color: #1f2937;
+      margin-bottom: 12px;
+    }
+
+    .time-item {
+      color: #4b5563;
+      padding: 6px 0;
+    }
+
+    .time-item strong {
+      color: #1f2937;
+    }
+
+    /* CTA Button */
+    .cta-button {
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+      color: white;
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-block;
+      transition: var(--transition-smooth);
+      border: none;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-size: 0.95rem;
+    }
+
+    .cta-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(147, 51, 234, 0.4);
+    }
+
+    .cta-button:active {
+      transform: translateY(0);
+    }
+
+    /* Section Headers */
+    .section-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .section-title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: white;
+      margin-bottom: 12px;
+      line-height: 1.2;
+    }
+
+    .section-subtitle {
+      font-size: 1.1rem;
+      color: var(--color-text-muted);
+    }
+
+    /* Accessibility */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero-title {
+        font-size: 1.875rem;
+      }
+
+      .section-title {
+        font-size: 1.875rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Skip to Content Link -->
+  <a href="#services" class="sr-only">Skip to main content</a>
+
+  <!-- Header -->
+  <header class="bg-black shadow-lg p-4 flex justify-between items-center sticky top-0 z-50">
+    <nav>
+      <div id="navbar-container" role="navigation" aria-label="Main navigation"></div>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Hero Section -->
+    <section class="hero-section text-center py-24" aria-labelledby="hero-title">
+      <div class="max-w-4xl mx-auto px-4">
+        <h1 id="hero-title" class="hero-title">
+          <span aria-hidden="true"><i class="fas fa-broom text-purple-500 mr-3"></i></span>Professional Cleaning
+          Services
+        </h1>
+        <p class="text-xl text-gray-300 mb-8">Trusted, affordable, and available 7 days a week</p>
+        <a href="/booking" class="cta-button" aria-label="Book a cleaning service">
+          <span aria-hidden="true"><i class="fas fa-calendar-check mr-2"></i></span>Book Now
+        </a>
+      </div>
+    </section>
+
+    <!-- Services Grid -->
+    <section id="services" class="py-20 bg-gray-900" aria-labelledby="services-title">
+      <div class="max-w-6xl mx-auto px-4">
+        <div class="section-header mb-16">
+          <h2 id="services-title" class="section-title">
+            <span aria-hidden="true"><i class="fas fa-list-check text-purple-500 mr-2"></i></span>Our Services
+          </h2>
+          <p class="section-subtitle">Choose the service that fits your needs</p>
+        </div>
+
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+
+          <!-- Residential Cleaning -->
+          <div class="service-card">
+            <div class="service-header">
+              <h3 class="service-title">
+                <span aria-hidden="true"><i class="fas fa-home mr-2"></i></span>Residential Cleaning
+              </h3>
+              <div class="service-price">From R250/hour</div>
+            </div>
+            <div class="service-content">
+              <p class="service-description">
+                Ideal for busy families, professionals, and anyone needing a clean home.
+              </p>
+
+              <div class="service-features">
+                <li>Dusting & vacuuming</li>
+                <li>Mopping & bathroom sanitizing</li>
+                <li>Kitchen surface cleaning</li>
+                <li>Optional extras: laundry, fridge/oven, windows</li>
+              </div>
+
+              <div class="time-estimate">
+                <div class="time-estimate-title">
+                  <span aria-hidden="true"><i class="fas fa-clock mr-2"></i></span>Estimated Time
+                </div>
+                <div class="time-item"><strong>1–2 Bedroom (±80–120 sqm):</strong> 2–3 hours</div>
+                <div class="time-item"><strong>3–4 Bedroom (±150–250 sqm):</strong> 4–6 hours</div>
+                <div class="time-item"><strong>Large Homes (300+ sqm):</strong> Custom quote available</div>
+              </div>
+
+              <p class="text-sm text-gray-600 mt-auto">
+                <em>Choose from weekly, bi-weekly, or once-off deep cleans.</em>
+              </p>
+            </div>
+          </div>
+
+          <!-- Office Cleaning -->
+          <div class="service-card">
+            <div class="service-header">
+              <h3 class="service-title">
+                <span aria-hidden="true"><i class="fas fa-building mr-2"></i></span>Office Cleaning
+              </h3>
+              <div class="service-price">From R300/hour</div>
+            </div>
+            <div class="service-content">
+              <p class="service-description">
+                Keep your workplace clean and productive with professional office cleaning.
+              </p>
+
+              <div class="service-features">
+                <li>Desks & workstations</li>
+                <li>Floors & restrooms</li>
+                <li>Kitchenettes & reception areas</li>
+                <li>Boardrooms & common areas</li>
+              </div>
+
+              <div class="time-estimate">
+                <div class="time-estimate-title">
+                  <span aria-hidden="true"><i class="fas fa-clock mr-2"></i></span>Estimated Time
+                </div>
+                <div class="time-item"><strong>Small Office (up to 100 sqm):</strong> 2–3 hours</div>
+                <div class="time-item"><strong>Medium Office (100–250 sqm):</strong> 4–6 hours</div>
+                <div class="time-item"><strong>Large Offices:</strong> Quoted after assessment</div>
+              </div>
+
+              <p class="text-sm text-gray-600 mt-auto">
+                <em>After-hours and weekend cleaning available to avoid workday interruptions.</em>
+              </p>
+            </div>
+          </div>
+
+          <!-- Move-In/Out Cleaning -->
+          <div class="service-card">
+            <div class="service-header">
+              <h3 class="service-title">
+                <span aria-hidden="true"><i class="fas fa-boxes-stacked mr-2"></i></span>Move-In/Out Cleaning
+              </h3>
+              <div class="service-price">From R950 or R300/hour</div>
+            </div>
+            <div class="service-content">
+              <p class="service-description">
+                Perfect for tenants, landlords, and estate agents needing move-ready spaces.
+              </p>
+
+              <div class="service-features">
+                <li>Inside cupboards & appliances</li>
+                <li>Baseboards & tiles</li>
+                <li>Taps & light fittings</li>
+                <li>Deep clean throughout</li>
+              </div>
+
+              <div class="time-estimate">
+                <div class="time-estimate-title">
+                  <span aria-hidden="true"><i class="fas fa-clock mr-2"></i></span>Estimated Time
+                </div>
+                <div class="time-item"><strong>Small Flats (±60–90 sqm):</strong> 3–4 hours</div>
+                <div class="time-item"><strong>Houses (±100–200 sqm):</strong> 4–6 hours</div>
+                <div class="time-item"><strong>Larger Properties (300+ sqm):</strong> Custom quote</div>
+              </div>
+
+              <p class="text-sm text-gray-600 mt-auto">
+                <em>Cleaning only - does not include moving furniture or belongings.</em>
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- Call to Action Section -->
+    <section class="py-16 bg-gradient-to-r from-purple-600 to-blue-600" aria-labelledby="cta-title">
+      <div class="max-w-4xl mx-auto text-center px-4">
+        <h2 id="cta-title" class="text-4xl font-bold text-white mb-4">Ready to Book a Cleaning?</h2>
+        <p class="text-xl text-gray-100 mb-8">Choose your service and schedule your cleaning at a time that works for
+          you</p>
+        <a href="/booking"
+          class="bg-white text-purple-600 py-3 px-8 rounded-lg font-bold text-lg hover:shadow-lg transition"
+          aria-label="Book a cleaning service now">
+          <span aria-hidden="true"><i class="fas fa-arrow-right mr-2"></i></span>Book Now
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="text-center text-sm py-8 bg-black border-t border-gray-800" role="contentinfo">
+    <p class="text-gray-400 mb-2">© 2025 Professional Cleaning Services. All rights reserved.</p>
+    <p class="text-gray-500">Professional • Reliable • Affordable</p>
+  </footer>
+
+  <script type="module">
+    import { initNavbar } from '/navbar.js';
+
+    // Initialize navbar
+    try {
+      initNavbar("navbar-container");
+    } catch (error) {
+      console.error('Failed to initialize navbar:', error);
+      document.getElementById('navbar-container').innerHTML = '<p class="text-red-500">Navigation failed to load</p>';
+    }
+  </script>
+</body>
+
+</html>

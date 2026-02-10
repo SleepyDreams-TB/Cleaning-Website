@@ -2,88 +2,445 @@
 <html lang="en">
 
 <head>
-  <link rel="icon" href="wipe.ico" type="image/x-icon">
+  <link rel="icon" href="/assets/clean.ico" type="image/x-icon">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sparkle Cleaning Services</title>
+  <meta name="description"
+    content="Book your professional cleaning service. Fill out our form to schedule your cleaning appointment." />
+  <title>Book a Cleaning - Professional Services</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+  <style>
+    :root {
+      --color-primary: #9333ea;
+      --color-secondary: #3b82f6;
+      --color-bg-dark: #111827;
+      --color-text-light: #f3f4f6;
+      --color-text-muted: #d1d5db;
+      --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: linear-gradient(135deg, #1f2937 0%, var(--color-bg-dark) 100%);
+      color: var(--color-text-light);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    main {
+      flex: 1;
+    }
+
+    /* Hero Section */
+    .hero-section {
+      background: linear-gradient(135deg, rgba(147, 51, 234, 0.15) 0%, rgba(59, 130, 246, 0.15) 100%);
+      backdrop-filter: blur(10px);
+      border-bottom: 2px solid rgba(147, 51, 234, 0.2);
+    }
+
+    .hero-title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.2;
+    }
+
+    /* Form Container */
+    .form-container {
+      max-width: 600px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(147, 51, 234, 0.15);
+      padding: 32px;
+      margin: 40px auto;
+    }
+
+    .form-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #1f2937;
+      margin-bottom: 8px;
+    }
+
+    .form-subtitle {
+      color: #6b7280;
+      margin-bottom: 24px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      font-weight: 600;
+      color: #1f2937;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+    }
+
+    .form-input,
+    .form-textarea,
+    .form-select {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-family: inherit;
+      transition: var(--transition-smooth);
+      background: white;
+      color: #1f2937;
+    }
+
+    .form-input:focus,
+    .form-textarea:focus,
+    .form-select:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.1);
+    }
+
+    .form-input:invalid {
+      border-color: #ef4444;
+    }
+
+    .form-textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    .form-error {
+      color: #dc2626;
+      font-size: 0.875rem;
+      margin-top: 6px;
+      display: none;
+    }
+
+    .form-input:invalid~.form-error,
+    .form-textarea:invalid~.form-error {
+      display: block;
+    }
+
+    .submit-button {
+      width: 100%;
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .submit-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(147, 51, 234, 0.4);
+    }
+
+    .submit-button:active {
+      transform: translateY(0);
+    }
+
+    .submit-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Messages */
+    .message-box {
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: none;
+      font-weight: 600;
+    }
+
+    .message-box.show {
+      display: block;
+    }
+
+    .message-success {
+      background-color: #dcfce7;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+
+    .message-error {
+      background-color: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 0.8s linear infinite;
+      margin-right: 8px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Accessibility */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero-title {
+        font-size: 1.875rem;
+      }
+
+      .form-container {
+        margin: 20px 16px;
+        padding: 24px;
+      }
+    }
+  </style>
 </head>
 
-<!-- Header -->
+<body>
+  <!-- Skip to Content -->
+  <a href="#booking-form" class="sr-only">Skip to booking form</a>
 
-<body class="bg-cover bg-center bg-no-repeat bg-fixed text-gray-800"
-  style="background-image: url('../assets/cleaningbg.jpg');">
-  <header class="bg-black shadow p-4 flex justify-between items-center">
+  <!-- Header -->
+  <header class="bg-black shadow-lg p-4 flex justify-between items-center sticky top-0 z-50">
     <nav>
-      <div id="navbar-container"></div>
+      <div id="navbar-container" role="navigation" aria-label="Main navigation"></div>
     </nav>
   </header>
 
-  <body class="bg-gray-50 text-gray-800">
-    <section class="text-center py-20 bg-pink-100">
-      <h2 class="text-4xl font-bold mb-4">Professional Cleaning Services</h2>
-      <p class="mb-6">Trusted, affordable, and available 7 days a week</p>
-      <a href="/ContactUs" class="bg-pink-600 text-white py-2 px-4 rounded hover:bg-pink-700">
-        Book Now
-      </a>
+  <main>
+    <!-- Hero Section -->
+    <section class="hero-section text-center py-16" aria-labelledby="hero-title">
+      <div class="max-w-4xl mx-auto px-4">
+        <h1 id="hero-title" class="hero-title">
+          <span aria-hidden="true"><i class="fas fa-calendar-check text-purple-500 mr-3"></i></span>Contact Us
+        </h1>
+        <p class="text-xl text-gray-300">We will review you request and get back to ASAP</p>
+      </div>
     </section>
 
-    <!-- Contact Form -->
-    <section class="max-w-xl mx-auto my-10 bg-white p-6 rounded shadow">
-      <h2 class="text-xl font-semibold mb-4">Book a Cleaning</h2>
+    <!-- Booking Form -->
+    <section class="py-20 bg-gray-900" aria-labelledby="form-heading">
+      <div class="max-w-2xl mx-auto px-4">
+        <div class="form-container">
+          <h2 id="form-heading" class="form-title">
+            <span aria-hidden="true"><i class="fas fa-clipboard-list text-purple-500 mr-2"></i></span>Booking Details
+          </h2>
+          <p class="form-subtitle">Fill out the form below</p>
 
-      <!-- Success or error message -->
-      <p id="formMessage" class="text-sm mb-4"></p>
+          <!-- Status Messages -->
+          <div id="successMessage" class="message-box message-success" role="alert">
+            <span aria-hidden="true"><i class="fas fa-check-circle mr-2"></i></span>
+            <span id="successText"></span>
+          </div>
+          <div id="errorMessage" class="message-box message-error" role="alert">
+            <span aria-hidden="true"><i class="fas fa-exclamation-circle mr-2"></i></span>
+            <span id="errorText"></span>
+          </div>
 
-      <!-- Form -->
-      <form id="contactForm" action="contact.php" method="POST" class="space-y-4">
-        <input type="text" name="name" placeholder="Your Name" required class="w-full border p-2 rounded" />
-        <input type="email" name="email" placeholder="Your Email" required class="w-full border p-2 rounded" />
-        <input type="text" name="address" placeholder="Your Address" required class="w-full border p-2 rounded" />
-        <input type="text" name="booking_date" id="bookingDate" placeholder="Preferred Date" required
-          class="w-full border p-2 rounded" />
-        <textarea name="message" placeholder="Your Message" required class="w-full border p-2 rounded h-32"></textarea>
-        <button href="contact.php" type="submit"
-          class="bg-pink-700 text-white px-4 py-2 rounded hover:bg-accent w-full">
-          Submit
-        </button>
-      </form>
+          <!-- Booking Form -->
+          <form id="bookingForm" class="space-y-5" novalidate>
+
+            <!-- Name Field -->
+            <div class="form-group">
+              <label for="name" class="form-label">Full Name *</label>
+              <input type="text" id="name" name="name" class="form-input" placeholder="Your full name" required
+                aria-required="true" aria-describedby="nameError" />
+              <span id="nameError" class="form-error">Please enter your name</span>
+            </div>
+
+            <!-- Email Field -->
+            <div class="form-group">
+              <label for="email" class="form-label">Email Address *</label>
+              <input type="email" id="email" name="email" class="form-input" placeholder="your.email@example.com"
+                required aria-required="true" aria-describedby="emailError" />
+              <span id="emailError" class="form-error">Please enter a valid email</span>
+            </div>
+
+            <!-- Message Field -->
+            <div class="form-group">
+              <label for="message" class="form-label">Additional Details</label>
+              <textarea id="message" name="message" class="form-textarea"
+                placeholder="Any special requests or additional information..."
+                aria-describedby="messageHelp"></textarea>
+              <span id="messageHelp" class="text-sm text-gray-500 mt-2">Optional - Maximum 500 characters</span>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="submit-button" aria-busy="false" id="submitBtn">
+              <span aria-hidden="true"><i class="fas fa-paper-plane mr-2"></i></span>Request Booking
+            </button>
+          </form>
+        </div>
+      </div>
     </section>
+  </main>
 
-    <footer class="text-center text-sm py-6 bg-gray-100">
+  <!-- Footer -->
+  <footer class="text-center text-sm py-8 bg-black border-t border-gray-800" role="contentinfo">
+    <p class="text-center text-sm py-6 bg-gray-100">
       © 2025 King Burger's Store. All rights reserved.
-    </footer>
+    </p>
+    <p class="text-gray-500">Fast Response • Professional Team • Satisfaction Guaranteed</p>
+  </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script>
-      flatpickr("#bookingDate", {
-        minDate: "today",
-        dateFormat: "Y-m-d"
-      });
-
-      document.getElementById("contactForm").addEventListener("submit", async function (e) {
-        e.preventDefault();
-        const form = e.target;
-        const data = new FormData(form);
-        const messageBox = document.getElementById("formMessage");
-
-        const res = await apiFetch(form.action, {
-          method: "POST",
-          body: data,
-        });
-
-        const text = await res.text();
-        messageBox.textContent = text;
-        messageBox.className = res.ok ? "text-green-600" : "text-red-600";
-
-        if (res.ok) form.reset();
-      });
-    </script>
-  </body>
+  <!-- Scripts -->
   <script type="module">
     import { initNavbar } from '/navbar.js';
-    initNavbar("navbar-container");
+
+    // Initialize navbar
+    try {
+      initNavbar("navbar-container");
+    } catch (error) {
+      console.error('Failed to initialize navbar:', error);
+    }
+
+    // Form handling
+    const form = document.getElementById('bookingForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const successMessage = document.getElementById('successMessage');
+    const errorMessage = document.getElementById('errorMessage');
+    const successText = document.getElementById('successText');
+    const errorText = document.getElementById('errorText');
+
+    /**
+     * Show success message to user
+     * @param {string} message - Message to display
+     */
+    function showSuccess(message) {
+      successText.textContent = message;
+      successMessage.classList.add('show');
+      errorMessage.classList.remove('show');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /**
+     * Show error message to user
+     * @param {string} message - Message to display
+     */
+    function showError(message) {
+      errorText.textContent = message;
+      errorMessage.classList.add('show');
+      successMessage.classList.remove('show');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /**
+     * Clear all messages
+     */
+    function clearMessages() {
+      successMessage.classList.remove('show');
+      errorMessage.classList.remove('show');
+    }
+
+    /**
+     * Validate message length
+     * @param {string} message - Message to validate
+     * @returns {boolean} True if valid
+     */
+    function validateMessageLength(message) {
+      return message.length <= 500;
+    }
+
+    /**
+     * Handle form submission
+     * Validates input and sends to PHP email handler
+     */
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearMessages();
+
+      // Validate form
+      if (!form.checkValidity()) {
+        showError('Please fill out all required fields correctly.');
+        return;
+      }
+
+      // Get form data
+      const formData = new FormData(form);
+      const message = formData.get('message') || '';
+
+      // Validate message length
+      if (!validateMessageLength(message)) {
+        showError('Your message must be 500 characters or less.');
+        return;
+      }
+
+      try {
+        // Disable submit button
+        submitBtn.disabled = true;
+        submitBtn.setAttribute('aria-busy', 'true');
+        submitBtn.innerHTML = '<span class="loading-spinner"></span>Submitting...';
+
+        // Send to PHP email handler using FormData
+        // PHP script will handle htmlspecialchars() and sanitization
+        const response = await fetch('/mail/contact.php', {
+          method: 'POST',
+          body: formData
+        });
+
+        const responseText = await response.text();
+
+        if (!response.ok) {
+          throw new Error(responseText || 'Failed to submit booking');
+        }
+
+        // Success
+        showSuccess(responseText || 'Booking request submitted successfully! We\'ll contact you soon to confirm.');
+        form.reset();
+
+      } catch (error) {
+        console.error('Booking submission error:', error);
+        showError(error.message || 'Failed to submit booking. Please try again.');
+
+      } finally {
+        // Re-enable submit button
+        submitBtn.disabled = false;
+        submitBtn.setAttribute('aria-busy', 'false');
+        submitBtn.innerHTML = '<span aria-hidden="true"><i class="fas fa-paper-plane mr-2"></i></span>Request Booking';
+      }
+    });
   </script>
+</body>
 
 </html>

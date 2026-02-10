@@ -2,11 +2,9 @@
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $name = htmlspecialchars(trim($_POST["name"]));
     $email = filter_var(trim($_POST["email"]), FILTER_SANITIZE_EMAIL);
-    $address = htmlspecialchars(trim($_POST["address"]));
-    $date = htmlspecialchars(trim($_POST["booking_date"]));
     $message = htmlspecialchars(trim($_POST["message"]));
 
-    if (!$name || !$email || !$date || $address || !$message) {
+    if (!$name || !$email || !$message) {
         http_response_code(400);
         echo "All fields are required.";
         exit;
@@ -14,7 +12,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $to = "tiaanburger1112@gmail.com";
     $subject = "New Booking from $name";
-    $body = "Name: $name\nEmail: $email\nDate: $date\n\nMessage:\n$message";
+    $body = "Name: $name\nEmail: $email \nMessage:\n$message";
     $headers = "From: $name <$email>";
 
     if (mail($to, $subject, $body, $headers)) {

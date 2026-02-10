@@ -1,8 +1,8 @@
 {
-  "name": "cleaning-site-frontend",
+  "name": "kingburger-store-frontend",
   "version": "1.0.0",
   "scripts": {
-    "start": "node cleaning-site-app.js"
+    "start": "node kingburger-store-app.js"
   },
   "dependencies": {
     "express": "^4.18.2",

@@ -1,13 +1,13 @@
-const express = require('express');
-const path = require('path');
-const fs = require('fs');
-const { MongoClient } = require('mongodb');
+import express from "express";
+import path from "path";
+import fs from "fs";
+import { MongoClient } from "mongodb";
+import bodyParser from "body-parser";
+import Mailjet from "node-mailjet";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-import bodyParser from "body-parser";
-import Mailjet from "node-mailjet";
 
 // MongoDB connection
 const MONGO_URI = process.env.MONGO_URI;

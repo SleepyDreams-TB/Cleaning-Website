@@ -45,7 +45,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // ==================== API Routes ====================
 
 //mailer via mailjet API
-const mailjet = Mailjet.apiconnect(
+const mailjet = Mailjet.apiConnect(
     process.env.MJ_APIKEY_PUBLIC,
     process.env.MJ_APIKEY_PRIVATE
 )

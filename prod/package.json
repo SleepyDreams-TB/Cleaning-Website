@@ -7,6 +7,6 @@
   "dependencies": {
     "express": "^4.18.2",
     "mongodb": "^5.7.0",
-    "mailjet": "^6.0.11"
+    "node-mailjet": "^6.0.11"
   }
 }

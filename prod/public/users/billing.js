@@ -1,14 +1,14 @@
 const billingForm = document.getElementById("billingForm");
 const billingMessage = document.getElementById("billingMessage");
 const token = localStorage.getItem("jwt");
-import { apiFetch } from '/utils.js';
+import { fetch } from '/utils.js';
 
 
 // Redirect to 401 if user is not logged in
 if (!token) {
   window.location.href = "/redirects/401";
 } else {
-  apiFetch("https://api.kingburger.site/users/dashboard/info", {
+  fetch("https://api.kingburger.site/users/dashboard/info", {
     headers: { Authorization: `Bearer ${token}` },
   })
     .then(res => res.json())

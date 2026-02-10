@@ -349,7 +349,7 @@
   </div>
 
   <script type="module">
-    import { apiFetch } from '/utils.js';
+    import { fetch } from '/utils.js';
 
     const loginForm = document.getElementById('loginForm');
     const loginError = document.getElementById('loginError');
@@ -370,7 +370,7 @@
         const formData = new FormData(loginForm);
         const data = new URLSearchParams(formData);
 
-        const res = await apiFetch('https://api.kingburger.site/auth/login-step', {
+        const res = await fetch('https://api.kingburger.site/auth/login-step', {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: data

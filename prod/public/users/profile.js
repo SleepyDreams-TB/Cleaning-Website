@@ -1,5 +1,5 @@
 // profile.js
-import { apiFetch } from '/utils.js';
+import { fetch } from '/utils.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const JWT = localStorage.getItem("jwt");
@@ -13,10 +13,10 @@ document.addEventListener('DOMContentLoaded', () => {
     return window.location.href = "../index";
   }
 
-  // apiFetch user and populate form
+  // fetch user and populate form
   async function fetchUser() {
     try {
-      const res = await apiFetch(`https://api.kingburger.site/users/${userId}`, {
+      const res = await fetch(`https://api.kingburger.site/users/${userId}`, {
         headers: { 'Authorization': `Bearer ${JWT}` }
       });
       if (!res.ok) throw new Error("Failed to fetch user");
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const email = document.getElementById('email')?.value || "";
     if (!username) return;
     try {
-      const res = await apiFetch('/users/check_user_avail', {
+      const res = await fetch('/users/check_user_avail', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, email })
@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     try {
-      const res = await apiFetch(`https://api.kingburger.site/users/update/${userId}`, {
+      const res = await fetch(`https://api.kingburger.site/users/update/${userId}`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${JWT}`, 'Content-Type': 'application/x-www-form-urlencoded' },
         body: data.toString()

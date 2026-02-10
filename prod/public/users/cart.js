@@ -1,5 +1,5 @@
 // ----- Notification Helper -----
-import { apiFetch } from '/utils.js';
+import { fetch } from '/utils.js';
 
 function notifyUser(message) {
   alert(message);
@@ -67,7 +67,7 @@ export async function getBillingInfoAddress(token) {
     return null;
   }
   try {
-    const res = await apiFetch("https://api.kingburger.site/users/dashboard/info", {
+    const res = await fetch("https://api.kingburger.site/users/dashboard/info", {
       headers: { "Authorization": `Bearer ${token}` }
     });
     if (!res.ok) throw new Error("Invalid token");
@@ -114,7 +114,7 @@ export async function createBackendOrder(payment_type, addressType) {
       return null;
     }
 
-    const res = await apiFetch("https://api.kingburger.site/api/orders", {
+    const res = await fetch("https://api.kingburger.site/api/orders", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -158,7 +158,7 @@ export async function createPayment(payment_type, amount, deliveryAddress) {
 
     console.log("Creating payment for merchant_reference:", orderData.merchant_reference);
 
-    const res = await apiFetch("https://api.kingburger.site/api/create-payment", {
+    const res = await fetch("https://api.kingburger.site/api/create-payment", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

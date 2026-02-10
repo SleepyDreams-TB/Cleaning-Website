@@ -320,13 +320,13 @@
   <!-- Products Script -->
   <script type="module">
     import { addToCart } from '/users/cart.js';
-    import { apiFetch } from '/utils.js';
+    import { fetch } from '/utils.js';
 
     let allProducts = [];
 
     async function fetchProducts() {
       try {
-        const response = await apiFetch('https://api.kingburger.site/products/');
+        const response = await fetch('https://api.kingburger.site/products/');
         const data = await response.json();
         allProducts = data.products || [];
         renderProducts(allProducts);

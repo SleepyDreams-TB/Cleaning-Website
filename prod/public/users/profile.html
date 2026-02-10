@@ -384,11 +384,11 @@
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
   <script type="module">
-    import { apiFetch } from '/utils.js';
+    import { fetch } from '/utils.js';
     async function loadNavbar() {
       const container = document.getElementById("navbar-container");
       try {
-        const response = await apiFetch("/navbar");
+        const response = await fetch("/navbar");
         container.innerHTML = await response.text();
 
         // Dynamically import JS logic after HTML injection

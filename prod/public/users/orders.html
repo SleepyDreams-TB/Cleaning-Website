@@ -112,12 +112,12 @@
   </footer>
 
   <script type="module">
-    import { apiFetch } from '/utils.js';
+    import { fetch } from '/utils.js';
 
     async function loadNavbar() {
       const container = document.getElementById("navbar-container");
       try {
-        const response = await apiFetch("/navbar");
+        const response = await fetch("/navbar");
         container.innerHTML = await response.text();
 
         const module = await import('/navbar.js');
@@ -132,7 +132,7 @@
   </script>
 
   <script type="module">
-    import { apiFetch } from '/utils.js';
+    import { fetch } from '/utils.js';
 
     const ordersBody = document.getElementById('orders-body');
     const emptyState = document.getElementById('empty-state');
@@ -210,7 +210,7 @@
       if (filters.to.value) params.append('date_to', filters.to.value);
 
       try {
-        const response = await apiFetch(`https://api.kingburger.site/api/orders/me?${params}`, {
+        const response = await fetch(`https://api.kingburger.site/api/orders/me?${params}`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,

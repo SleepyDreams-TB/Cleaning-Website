@@ -94,7 +94,7 @@
   </div>
 
   <script type="module">
-    import { apiFetch } from '/utils.js';
+    import { fetch } from '/utils.js';
 
     // Check if user is new or existing and show appropriate message
     document.addEventListener('DOMContentLoaded', () => {
@@ -129,7 +129,7 @@
       const data = new URLSearchParams({ user_id, digit_code });
 
       try {
-        const res = await apiFetch('https://api.kingburger.site/auth/qr-step', {
+        const res = await fetch('https://api.kingburger.site/auth/qr-step', {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: data

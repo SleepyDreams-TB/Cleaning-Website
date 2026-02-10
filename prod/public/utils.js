@@ -26,6 +26,11 @@ export async function originalApiFetch(...args) {
 
 // ================= Global apiFetch Override =================
 export async function apiFetch(...args) {
+
+    if (url.startsWith('http://')) {
+        url = url.replace('http://', 'https://');
+    }
+
     showLoader();
     try {
         const response = await originalApiFetch(...args);

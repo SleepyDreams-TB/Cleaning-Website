@@ -91,11 +91,6 @@ app.all("/mail/contact", (req, res) => {
     res.status(403).send("There was a problem with your submission.");
 });
 
-// Catch non-POST requests
-app.all("/mail/contact", (req, res) => {
-    res.status(403).send("There was a problem with your submission.");
-});
-
 
 // Username/Email availability check
 app.post('/users/check_user_avail', async (req, res) => {

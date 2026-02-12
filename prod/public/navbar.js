@@ -1,4 +1,20 @@
-export async function initNavbar(containerId = "navbar-container") {
+const PROTECTED_PATHS = [
+  '/users/profile',
+  '/users/billing',
+  '/users/orders',
+  '/users/cart'
+];
+
+function isProtectedPage() {
+  const currentPath = window.location.pathname;
+  return PROTECTED_PATHS.some(path => currentPath.startsWith(path));
+}
+
+function isLoggedIn() {
+  return !!localStorage.getItem('jwt')
+}
+
+async function initNavbar(containerId = "navbar-container") {
   const container = document.getElementById(containerId);
   if (!container) return;
 
@@ -11,9 +27,7 @@ export async function initNavbar(containerId = "navbar-container") {
     const dropdownContainer = container.querySelector("#dropdownContainer");
     if (!dropdownContainer) return;
 
-    // Check login token
-    const token = localStorage.getItem("jwt");
-    if (!token) {
+    if (!isLoggedIn()) {
       // Show Login Button
       dropdownContainer.innerHTML = `
         <a href="/login" id="loginButton" class="login-btn">
@@ -21,7 +35,8 @@ export async function initNavbar(containerId = "navbar-container") {
         </a>
       `;
 
-      if (window.location.pathname !== "/" && window.location.pathname !== "/index") {
+      if (isProtectedPage()) {
+        sessionStorage.setItem('redirectAfterLogin', window.location.pathname);
         window.location.href = "/index";
       }
       return;
@@ -30,7 +45,7 @@ export async function initNavbar(containerId = "navbar-container") {
     // Fetch user info
     try {
       const res = await fetch("https://api.kingburger.site/users/dashboard/info", {
-        headers: { "Authorization": `Bearer ${token}` }
+        headers: { "Authorization": `Bearer ${localStorage.getItem('jwt')}` }
       });
       if (!res.ok) {
         localStorage.removeItem("jwt");

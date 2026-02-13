@@ -1,43 +1,739 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Upload - Bulk with Rename</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      font-size: 2em;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      font-size: 1.1em;
+      opacity: 0.9;
+    }
+
+    .main-card {
+      background: white;
+      border-radius: 15px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      margin-bottom: 30px;
+    }
+
+    .upload-area {
+      border: 2px dashed #667eea;
+      border-radius: 10px;
+      padding: 50px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: #f9f9f9;
+      margin-bottom: 20px;
+    }
+
+    .upload-area:hover {
+      border-color: #764ba2;
+      background: #f0f0f0;
+    }
+
+    .upload-area.dragover {
+      border-color: #764ba2;
+      background: #ede7f6;
+      transform: scale(1.02);
+    }
+
+    .upload-icon {
+      font-size: 4em;
+      margin-bottom: 15px;
+    }
+
+    .upload-text {
+      color: #667eea;
+      font-weight: 600;
+      margin-bottom: 5px;
+      font-size: 1.2em;
+    }
+
+    .upload-subtext {
+      color: #999;
+      font-size: 0.95em;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .button-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 600px) {
+      .button-group {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    button {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 5px;
+      font-size: 1em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .upload-btn {
+      background: #667eea;
+      color: white;
+      width: 100%;
+    }
+
+    .upload-btn:hover {
+      background: #5568d3;
+    }
+
+    .upload-btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .clear-btn {
+      background: #6c757d;
+      color: white;
+      width: 100%;
+    }
+
+    .clear-btn:hover {
+      background: #5a6268;
+    }
+
+    .files-list {
+      margin-top: 30px;
+    }
+
+    .files-list h3 {
+      color: #333;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .file-count {
+      background: #667eea;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.85em;
+      font-weight: 600;
+    }
+
+    .file-item {
+      background: #f9f9f9;
+      padding: 20px;
+      border-radius: 5px;
+      margin-bottom: 15px;
+      border-left: 4px solid #667eea;
+    }
+
+    .file-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .file-name {
+      color: #333;
+      font-weight: 600;
+    }
+
+    .file-size {
+      color: #999;
+      font-size: 0.9em;
+      background: #f0f0f0;
+      padding: 4px 8px;
+      border-radius: 3px;
+    }
+
+    .filename-section {
+      margin-bottom: 12px;
+    }
+
+    .filename-label {
+      display: block;
+      color: #666;
+      font-size: 0.85em;
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+
+    .filename-input-group {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+
+    .filename-input {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 0.9em;
+      font-family: 'Courier New', monospace;
+      transition: border-color 0.3s;
+    }
+
+    .filename-input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+    }
+
+    .file-ext {
+      background: #f0f0f0;
+      padding: 8px 12px;
+      border-radius: 5px;
+      font-size: 0.9em;
+      font-family: 'Courier New', monospace;
+      color: #666;
+      border: 1px solid #ddd;
+    }
+
+    .file-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .remove-file-btn {
+      background: #dc3545;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 3px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.85em;
+      flex: 1;
+    }
+
+    .remove-file-btn:hover {
+      background: #c82333;
+    }
+
+    .reset-name-btn {
+      background: #6c757d;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 3px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.85em;
+    }
+
+    .reset-name-btn:hover {
+      background: #5a6268;
+    }
+
+    .urls-card {
+      background: white;
+      border-radius: 15px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      display: none;
+    }
+
+    .urls-card.show {
+      display: block;
+    }
+
+    .urls-card h2 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    .url-item {
+      background: #f9f9f9;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 15px;
+      border: 1px solid #ddd;
+    }
+
+    .url-name {
+      color: #667eea;
+      font-weight: 600;
+      font-size: 0.9em;
+      margin-bottom: 8px;
+    }
+
+    .url-box {
+      background: white;
+      padding: 12px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+      word-break: break-all;
+      color: #333;
+      font-size: 0.85em;
+      font-family: 'Courier New', monospace;
+      margin-bottom: 10px;
+    }
+
+    .copy-btn {
+      background: #28a745;
+      color: white;
+      padding: 8px 15px;
+      font-size: 0.85em;
+      border-radius: 5px;
+      border: none;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .copy-btn:hover {
+      background: #218838;
+    }
+
+    .status {
+      padding: 15px;
+      border-radius: 5px;
+      text-align: center;
+      font-weight: 600;
+      margin-top: 15px;
+      display: none;
+    }
+
+    .status.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+      display: block;
+    }
+
+    .status.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+      display: block;
+    }
+
+    .status.loading {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+      display: block;
+    }
+
+    .progress-item {
+      background: #f9f9f9;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      border-left: 4px solid #667eea;
+    }
+
+    .progress-name {
+      color: #333;
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .progress-bar {
+      background: #e9ecef;
+      border-radius: 3px;
+      height: 8px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      background: #667eea;
+      height: 100%;
+      transition: width 0.3s;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-size: 0.75em;
+      font-weight: 600;
+    }
+
+    .status-badge.pending {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .status-badge.uploading {
+      background: #d1ecf1;
+      color: #0c5460;
+    }
+
+    .status-badge.success {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status-badge.error {
+      background: #f8d7da;
+      color: #721c24;
+    }
+  </style>
+</head>
 
 <body>
+  <div class="container">
+    <div class="header">
+      <h1>📸 Bulk Image Upload</h1>
+      <p>Upload multiple images with custom filenames</p>
+    </div>
 
-  <form id="uploadForm" enctype="multipart/form-data">
-    <input type="file" id="fileInput" name="image" accept="image/*">
-    <button>Upload</button>
-  </form>
+    <!-- Upload Section -->
+    <div class="main-card">
+      <form id="uploadForm">
+        <div class="upload-area" id="uploadArea">
+          <div class="upload-icon">📁</div>
+          <div class="upload-text">Click to upload or drag and drop</div>
+          <div class="upload-subtext">Multiple images supported (JPG, PNG, GIF - Max 5MB each)</div>
+          <input type="file" id="fileInput" name="images" accept="image/*" multiple required>
+        </div>
+
+        <div class="button-group">
+          <button type="submit" class="upload-btn" id="uploadBtn" disabled>Upload Selected Images</button>
+          <button type="button" class="clear-btn" onclick="clearFiles()">Clear All</button>
+        </div>
+
+        <div class="status" id="status"></div>
+      </form>
+
+      <!-- Files List with Editable Names -->
+      <div class="files-list" id="filesListContainer" style="display: none;">
+        <h3>
+          📋 Selected Images
+          <span class="file-count" id="fileCount">0</span>
+        </h3>
+        <div id="filesList"></div>
+      </div>
+
+      <!-- Upload Progress -->
+      <div id="progressContainer" style="display: none; margin-top: 30px;">
+        <h3 style="color: #333; margin-bottom: 15px;">📤 Upload Progress</h3>
+        <div id="progressList"></div>
+      </div>
+    </div>
+
+    <!-- Results Section -->
+    <div class="urls-card" id="urlsCard">
+      <h2>✅ Upload Complete!</h2>
+      <p style="color: #666; margin-bottom: 20px;">Copy the URLs below to use in your product uploads:</p>
+      <div id="urlsList"></div>
+    </div>
+  </div>
 
   <script>
-    const userId = "690484f201c8c4891dd96393";
+    const MEDIA_SERVER = "https://media.kingburger.site";
+    let selectedFiles = [];
+    let fileNames = {}; // Store custom names: fileIndex -> customName
+    let uploadedUrls = [];
 
+    // Drag & Drop
+    const uploadArea = document.getElementById("uploadArea");
+    const fileInput = document.getElementById("fileInput");
+
+    uploadArea.addEventListener("click", () => fileInput.click());
+
+    uploadArea.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      uploadArea.classList.add("dragover");
+    });
+
+    uploadArea.addEventListener("dragleave", () => {
+      uploadArea.classList.remove("dragover");
+    });
+
+    uploadArea.addEventListener("drop", (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove("dragover");
+      fileInput.files = e.dataTransfer.files;
+      handleFileSelect();
+    });
+
+    // File Selection
+    fileInput.addEventListener("change", handleFileSelect);
+
+    function handleFileSelect() {
+      selectedFiles = Array.from(fileInput.files);
+      fileNames = {}; // Reset custom names
+      renderFilesList();
+      document.getElementById("uploadBtn").disabled = selectedFiles.length === 0;
+    }
+
+    function getFileExtension(file) {
+      return file.name.split('.').pop().toLowerCase();
+    }
+
+    function getFileNameWithoutExtension(file) {
+      return file.name.split('.').slice(0, -1).join('.');
+    }
+
+    function renderFilesList() {
+      const container = document.getElementById("filesListContainer");
+      const list = document.getElementById("filesList");
+      const count = document.getElementById("fileCount");
+
+      if (selectedFiles.length === 0) {
+        container.style.display = "none";
+        return;
+      }
+
+      container.style.display = "block";
+      count.textContent = selectedFiles.length;
+
+      list.innerHTML = selectedFiles.map((file, idx) => {
+        const ext = getFileExtension(file);
+        const nameWithoutExt = getFileNameWithoutExtension(file);
+        const customName = fileNames[idx] || nameWithoutExt;
+
+        return `
+                    <div class="file-item">
+                        <div class="file-header">
+                            <span class="file-name">📄 ${file.name}</span>
+                            <span class="file-size">${(file.size / 1024 / 1024).toFixed(2)} MB</span>
+                        </div>
+
+                        <div class="filename-section">
+                            <label class="filename-label">Custom Filename:</label>
+                            <div class="filename-input-group">
+                                <input 
+                                    type="text" 
+                                    class="filename-input" 
+                                    value="${customName}"
+                                    placeholder="Enter custom filename (without extension)"
+                                    onchange="updateFileName(${idx}, this.value)"
+                                    onkeyup="updateFileName(${idx}, this.value)"
+                                >
+                                <div class="file-ext">.${ext}</div>
+                            </div>
+                        </div>
+
+                        <div class="file-actions">
+                            <button type="button" class="reset-name-btn" onclick="resetFileName(${idx})">Reset Name</button>
+                            <button type="button" class="remove-file-btn" onclick="removeFile(${idx})">Remove</button>
+                        </div>
+                    </div>
+                `;
+      }).join("");
+    }
+
+    function updateFileName(idx, newName) {
+      fileNames[idx] = newName.trim();
+    }
+
+    function resetFileName(idx) {
+      delete fileNames[idx];
+      renderFilesList();
+    }
+
+    function removeFile(idx) {
+      selectedFiles.splice(idx, 1);
+      // Clean up fileNames references
+      const newFileNames = {};
+      let newIdx = 0;
+      for (let i = 0; i < selectedFiles.length; i++) {
+        if (i !== idx) {
+          if (fileNames[i]) {
+            newFileNames[newIdx] = fileNames[i];
+          }
+          newIdx++;
+        }
+      }
+      fileNames = newFileNames;
+
+      // Reset file input
+      const newInput = document.createElement("input");
+      newInput.type = "file";
+      newInput.id = "fileInput";
+      newInput.name = "images";
+      newInput.accept = "image/*";
+      newInput.multiple = true;
+      newInput.addEventListener("change", handleFileSelect);
+      fileInput.replaceWith(newInput);
+
+      // Update reference
+      const fileInputEl = document.getElementById("fileInput");
+      fileInputEl.addEventListener("change", handleFileSelect);
+
+      renderFilesList();
+    }
+
+    function clearFiles() {
+      fileInput.value = "";
+      selectedFiles = [];
+      fileNames = {};
+      renderFilesList();
+      document.getElementById("uploadBtn").disabled = true;
+      document.getElementById("filesListContainer").style.display = "none";
+      document.getElementById("progressContainer").style.display = "none";
+      document.getElementById("urlsCard").classList.remove("show");
+    }
+
+    // Upload Handler
     document.getElementById("uploadForm").addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      const file = document.getElementById("fileInput").files[0];
-      if (!file) return alert("Please select a file");
+      if (selectedFiles.length === 0) {
+        showStatus("Please select at least one image", "error");
+        return;
+      }
 
-      const ext = file.type.split("/")[1]; // get extension from MIME type
-      const fd = new FormData();
-      fd.append('file', file, `${userId}.${ext}`);
+      document.getElementById("uploadBtn").disabled = true;
+      document.getElementById("progressContainer").style.display = "block";
+      uploadedUrls = [];
+
+      // Initialize progress for all files
+      const progressList = document.getElementById("progressList");
+      progressList.innerHTML = selectedFiles.map((file, idx) => `
+                <div class="progress-item" id="progress-${idx}">
+                    <div class="progress-name">
+                        <span>${file.name}</span>
+                        <span class="status-badge pending">Pending</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+            `).join("");
+
+      // Upload files sequentially
+      for (let idx = 0; idx < selectedFiles.length; idx++) {
+        await uploadFile(selectedFiles[idx], idx);
+      }
+
+      // Show results
+      showUploadResults();
+      document.getElementById("uploadBtn").disabled = false;
+    });
+
+    async function uploadFile(file, idx) {
+      const progressEl = document.getElementById(`progress-${idx}`);
+      const badge = progressEl.querySelector(".status-badge");
+      const progressFill = progressEl.querySelector(".progress-fill");
 
       try {
-        const res = await fetch("https://media.kingburger.site/upload", {
+        badge.textContent = "Uploading";
+        badge.className = "status-badge uploading";
+
+        const ext = getFileExtension(file);
+        const customName = fileNames[idx] || getFileNameWithoutExtension(file);
+        const filename = `${customName}.${ext}`;
+
+        const fd = new FormData();
+        fd.append("file", file, filename);
+
+        const res = await fetch(`${MEDIA_SERVER}/upload`, {
           method: "POST",
           body: fd
         });
 
-        const text = await res.text(); // server responds with plain text
-        console.log(text);
-        alert("Uploaded to GitHub: " + text);
+        const text = await res.text();
 
+        if (res.ok) {
+          const urlMatch = text.match(/https:\/\/[^\s]+/);
+          const imageUrl = urlMatch ? urlMatch[0] : text;
+          uploadedUrls.push({ name: filename, url: imageUrl });
+
+          badge.textContent = "✅ Success";
+          badge.className = "status-badge success";
+          progressFill.style.width = "100%";
+        } else {
+          throw new Error(text);
+        }
       } catch (err) {
-        console.error(err);
-        alert("Upload failed: " + err.message);
+        badge.textContent = "❌ Error";
+        badge.className = "status-badge error";
+        progressFill.style.width = "100%";
+        uploadedUrls.push({ name: file.name, url: null, error: err.message });
       }
-    });
-  </script>
+    }
 
+    function showUploadResults() {
+      const urlsList = document.getElementById("urlsList");
+      const card = document.getElementById("urlsCard");
+
+      urlsList.innerHTML = uploadedUrls.map((item, idx) => {
+        if (item.error) {
+          return `
+                        <div class="url-item" style="border-left: 4px solid #dc3545;">
+                            <div class="url-name">❌ ${item.name}</div>
+                            <div style="color: #721c24; font-size: 0.9em;">Error: ${item.error}</div>
+                        </div>
+                    `;
+        }
+        return `
+                    <div class="url-item">
+                        <div class="url-name">✅ ${item.name}</div>
+                        <div class="url-box">${item.url}</div>
+                        <button type="button" class="copy-btn" onclick="copyUrl('${item.url}')">Copy URL</button>
+                    </div>
+                `;
+      }).join("");
+
+      card.classList.add("show");
+      card.scrollIntoView({ behavior: "smooth" });
+    }
+
+    function copyUrl(url) {
+      navigator.clipboard.writeText(url).then(() => {
+        const btn = event.target;
+        const originalText = btn.textContent;
+        btn.textContent = "✅ Copied!";
+        setTimeout(() => {
+          btn.textContent = originalText;
+        }, 2000);
+      });
+    }
+
+    function showStatus(message, type) {
+      const statusEl = document.getElementById("status");
+      statusEl.textContent = message;
+      statusEl.className = `status ${type}`;
+    }
+  </script>
 </body>
 
 </html>

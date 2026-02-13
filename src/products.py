@@ -95,26 +95,47 @@ async def get_single_product(product_id: str):
 @router.post("/")
 async def create_new_product(product_data: ProductCreate):
     """
-    Create a brand new cleaning product
+    Create a brand new product with full details
     
     Example request body:
     {
-        "name": "Deep Clean Package",
-        "price": 299.99,
-        "description": "Complete deep cleaning service",
-        "category": 3,
-        "image_url": "https://example.com/image.jpg"
+        "name": "Intel Core i5-12400F",
+        "description": "6-core 12-thread desktop processor...",
+        "price": 3499,
+        "category": 1,
+        "slug": "intel-core-i5-12400f",
+        "short_description": "12th Gen 6-core CPU",
+        "brand": "Intel",
+        "sku": "CPU-INT-12400F",
+        "image_url": "https://example.com/image.jpg",
+        ...
     }
     """
     try:
-        # Prepare the product data
+        # Prepare the product data - include ALL fields from ProductCreate
         new_product = {
             "name": product_data.name,
-            "price": product_data.price,
             "description": product_data.description,
+            "price": product_data.price,
             "category": product_data.category,
+            "created_at": datetime.now(timezone.utc),
+            # Optional fields
+            "slug": product_data.slug,
+            "short_description": product_data.short_description,
+            "compare_at_price": product_data.compare_at_price,
+            "currency": product_data.currency,
+            "brand": product_data.brand,
+            "sku": product_data.sku,
             "image_url": product_data.image_url,
-            "created_at": datetime.now(timezone.utc)  # Add timestamp
+            "images": product_data.images,
+            "stock_quantity": product_data.stock_quantity,
+            "availability_status": product_data.availability_status,
+            "specifications": product_data.specifications,
+            "weight_kg": product_data.weight_kg,
+            "is_active": product_data.is_active,
+            "tags": product_data.tags,
+            "meta_title": product_data.meta_title,
+            "meta_description": product_data.meta_description,
         }
         
         # Insert into database
@@ -143,18 +164,19 @@ async def create_bulk_products(products: list[ProductCreate]):
     Example request body:
     [
         {
-            "name": "Home Cleaning Service",
+            "name": "Product 1",
+            "description": "...",
             "price": 150.00,
-            "description": "Full home cleaning including bedrooms...",
             "category": 1,
-            "image_url": "https://example.com/service.jpg"
+            "slug": "product-1",
+            ...
         },
         {
-            "name": "All-Purpose Cleaner",
+            "name": "Product 2",
+            "description": "...",
             "price": 9.99,
-            "description": "Effective cleaner for all surfaces",
             "category": 2,
-            "image_url": "https://example.com/cleaner.jpg"
+            ...
         }
     ]
     """
@@ -164,11 +186,27 @@ async def create_bulk_products(products: list[ProductCreate]):
         for product in products:
             new_products.append({
                 "name": product.name,
-                "price": product.price,
                 "description": product.description,
+                "price": product.price,
                 "category": product.category,
+                "created_at": datetime.now(timezone.utc),
+                # Optional fields
+                "slug": product.slug,
+                "short_description": product.short_description,
+                "compare_at_price": product.compare_at_price,
+                "currency": product.currency,
+                "brand": product.brand,
+                "sku": product.sku,
                 "image_url": product.image_url,
-                "created_at": datetime.now(timezone.utc)  # Add timestamp
+                "images": product.images,
+                "stock_quantity": product.stock_quantity,
+                "availability_status": product.availability_status,
+                "specifications": product.specifications,
+                "weight_kg": product.weight_kg,
+                "is_active": product.is_active,
+                "tags": product.tags,
+                "meta_title": product.meta_title,
+                "meta_description": product.meta_description,
             })
         
         # Insert into database
@@ -201,16 +239,48 @@ async def update_existing_product(product_id: str, updates: ProductUpdate):
     try:
         # Only include fields that were actually provided
         update_fields = {}
+        
+        # Check each field and add to update if provided
         if updates.name is not None:
             update_fields["name"] = updates.name
-        if updates.price is not None:
-            update_fields["price"] = updates.price
+        if updates.slug is not None:
+            update_fields["slug"] = updates.slug
+        if updates.short_description is not None:
+            update_fields["short_description"] = updates.short_description
         if updates.description is not None:
             update_fields["description"] = updates.description
+        if updates.price is not None:
+            update_fields["price"] = updates.price
+        if updates.compare_at_price is not None:
+            update_fields["compare_at_price"] = updates.compare_at_price
+        if updates.currency is not None:
+            update_fields["currency"] = updates.currency
+        if updates.brand is not None:
+            update_fields["brand"] = updates.brand
+        if updates.sku is not None:
+            update_fields["sku"] = updates.sku
         if updates.category is not None:
             update_fields["category"] = updates.category
         if updates.image_url is not None:
             update_fields["image_url"] = updates.image_url
+        if updates.images is not None:
+            update_fields["images"] = updates.images
+        if updates.stock_quantity is not None:
+            update_fields["stock_quantity"] = updates.stock_quantity
+        if updates.availability_status is not None:
+            update_fields["availability_status"] = updates.availability_status
+        if updates.specifications is not None:
+            update_fields["specifications"] = updates.specifications
+        if updates.weight_kg is not None:
+            update_fields["weight_kg"] = updates.weight_kg
+        if updates.is_active is not None:
+            update_fields["is_active"] = updates.is_active
+        if updates.tags is not None:
+            update_fields["tags"] = updates.tags
+        if updates.meta_title is not None:
+            update_fields["meta_title"] = updates.meta_title
+        if updates.meta_description is not None:
+            update_fields["meta_description"] = updates.meta_description
         
         # Check if there's anything to update
         if not update_fields:
@@ -238,6 +308,8 @@ async def update_existing_product(product_id: str, updates: ProductUpdate):
     except Exception as error:
         print(f"❌ Error updating product {product_id}: {error}")
         raise HTTPException(status_code=500, detail="Could not update product")
+
+
 
 # ==================== DELETE PRODUCT ====================
 @router.delete("/{product_id}")

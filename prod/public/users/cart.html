@@ -482,6 +482,13 @@
     });
 
     checkoutBtn.addEventListener("click", async () => {
+
+      if (!token) {
+        alert("Please log in to proceed with the checkout.");
+        window.location.href = "/login";
+        return;
+      }
+
       if (cart.length === 0) return alert("Your cart is empty!");
       if (!selectedAddressType) return alert("Please select a delivery address!");
 

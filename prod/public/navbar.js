@@ -1,8 +1,7 @@
 const PROTECTED_PATHS = [
   '/users/profile',
   '/users/billing',
-  '/users/orders',
-  '/users/cart'
+  '/users/orders'
 ];
 
 function isProtectedPage() {

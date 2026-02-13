@@ -14,7 +14,7 @@ function isLoggedIn() {
   return !!localStorage.getItem('jwt')
 }
 
-async function initNavbar(containerId = "navbar-container") {
+export async function initNavbar(containerId = "navbar-container") {
   const container = document.getElementById(containerId);
   if (!container) return;
 

@@ -176,6 +176,7 @@ async def test_single_product(product: dict):
         }
 
 
+
 # ==================== TEST 4: Bulk Import ====================
 @debug_router.post("/test-bulk")
 async def test_bulk_import(products: List[dict]):

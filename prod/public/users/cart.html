@@ -290,6 +290,13 @@
           <option value="" disabled selected>📍 Choose Your Delivery Address</option>
         </select>
 
+        <select id="payment-method-select"
+          class="w-full border-2 border-gray-200 rounded-10 px-4 py-3 focus:border-purple-600 focus:outline-none mb-6">
+          <option value="" disabled selected>💳 Select Payment Method</option>
+          <option value="eft">Electronic Funds Transfer (EFT)</option>
+          <option value="credit_card">Credit/Debit Card</option>
+        </select>
+
         <div class="flex gap-3 justify-end">
           <button id="cancel-order-btn" class="btn-danger">
             <i class="fas fa-times"></i> Cancel
@@ -323,6 +330,7 @@
     const cancelBtn = document.getElementById("cancel-order-btn");
     const checkoutBtn = document.getElementById("checkoutBtn");
     const addressSelect = document.getElementById("billing-address-select");
+    const paymentSelect = document.getElementById("payment-method-select");
     const continueShoppingBtn = document.getElementById("continue-shopping");
     const modalCloseBtn = document.getElementById("modal-close");
 
@@ -483,9 +491,14 @@
     });
 
     let selectedAddressType = null;
+    let payment_type = null;
 
     addressSelect.addEventListener("change", (e) => {
       selectedAddressType = e.target.value;
+    });
+
+    paymentSelect.addEventListener("change", (e) => {
+      payment_type = e.target.value;
     });
 
     checkoutBtn.addEventListener("click", async () => {
@@ -499,7 +512,7 @@
       if (cart.length === 0) return alert("Your cart is empty!");
       if (!selectedAddressType) return alert("Please select a delivery address!");
 
-      await createPayment("eft", recalcTotal(cart), selectedAddressType);
+      await createPayment(payment_type, recalcTotal(cart), selectedAddressType);
     });
   </script>
 

@@ -310,6 +310,8 @@
     import { getCart, clearCart, deleteCartItem, recalcTotal, createPayment, saveCart, getBillingInfoAddress } from "./cart.js";
 
     let cart = getCart();
+    const token = localStorage.getItem("jwt");
+
 
     const cartContainer = document.getElementById("cart-items");
     const totalEl = document.getElementById("total-price");
@@ -449,7 +451,6 @@
         orderDetails.appendChild(div);
       });
 
-      const token = localStorage.getItem("jwt");
       const addresses = await getBillingInfoAddress(token);
 
       if (addresses) {

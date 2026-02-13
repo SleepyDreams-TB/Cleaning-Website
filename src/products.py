@@ -6,10 +6,10 @@ This file manages: viewing, creating, updating, and deleting cleaning products
 from fastapi import APIRouter, HTTPException
 from pymongo import MongoClient
 from bson import ObjectId
-from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime, timezone
 import os
+from models import ProductCreate, ProductUpdate
 
 import sys, os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -22,25 +22,6 @@ MONGO_URI = os.getenv("MONGO_URI","mongodb+srv://SleepyDreams:saRqSb7xoc1cI1DO@k
 client = MongoClient(MONGO_URI, tls=True, tlsAllowInvalidCertificates=False)
 db = client["kingburgerstore_db"]
 products_collection = db["products"]  # This is our products table
-
-# ==================== DATA MODELS ====================
-# These define what data we expect when creating/updating products
-
-class ProductCreate(BaseModel):
-    """What we need when creating a new product"""
-    name: str  # Example: "Home Cleaning Service"
-    price: float  # Example: 150.00
-    description: str  # Example: "Full home cleaning including bedrooms..."
-    category: int  # 1=Services, 2=Supplies, 3=Packages
-    image_url: Optional[str] = None  # Example: "https://..."
-
-class ProductUpdate(BaseModel):
-    """What we can update (all fields are optional)"""
-    name: Optional[str] = None
-    price: Optional[float] = None
-    description: Optional[str] = None
-    category: Optional[int] = None
-    image_url: Optional[str] = None
 
 # ==================== HELPER FUNCTION ====================
 def clean_product_data(product):
@@ -151,6 +132,61 @@ async def create_new_product(product_data: ProductCreate):
     except Exception as error:
         print(f"❌ Error creating product: {error}")
         raise HTTPException(status_code=500, detail="Could not create product")
+
+
+# ==================== Bulk Create NEW PRODUCT ====================
+@router.post("/bulk")
+async def create_bulk_products(products: list[ProductCreate]):
+    """
+    Create multiple products at once (bulk upload)
+    
+    Example request body:
+    [
+        {
+            "name": "Home Cleaning Service",
+            "price": 150.00,
+            "description": "Full home cleaning including bedrooms...",
+            "category": 1,
+            "image_url": "https://example.com/service.jpg"
+        },
+        {
+            "name": "All-Purpose Cleaner",
+            "price": 9.99,
+            "description": "Effective cleaner for all surfaces",
+            "category": 2,
+            "image_url": "https://example.com/cleaner.jpg"
+        }
+    ]
+    """
+    try:
+        # Prepare the product data for bulk insert
+        new_products = []
+        for product in products:
+            new_products.append({
+                "name": product.name,
+                "price": product.price,
+                "description": product.description,
+                "category": product.category,
+                "image_url": product.image_url,
+                "created_at": datetime.now(timezone.utc)  # Add timestamp
+            })
+        
+        # Insert into database
+        result = products_collection.insert_many(new_products)
+        
+        # Get the newly created products
+        created_products = list(products_collection.find({"_id": {"$in": result.inserted_ids}}))
+        
+        return {
+            "success": True,
+            "message": f"{len(created_products)} products created successfully!",
+            "products": [clean_product_data(p) for p in created_products]
+        }
+    
+    except Exception as error:
+        print(f"❌ Error creating bulk products: {error}")
+        raise HTTPException(status_code=500, detail="Could not create products")
+
 
 # ==================== UPDATE PRODUCT ====================
 @router.put("/{product_id}")

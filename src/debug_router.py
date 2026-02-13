@@ -1,104 +1,58 @@
 """
-DEBUG ROUTER - Copy this into your project
-Add to your main.py: app.include_router(debug_router)
-
-This provides HTTP endpoints to diagnose bulk import issues on Railway
+DEBUG ROUTER - Diagnostic endpoints for troubleshooting bulk imports
+This file provides HTTP endpoints to diagnose issues without external model dependencies
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from datetime import datetime, timezone
 import os
-from models import ProductCreate
-from pymongo import MongoClient
+import traceback
 
 debug_router = APIRouter(prefix="/debug", tags=["debug"])
 
-# ==================== TEST: PYDANTIC VALIDATION ====================
-@debug_router.post("/test-pydantic")
-async def test_pydantic(products: list[ProductCreate]):
+
+# ==================== TEST 1: Configuration ====================
+@debug_router.get("/test-config")
+async def test_config():
     """
-    Test if Pydantic can validate your bulk data
+    Check configuration and environment variables
+    GET /debug/test-config
+    """
+    mongo_uri = os.getenv("MONGO_URI", "NOT SET")
     
-    POST /debug/test-pydantic
-    """
     return {
         "status": "✅ PASS",
-        "message": f"Pydantic successfully validated {len(products)} products",
-        "products_received": len(products),
-        "first_product": {
-            "name": products[0].name if products else None,
-            "price": products[0].price if products else None,
-            "category": products[0].category if products else None,
-        }
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "environment": {
+            "MONGO_URI_SET": mongo_uri != "NOT SET",
+            "MONGO_URI_PREFIX": mongo_uri[:50] + "..." if mongo_uri != "NOT SET" else "NOT SET",
+        },
+        "available_endpoints": [
+            "GET  /debug/test-config",
+            "GET  /debug/test-mongodb",
+            "POST /debug/test-single",
+            "POST /debug/test-bulk",
+            "POST /debug/run-all"
+        ]
     }
 
 
-# ==================== TEST: MONGODB FORMAT ====================
-@debug_router.post("/test-mongodb-format")
-async def test_mongodb_format(products: list[ProductCreate]):
+# ==================== TEST 2: MongoDB Connection ====================
+@debug_router.get("/test-mongodb")
+async def test_mongodb():
     """
-    Test if the data can be formatted for MongoDB
-    
-    POST /debug/test-mongodb-format
+    Test MongoDB connection
+    GET /debug/test-mongodb
     """
     try:
-        test_docs = []
-        for idx, product in enumerate(products):
-            doc = {
-                "name": product.name,
-                "description": product.description,
-                "price": product.price,
-                "category": product.category,
-                "created_at": datetime.now(timezone.utc),
-                "slug": product.slug,
-                "short_description": product.short_description,
-                "compare_at_price": product.compare_at_price,
-                "currency": product.currency,
-                "brand": product.brand,
-                "sku": product.sku,
-                "image_url": str(product.image_url) if product.image_url else None,
-                "images": [str(img) for img in product.images] if product.images else None,
-                "stock_quantity": product.stock_quantity,
-                "availability_status": product.availability_status,
-                "specifications": product.specifications,
-                "weight_kg": product.weight_kg,
-                "is_active": product.is_active,
-                "tags": product.tags,
-                "meta_title": product.meta_title,
-                "meta_description": product.meta_description,
-            }
-            test_docs.append(doc)
+        from pymongo import MongoClient
         
-        return {
-            "status": "✅ PASS",
-            "message": f"Successfully formatted {len(test_docs)} documents for MongoDB",
-            "sample_doc_keys": list(test_docs[0].keys()) if test_docs else [],
-            "total_documents": len(test_docs)
-        }
-    except Exception as e:
-        return {
-            "status": "❌ FAIL",
-            "error": str(e),
-            "error_type": type(e).__name__
-        }
-
-
-# ==================== TEST: MONGODB CONNECTION ====================
-@debug_router.get("/test-mongodb-connection")
-async def test_mongodb_connection():
-    """
-    Test if we can connect to MongoDB
-    
-    GET /debug/test-mongodb-connection
-    """
-    try:
         mongo_uri = os.getenv("MONGO_URI")
-        
         if not mongo_uri:
             return {
                 "status": "❌ FAIL",
                 "error": "MONGO_URI environment variable is not set",
-                "solution": "Add MONGO_URI to Railway environment variables"
+                "solution": "Add MONGO_URI to your Railway environment variables"
             }
         
         print(f"🔗 Attempting MongoDB connection...")
@@ -109,11 +63,9 @@ async def test_mongodb_connection():
             serverSelectionTimeoutMS=10000
         )
         
-        # Try to access database
+        # Test connection with a simple operation
         db = client["kingburgerstore_db"]
         products_collection = db["products"]
-        
-        # Test with a simple count
         count = products_collection.count_documents({})
         
         client.close()
@@ -121,123 +73,100 @@ async def test_mongodb_connection():
         return {
             "status": "✅ PASS",
             "message": "Successfully connected to MongoDB",
-            "database": "kingburgerstore_db",
-            "collection": "products",
-            "current_products_in_db": count,
-            "mongo_uri_prefix": mongo_uri[:30] + "..." if mongo_uri else None
+            "details": {
+                "database": "kingburgerstore_db",
+                "collection": "products",
+                "current_products_in_db": count
+            }
         }
     
+    except ImportError as e:
+        return {
+            "status": "❌ FAIL",
+            "error": "pymongo not installed",
+            "solution": "Install pymongo: pip install pymongo"
+        }
     except Exception as e:
         print(f"❌ MongoDB connection error: {e}")
+        traceback.print_exc()
         return {
             "status": "❌ FAIL",
             "error": str(e),
             "error_type": type(e).__name__,
-            "solution": "Check MONGO_URI and MongoDB Atlas whitelist"
+            "traceback": traceback.format_exc(),
+            "solution": "Check MONGO_URI credentials and MongoDB Atlas IP whitelist"
         }
 
 
-# ==================== TEST: FULL BULK INSERT SIMULATION ====================
-@debug_router.post("/test-bulk-insert")
-async def test_bulk_insert(products: list[ProductCreate]):
+# ==================== TEST 3: Single Product ====================
+@debug_router.post("/test-single")
+async def test_single_product(product: dict):
     """
-    Simulate a bulk insert WITHOUT saving (test only)
-    This is the most important test - it will show the EXACT error
+    Test creating a single product
+    POST /debug/test-single
     
-    POST /debug/test-bulk-insert
+    Example body:
+    {
+        "name": "Test Product",
+        "description": "Test description",
+        "price": 100,
+        "category": 1
+    }
     """
     try:
-        if not products:
-            return {
-                "status": "❌ FAIL",
-                "error": "No products provided",
-                "message": "Send at least one product in the request body"
-            }
+        from pymongo import MongoClient
         
-        # Step 1: Format documents
-        print(f"📦 Formatting {len(products)} products...")
-        test_docs = []
-        for idx, product in enumerate(products):
-            doc = {
-                "name": product.name,
-                "description": product.description,
-                "price": product.price,
-                "category": product.category,
-                "created_at": datetime.now(timezone.utc),
-                "slug": product.slug,
-                "short_description": product.short_description,
-                "compare_at_price": product.compare_at_price,
-                "currency": product.currency,
-                "brand": product.brand,
-                "sku": product.sku,
-                "image_url": str(product.image_url) if product.image_url else None,
-                "images": [str(img) for img in product.images] if product.images else None,
-                "stock_quantity": product.stock_quantity,
-                "availability_status": product.availability_status,
-                "specifications": product.specifications,
-                "weight_kg": product.weight_kg,
-                "is_active": product.is_active,
-                "tags": product.tags,
-                "meta_title": product.meta_title,
-                "meta_description": product.meta_description,
-            }
-            test_docs.append(doc)
-        print(f"✅ Formatted {len(test_docs)} documents")
-        
-        # Step 2: Connect to MongoDB
-        print(f"🔗 Connecting to MongoDB...")
         mongo_uri = os.getenv("MONGO_URI")
         if not mongo_uri:
-            raise Exception("MONGO_URI not set")
+            return {"status": "❌ FAIL", "error": "MONGO_URI not set"}
         
-        client = MongoClient(
-            mongo_uri,
-            tls=True,
-            tlsAllowInvalidCertificates=False,
-            serverSelectionTimeoutMS=10000
-        )
+        # Validate required fields
+        required_fields = ["name", "description", "price", "category"]
+        for field in required_fields:
+            if field not in product or not product[field]:
+                return {
+                    "status": "❌ FAIL",
+                    "error": f"Missing required field: {field}"
+                }
         
+        print(f"📦 Testing single product: {product.get('name')}")
+        
+        # Connect
+        client = MongoClient(mongo_uri, tls=True, tlsAllowInvalidCertificates=False, serverSelectionTimeoutMS=10000)
         db = client["kingburgerstore_db"]
         products_collection = db["products"]
-        print(f"✅ Connected to MongoDB")
         
-        # Step 3: Insert documents
-        print(f"💾 Attempting to insert {len(test_docs)} documents...")
-        result = products_collection.insert_many(test_docs)
-        print(f"✅ Successfully inserted {len(result.inserted_ids)} documents")
+        # Create document
+        doc = {
+            "name": product.get("name"),
+            "description": product.get("description"),
+            "price": product.get("price"),
+            "category": product.get("category"),
+            "created_at": datetime.now(timezone.utc),
+            "is_active": product.get("is_active", True)
+        }
         
-        # Step 4: Verify insertion
-        print(f"📥 Verifying insertion...")
-        created_count = products_collection.count_documents({"_id": {"$in": result.inserted_ids}})
-        print(f"✅ Verified {created_count} documents in database")
+        # Insert
+        result = products_collection.insert_one(doc)
+        inserted_id = str(result.inserted_id)
+        print(f"✅ Inserted: {inserted_id}")
         
-        # Step 5: Cleanup (delete the test documents)
-        print(f"🧹 Cleaning up test documents...")
-        delete_result = products_collection.delete_many({"_id": {"$in": result.inserted_ids}})
-        print(f"✅ Deleted {delete_result.deleted_count} test documents")
+        # Delete immediately for cleanup
+        products_collection.delete_one({"_id": result.inserted_id})
+        print(f"✅ Cleaned up test document")
         
         client.close()
         
         return {
             "status": "✅ PASS",
-            "message": f"Full insert simulation successful!",
-            "steps": [
-                "✅ Formatted documents",
-                "✅ Connected to MongoDB",
-                "✅ Inserted documents",
-                "✅ Verified insertion",
-                "✅ Cleaned up"
-            ],
-            "documents_inserted": len(result.inserted_ids),
-            "documents_verified": created_count,
-            "documents_cleaned": delete_result.deleted_count
+            "message": "Single product insert test successful",
+            "inserted_id": inserted_id,
+            "product_name": product.get("name")
         }
     
     except Exception as e:
-        print(f"❌ Bulk insert test failed: {e}")
-        import traceback
+        print(f"❌ Single product test failed: {e}")
         traceback.print_exc()
-        
         return {
             "status": "❌ FAIL",
             "error": str(e),
@@ -246,86 +175,214 @@ async def test_bulk_insert(products: list[ProductCreate]):
         }
 
 
-# ==================== TEST: ENVIRONMENT CHECK ====================
-@debug_router.get("/test-environment")
-async def test_environment():
+# ==================== TEST 4: Bulk Import ====================
+@debug_router.post("/test-bulk")
+async def test_bulk_import(products: list):
     """
-    Check all environment variables and configuration
+    Test bulk product import WITHOUT saving (diagnostic only)
+    POST /debug/test-bulk
     
-    GET /debug/test-environment
-    """
-    mongo_uri = os.getenv("MONGO_URI")
+    This will format, insert, verify, and clean up test documents
     
-    return {
-        "status": "✅ PASS",
-        "environment": {
-            "MONGO_URI_SET": mongo_uri is not None,
-            "MONGO_URI_PREFIX": mongo_uri[:30] + "..." if mongo_uri else "NOT SET",
-            "RAILWAY_ENVIRONMENT": os.getenv("RAILWAY_ENVIRONMENT", "Not on Railway"),
-            "NODE_ENV": os.getenv("NODE_ENV", "Not set")
-        },
-        "system": {
-            "platform": __import__("sys").platform,
-            "python_version": __import__("sys").version.split()[0]
+    Example body:
+    [
+        {
+            "name": "Product 1",
+            "description": "Description",
+            "price": 100,
+            "category": 1
         }
-    }
-
-
-# ==================== RUN ALL TESTS ====================
-@debug_router.post("/run-all-tests")
-async def run_all_tests(products: list[ProductCreate]):
+    ]
     """
-    Run all diagnostic tests at once
+    try:
+        from pymongo import MongoClient
+        
+        mongo_uri = os.getenv("MONGO_URI")
+        if not mongo_uri:
+            return {"status": "❌ FAIL", "error": "MONGO_URI not set"}
+        
+        if not products or len(products) == 0:
+            return {"status": "❌ FAIL", "error": "No products provided"}
+        
+        print(f"\n{'='*70}")
+        print(f"📦 BULK IMPORT DIAGNOSTIC TEST")
+        print(f"Testing {len(products)} products")
+        print(f"{'='*70}")
+        
+        # Step 1: Validate and format
+        print(f"\n1️⃣ Validating and formatting documents...")
+        test_docs = []
+        
+        for idx, product in enumerate(products):
+            print(f"   Product {idx + 1}: {product.get('name', 'UNNAMED')}")
+            
+            # Validate required fields
+            required = ["name", "description", "price", "category"]
+            for field in required:
+                if field not in product or product[field] is None:
+                    raise ValueError(f"Product {idx + 1}: Required field '{field}' is missing or null")
+                if field == "name" and not str(product[field]).strip():
+                    raise ValueError(f"Product {idx + 1}: 'name' cannot be empty")
+                if field == "description" and not str(product[field]).strip():
+                    raise ValueError(f"Product {idx + 1}: 'description' cannot be empty")
+                if field == "price" and (not isinstance(product[field], (int, float)) or product[field] < 0):
+                    raise ValueError(f"Product {idx + 1}: 'price' must be a positive number")
+                if field == "category" and not isinstance(product[field], int):
+                    raise ValueError(f"Product {idx + 1}: 'category' must be an integer")
+            
+            # Create document
+            doc = {
+                "name": product.get("name"),
+                "description": product.get("description"),
+                "price": product.get("price"),
+                "category": product.get("category"),
+                "created_at": datetime.now(timezone.utc),
+                # Optional fields
+                "slug": product.get("slug"),
+                "short_description": product.get("short_description"),
+                "compare_at_price": product.get("compare_at_price"),
+                "currency": product.get("currency", "ZAR"),
+                "brand": product.get("brand"),
+                "sku": product.get("sku"),
+                "image_url": str(product.get("image_url")) if product.get("image_url") else None,
+                "images": [str(img) for img in product.get("images", [])] if product.get("images") else None,
+                "stock_quantity": product.get("stock_quantity", 0),
+                "availability_status": product.get("availability_status", "in_stock"),
+                "specifications": product.get("specifications"),
+                "weight_kg": product.get("weight_kg"),
+                "is_active": product.get("is_active", True),
+                "tags": product.get("tags"),
+                "meta_title": product.get("meta_title"),
+                "meta_description": product.get("meta_description"),
+            }
+            test_docs.append(doc)
+        
+        print(f"✅ Formatted {len(test_docs)} documents successfully")
+        
+        # Step 2: Connect to MongoDB
+        print(f"\n2️⃣ Connecting to MongoDB...")
+        client = MongoClient(mongo_uri, tls=True, tlsAllowInvalidCertificates=False, serverSelectionTimeoutMS=10000)
+        db = client["kingburgerstore_db"]
+        products_collection = db["products"]
+        print(f"✅ Connected to MongoDB")
+        
+        # Step 3: Insert documents
+        print(f"\n3️⃣ Inserting {len(test_docs)} documents...")
+        insert_result = products_collection.insert_many(test_docs)
+        print(f"✅ Insert successful! Inserted {len(insert_result.inserted_ids)} documents")
+        
+        # Step 4: Verify insertion
+        print(f"\n4️⃣ Verifying insertion...")
+        verify_count = products_collection.count_documents({"_id": {"$in": insert_result.inserted_ids}})
+        print(f"✅ Verified {verify_count} documents in database")
+        
+        # Step 5: Cleanup
+        print(f"\n5️⃣ Cleaning up test documents...")
+        delete_result = products_collection.delete_many({"_id": {"$in": insert_result.inserted_ids}})
+        print(f"✅ Deleted {delete_result.deleted_count} test documents")
+        
+        client.close()
+        
+        print(f"\n{'='*70}")
+        print(f"✨ BULK IMPORT TEST PASSED - Your bulk import should work!")
+        print(f"{'='*70}\n")
+        
+        return {
+            "status": "✅ PASS",
+            "message": "Bulk import test successful! Your bulk import endpoint should work.",
+            "steps": [
+                "✅ Validated and formatted documents",
+                "✅ Connected to MongoDB",
+                "✅ Inserted documents",
+                "✅ Verified insertion",
+                "✅ Cleaned up"
+            ],
+            "summary": {
+                "products_tested": len(products),
+                "documents_inserted": len(insert_result.inserted_ids),
+                "documents_verified": verify_count,
+                "documents_cleaned": delete_result.deleted_count
+            }
+        }
     
-    POST /debug/run-all-tests
+    except ValueError as ve:
+        print(f"\n❌ VALIDATION ERROR: {ve}\n")
+        return {
+            "status": "❌ FAIL",
+            "error_type": "Validation Error",
+            "error": str(ve),
+            "message": "Check your product data format"
+        }
+    
+    except Exception as e:
+        print(f"\n{'='*70}")
+        print(f"❌ BULK IMPORT TEST FAILED")
+        print(f"{'='*70}")
+        print(f"Error: {e}\n")
+        traceback.print_exc()
+        print(f"{'='*70}\n")
+        
+        return {
+            "status": "❌ FAIL",
+            "error_type": type(e).__name__,
+            "error": str(e),
+            "traceback": traceback.format_exc(),
+            "message": "Check MongoDB connection and database settings"
+        }
+
+
+# ==================== TEST 5: Run All Tests ====================
+@debug_router.post("/run-all")
+async def run_all_tests(products: list = None):
+    """
+    Run all diagnostic tests
+    POST /debug/run-all
+    
+    Optional: include products array to test bulk import
     """
     results = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "tests": {}
     }
     
-    # Test 1
+    # Test 1: Config
     try:
-        result = await test_pydantic(products)
-        results["tests"]["pydantic_validation"] = result
+        config_result = await test_config()
+        results["tests"]["configuration"] = config_result
     except Exception as e:
-        results["tests"]["pydantic_validation"] = {"status": "❌ FAIL", "error": str(e)}
+        results["tests"]["configuration"] = {"status": "❌ FAIL", "error": str(e)}
     
-    # Test 2
+    # Test 2: MongoDB
     try:
-        result = await test_mongodb_format(products)
-        results["tests"]["mongodb_format"] = result
-    except Exception as e:
-        results["tests"]["mongodb_format"] = {"status": "❌ FAIL", "error": str(e)}
-    
-    # Test 3
-    try:
-        result = await test_mongodb_connection()
-        results["tests"]["mongodb_connection"] = result
+        mongo_result = await test_mongodb()
+        results["tests"]["mongodb_connection"] = mongo_result
     except Exception as e:
         results["tests"]["mongodb_connection"] = {"status": "❌ FAIL", "error": str(e)}
     
-    # Test 4
-    try:
-        result = await test_bulk_insert(products)
-        results["tests"]["bulk_insert_simulation"] = result
-    except Exception as e:
-        results["tests"]["bulk_insert_simulation"] = {"status": "❌ FAIL", "error": str(e)}
+    # Test 3: Single Product
+    if products:
+        try:
+            single_result = await test_single_product({"name": "Test", "description": "Test", "price": 100, "category": 1})
+            results["tests"]["single_product"] = single_result
+        except Exception as e:
+            results["tests"]["single_product"] = {"status": "❌ FAIL", "error": str(e)}
     
-    # Test 5
-    try:
-        result = await test_environment()
-        results["tests"]["environment"] = result
-    except Exception as e:
-        results["tests"]["environment"] = {"status": "❌ FAIL", "error": str(e)}
+    # Test 4: Bulk Import
+    if products:
+        try:
+            bulk_result = await test_bulk_import(products)
+            results["tests"]["bulk_import"] = bulk_result
+        except Exception as e:
+            results["tests"]["bulk_import"] = {"status": "❌ FAIL", "error": str(e)}
     
     # Summary
-    passed = sum(1 for t in results["tests"].values() if t.get("status") == "✅ PASS")
+    passed = sum(1 for test in results["tests"].values() if test.get("status") == "✅ PASS")
     total = len(results["tests"])
     
     results["summary"] = {
-        "passed": passed,
-        "total": total,
+        "tests_run": total,
+        "tests_passed": passed,
+        "tests_failed": total - passed,
         "all_passed": passed == total
     }
     

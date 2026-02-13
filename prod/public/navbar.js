@@ -48,7 +48,7 @@ export async function initNavbar(containerId = "navbar-container") {
       });
       if (!res.ok) {
         localStorage.removeItem("jwt");
-        if (window.location.pathname !== "/" && window.location.pathname !== "/index") {
+        if (isProtectedPage()) {
           window.location.href = "/index";
         }
         throw new Error("Invalid token");

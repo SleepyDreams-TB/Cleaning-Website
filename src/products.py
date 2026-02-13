@@ -6,7 +6,7 @@ This file manages: viewing, creating, updating, and deleting cleaning products
 from fastapi import APIRouter, HTTPException
 from pymongo import MongoClient
 from bson import ObjectId
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime, timezone
 import os
 from models import ProductCreate, ProductUpdate
@@ -157,7 +157,7 @@ async def create_new_product(product_data: ProductCreate):
 
 # ==================== Bulk Create NEW PRODUCT ====================
 @router.post("/bulk")
-async def create_bulk_products(products: list[ProductCreate]):
+async def create_bulk_products(products: List[ProductCreate]):
     """
     Create multiple products at once (bulk upload)
     

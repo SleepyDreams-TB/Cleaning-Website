@@ -7,6 +7,7 @@ from fastapi import APIRouter
 from datetime import datetime, timezone
 import os
 import traceback
+from typing import List
 
 debug_router = APIRouter(prefix="/debug", tags=["debug"])
 
@@ -177,7 +178,7 @@ async def test_single_product(product: dict):
 
 # ==================== TEST 4: Bulk Import ====================
 @debug_router.post("/test-bulk")
-async def test_bulk_import(products: list):
+async def test_bulk_import(products: List[dict]):
     """
     Test bulk product import WITHOUT saving (diagnostic only)
     POST /debug/test-bulk

@@ -1,34 +1,26 @@
 <nav class="bg-black shadow-lg">
   <div class="container mx-auto px-4">
-    <div class="flex items-center justify-between h-16">
+    <div class="flex items-center h-16 w-full">
 
       <!-- Logo -->
-      <div class="flex items-center space-x-2">
+      <div class="flex items-center space-x-2 shrink-0">
         <i class="fas fa-sparkles text-pink-600 text-2xl"></i>
         <span class="text-white font-bold text-xl">King Burger's Store</span>
       </div>
 
       <!-- Navigation Links -->
-      <div class="hidden md:flex items-center justify-center flex-1 mx-8">
-        <div class="flex items-center w-full justify-around">
-          <a href="/index" class="nav-link">
-            <i class="fas fa-home"></i> Home
-          </a>
-          <a href="/About-Us" class="nav-link">
-            <i class="fas fa-info-circle"></i> About Us
-          </a>
-          <a href="/ContactUs" class="nav-link">
-            <i class="fas fa-envelope"></i> Contact
-          </a>
-          <a href="/products/productsPage" class="nav-link">
-            <i class="fas fa-shopping-bag"></i> Products
-          </a>
-          <a href="/users/cart" class="cart-icon" title="Shopping Cart">
-            <i class="fas fa-shopping-cart"></i>
-            <span class="cart-badge">0</span>
-          </a>
-          <div id="dropdownContainer" class="flex items-center"></div>
-        </div>
+      <div class="hidden md:flex items-center justify-between flex-1 ml-10">
+        <a href="/index" class="nav-link"><i class="fas fa-home"></i> Home</a>
+        <a href="/About-Us" class="nav-link"><i class="fas fa-info-circle"></i> About Us</a>
+        <a href="/ContactUs" class="nav-link"><i class="fas fa-envelope"></i> Contact</a>
+        <a href="/products/productsPage" class="nav-link"><i class="fas fa-shopping-bag"></i> Products</a>
+
+        <a href="/users/cart" class="cart-icon shrink-0" title="Shopping Cart">
+          <i class="fas fa-shopping-cart"></i>
+          <span class="cart-badge">0</span>
+        </a>
+
+        <div id="dropdownContainer" class="shrink-0"></div>
       </div>
 
     </div>

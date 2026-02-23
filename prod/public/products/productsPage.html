@@ -183,7 +183,7 @@
     }
 
     .spinner {
-      border: 4px solid rgba(255, 255, 255, 0.3);
+      border: 4px solid rgba(196, 15, 15, 0.3);
       border-top: 4px solid white;
       border-radius: 50%;
       width: 40px;
@@ -320,7 +320,7 @@
   <!-- Products Script -->
   <script type="module">
     import { addToCart } from '/users/cart.js';
-
+    import { updateCartCount } from '/navbar.js';
 
     let allProducts = [];
 
@@ -401,7 +401,7 @@
           button.classList.add('added');
 
           addToCart(productData);
-
+          updateCartCount();
           // Reset button after 2 seconds
           setTimeout(() => {
             button.innerHTML = originalText;

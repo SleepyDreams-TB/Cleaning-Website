@@ -287,24 +287,25 @@
         </h3>
         <select id="billing-address-select"
           class="w-full border-2 border-gray-200 rounded-10 px-4 py-3 focus:border-purple-600 focus:outline-none mb-6">
-          <option value="" disabled selected>📍 Choose Your Delivery Address</option>
+          <option value="" disabled selected> Choose Your Delivery Address</option>
         </select>
+        <h3 class="font-bold mb-3 text-gray-700">
+          <i class="fas fa-credit-card text-purple-600 mr-2"></i>Payment Method
+          <select id="payment-method-select"
+            class="w-full border-2 border-gray-200 rounded-10 px-4 py-3 focus:border-purple-600 focus:outline-none mb-6">
+            <option value="" disabled selected>💳 Select Payment Method</option>
+            <option value="eft">Electronic Funds Transfer (EFT)</option>
+            <option value="credit_card">Credit/Debit Card</option>
+          </select>
 
-        <select id="payment-method-select"
-          class="w-full border-2 border-gray-200 rounded-10 px-4 py-3 focus:border-purple-600 focus:outline-none mb-6">
-          <option value="" disabled selected>💳 Select Payment Method</option>
-          <option value="eft">Electronic Funds Transfer (EFT)</option>
-          <option value="credit_card">Credit/Debit Card</option>
-        </select>
-
-        <div class="flex gap-3 justify-end">
-          <button id="cancel-order-btn" class="btn-danger">
-            <i class="fas fa-times"></i> Cancel
-          </button>
-          <button id="checkoutBtn" class="btn-primary">
-            <i class="fas fa-credit-card"></i> Pay Now
-          </button>
-        </div>
+          <div class="flex gap-3 justify-end">
+            <button id="cancel-order-btn" class="btn-danger">
+              <i class="fas fa-times"></i> Cancel
+            </button>
+            <button id="checkoutBtn" class="btn-primary">
+              <i class="fas fa-credit-card"></i> Pay Now
+            </button>
+          </div>
       </div>
     </div>
   </div>

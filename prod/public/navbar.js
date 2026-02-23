@@ -13,6 +13,15 @@ function isLoggedIn() {
   return !!localStorage.getItem('jwt')
 }
 
+// Update cart count
+export function updateCartCount() {
+  const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  const cartBadge = document.querySelector('.cart-badge');
+  if (cartBadge) {
+    cartBadge.textContent = cart.length;
+  }
+}
+
 export async function initNavbar(containerId = "navbar-container") {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -58,13 +67,12 @@ export async function initNavbar(containerId = "navbar-container") {
       const profile_ImageUrl = data.profileImageUrl || "https://media.kingburger.site/images/default-profile.png";
 
       // Inject username link + dropdown toggle
-      dropdownContainer.innerHTML = `
-        <!-- Profile Image -->
-        <img src="${profile_ImageUrl}" alt="Profile Icon" class="profile-icon" style="width:40px; height:40px; border-radius:50%; border: 2px solid #667eea; cursor: pointer; transition: all 0.3s;">
-              
+      dropdownContainer.innerHTML = `              
         <!-- Dropdown toggle -->
         <div class="relative inline-block text-left">
           <button id="userDropdownButton" class="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-lg font-semibold hover:shadow-lg transition-all duration-300" style="font-size: 14px;">
+          <!-- Profile Image -->
+        <img src="${profile_ImageUrl}" alt="Profile Icon" class="profile-icon" style="width:40px; height:40px; border-radius:50%; border: 2px solid #667eea; cursor: pointer; transition: all 0.3s;">
             ${userName}
             <i class="bi bi-list text-lg"></i>
           </button>
@@ -92,7 +100,6 @@ export async function initNavbar(containerId = "navbar-container") {
       // Dropdown toggle logic
       const dropdownButton = dropdownContainer.querySelector("#userDropdownButton");
       const dropdownMenu = dropdownContainer.querySelector("#userDropdownMenu");
-      const profileIcon = dropdownContainer.querySelector(".profile-icon");
       const logoutLink = dropdownContainer.querySelector("#logoutLink");
 
       if (dropdownButton && dropdownMenu) {
@@ -102,7 +109,6 @@ export async function initNavbar(containerId = "navbar-container") {
         };
 
         dropdownButton.addEventListener("click", toggleDropdown);
-        profileIcon?.addEventListener("click", toggleDropdown);
 
         document.addEventListener("click", e => {
           if (!dropdownButton.contains(e.target) && !dropdownMenu.contains(e.target) && !profileIcon?.contains(e.target)) {

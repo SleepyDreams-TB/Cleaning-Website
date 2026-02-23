@@ -46,14 +46,7 @@
 <link rel="stylesheet" href="/styles/navbar.css">
 
 <script>
-  // Update cart count
-  function updateCartCount() {
-    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    const cartBadge = document.querySelector('.cart-badge');
-    if (cartBadge) {
-      cartBadge.textContent = cart.length;
-    }
-  }
+  import { updateCartCount } from '/navbar.js';
 
   updateCartCount();
   window.addEventListener('storage', updateCartCount);

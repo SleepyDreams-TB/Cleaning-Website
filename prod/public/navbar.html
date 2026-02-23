@@ -9,32 +9,28 @@
       </div>
 
       <!-- Navigation Links -->
-      <div class="hidden md:flex items-center space-x-8">
-        <a href="/index" class="nav-link">
-          <i class="fas fa-home"></i> Home
-        </a>
-        <a href="/About-Us" class="nav-link">
-          <i class="fas fa-info-circle"></i> About Us
-        </a>
-        <a href="/ContactUs" class="nav-link">
-          <i class="fas fa-envelope"></i> Contact
-        </a>
-        <a href="/products/productsPage" class="nav-link">
-          <i class="fas fa-shopping-bag"></i> Products
-        </a>
+      <div class="hidden md:flex items-center justify-center flex-1 mx-8">
+        <div class="flex items-center w-full justify-around">
+          <a href="/index" class="nav-link">
+            <i class="fas fa-home"></i> Home
+          </a>
+          <a href="/About-Us" class="nav-link">
+            <i class="fas fa-info-circle"></i> About Us
+          </a>
+          <a href="/ContactUs" class="nav-link">
+            <i class="fas fa-envelope"></i> Contact
+          </a>
+          <a href="/products/productsPage" class="nav-link">
+            <i class="fas fa-shopping-bag"></i> Products
+          </a>
+          <a href="/users/cart" class="cart-icon" title="Shopping Cart">
+            <i class="fas fa-shopping-cart"></i>
+            <span class="cart-badge">0</span>
+          </a>
+          <div id="dropdownContainer" class="flex items-center"></div>
+        </div>
       </div>
 
-      <!-- Right Side: User Menu & Mobile Toggle -->
-      <div class="flex items-center space-x-4 ml-auto">
-        <!-- Cart Icon -->
-        <a href="/users/cart" class="cart-icon" title="Shopping Cart">
-          <i class="fas fa-shopping-cart"></i>
-          <span class="cart-badge">0</span>
-        </a>
-
-        <!-- User Dropdown Container (populated by navbar.js) -->
-        <div id="dropdownContainer" class="flex items-center space-x-2"></div>
-      </div>
     </div>
   </div>
 </nav>
@@ -49,6 +45,4 @@
   import { updateCartCount } from '/navbar.js';
 
   updateCartCount();
-  window.addEventListener('storage', updateCartCount);
-  window.addEventListener('cartUpdated', updateCartCount);
 </script>

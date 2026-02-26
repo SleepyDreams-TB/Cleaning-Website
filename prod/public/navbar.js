@@ -24,30 +24,34 @@ export function updateCartCount() {
 
 export async function initNavbar(containerId = "navbar-container") {
   const container = document.getElementById(containerId);
-  if (!container) return;
+
+  if (!container) return console.error("Navbar container not found in navbar");
 
   try {
     // Load navbar HTML
-    const response = await fetch("/navbar");
+    const response = await fetch("./testNavbar.html");
     if (!response.ok) throw new Error("Failed to fetch navbar HTML");
     container.innerHTML = await response.text();
 
-    const dropdownContainer = container.querySelector("#dropdownContainer");
-    if (!dropdownContainer) return;
+    const loginButton = container.querySelector("#loginButton");
+    const userDropdownButton = container.querySelector("#userDropdownButton");
+
 
     if (!isLoggedIn()) {
       // Show Login Button
-      dropdownContainer.innerHTML = `
-        <a href="/login" id="loginButton" class="login-btn">
-          <i class="fas fa-sign-in-alt"></i> Login
-        </a>
-      `;
+      loginButton.classList.remove("hidden");
+      userDropdownButton.classList.add("hidden");
 
       if (isProtectedPage()) {
         sessionStorage.setItem('redirectAfterLogin', window.location.pathname);
         window.location.href = "/index";
       }
       return;
+    } else {
+      // Show User Dropdown
+      loginButton.classList.add("hidden");
+      userDropdownButton.classList.remove("hidden");
+      userDropdownButton.classList.add("flex");
     }
 
     // Fetch user info
@@ -62,52 +66,23 @@ export async function initNavbar(containerId = "navbar-container") {
         }
         throw new Error("Invalid token");
       }
+
       const data = await res.json();
-      const userName = data.loggedIn_User || "User";
-      const profile_ImageUrl = data.profileImageUrl || "https://media.kingburger.site/images/default-profile.png";
-
-      // Inject username link + dropdown toggle
-      dropdownContainer.innerHTML = `
-        <div class="relative inline-block text-left">
-          <button id="userDropdownButton" class="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-1.5 rounded-lg font-semibold hover:shadow-lg transition-all duration-300" style="font-size: 14px;">
-            <img src="${profile_ImageUrl}" alt="Profile" class="w-8 h-8 rounded-full border-2 border-[#667eea]">
-            ${userName}
-            <i class="bi bi-list text-lg"></i>
-          </button>
-
-          <div id="userDropdownMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50 border border-gray-100">
-            <a href="/users/profile" class="flex items-center gap-3 px-4 py-3 text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition-all">
-              <i class="fas fa-user text-blue-600"></i> Profile
-            </a>
-            <a href="/users/billing" class="flex items-center gap-3 px-4 py-3 text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition-all">
-              <i class="fas fa-credit-card text-blue-600"></i> Billing
-            </a>
-            <a href="/users/cart" class="flex items-center gap-3 px-4 py-3 text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition-all">
-              <i class="fas fa-shopping-cart text-blue-600"></i> Cart
-            </a>
-            <a href="/users/orders" class="flex items-center gap-3 px-4 py-3 text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition-all">
-              <i class="fas fa-box text-blue-600"></i> Orders
-            </a>
-            <hr class="my-1">
-            <button id="logoutLink" class="flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-all font-semibold">
-              <i class="fas fa-sign-out-alt"></i> Logout
-            </button>
-          </div>
-        </div>
-      `;
 
       // Dropdown toggle logic
-      const dropdownButton = dropdownContainer.querySelector("#userDropdownButton");
-      const dropdownMenu = dropdownContainer.querySelector("#userDropdownMenu");
-      const logoutLink = document.getElementById("#logoutLink");
+      const dropdownMenu = container.querySelector("#userDropdownMenu");
+      const logoutLink = container.querySelector("#logoutLink");
 
-      if (dropdownButton && dropdownMenu) {
-        dropdownButton.addEventListener("click", () => {
+      userDropdownButton.querySelector("#profileImage").src = data.profileImageUrl || "https://media.kingburger.site/images/default-profile.png";
+      userDropdownButton.querySelector("#userNameText").textContent = data.loggedIn_User || "User";
+
+      if (userDropdownButton && dropdownMenu) {
+        userDropdownButton.addEventListener("click", () => {
           dropdownMenu.classList.toggle("hidden");
         });
 
         document.addEventListener("click", e => {
-          if (!dropdownButton.contains(e.target) && !dropdownMenu.contains(e.target)) {
+          if (!userDropdownButton.contains(e.target) && !dropdownMenu.contains(e.target)) {
             dropdownMenu.classList.add("hidden");
           }
         });
@@ -123,11 +98,8 @@ export async function initNavbar(containerId = "navbar-container") {
     } catch (err) {
       console.error("Failed to fetch user info:", err);
       // Show Login Button on error
-      dropdownContainer.innerHTML = `
-        <a href="/login" id="loginButton" class="login-btn">
-          <i class="fas fa-sign-in-alt"></i> Login
-        </a>
-      `;
+      loginButton.classList.remove("hidden");
+      userDropdownButton.classList.add("hidden");
     }
 
   } catch (err) {

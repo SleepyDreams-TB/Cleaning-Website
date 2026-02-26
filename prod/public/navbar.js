@@ -29,7 +29,7 @@ export async function initNavbar(containerId = "navbar-container") {
 
   try {
     // Load navbar HTML
-    const response = await fetch("./navbar.html");
+    const response = await fetch("/navbar.html");
     if (!response.ok) throw new Error("Failed to fetch navbar HTML");
     container.innerHTML = await response.text();
 

@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     try {
-      const res = await fetch(`https://api.kingburger.site/users/update/${userId}`, {
+      const res = await fetch(`https://api.kingburger.site/users/${userId}`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${JWT}`, 'Content-Type': 'application/x-www-form-urlencoded' },
         body: data.toString()

@@ -8,7 +8,8 @@ from pymongo import MongoClient
 from bson import ObjectId
 from bson.errors import InvalidId
 import os
-import argon2
+from argon2 import PasswordHasher
+ph = PasswordHasher()
 
 # Import the auth dependency
 from auth import get_current_user
@@ -22,8 +23,7 @@ client = MongoClient(MONGO_URI, tls=True, tlsAllowInvalidCertificates=False)
 db = client["kingburgerstore_db"]
 users_collection = db["store_users"]
 
-SECRET_KEY = os.getenv("SECRET_KEY")
-ALGORITHM = os.getenv("ALGORITHM", "HS256")
+ALLOWED_UPDATE_FIELDS = {"userName", "password","firstName", "lastName", "email", "cellNum"}
 
 # ==================== GET DASHBOARD INFO ====================
 @router.get("/dashboard/info")
@@ -59,8 +59,7 @@ async def add_or_update_billing_address(request: Request, current_user = Depends
     try:
         update_result = users_collection.update_one(
             {"_id": ObjectId(current_user["_id"])},
-            {"$set": {f"billing_info.billing_address.{address_name}": billing_address}},
-            upsert=True
+            {"$set": {f"billing_info.billing_address.{address_name}": billing_address}}
         )
 
         if update_result.matched_count == 0:
@@ -113,9 +112,6 @@ async def get_user_profile(user_id: str, current_user = Depends(get_current_user
         print(f"❌ Error fetching user {user_id}: {error}")
         raise HTTPException(status_code=500, detail=f"Server error: {str(error)}")
 
-
-ALLOWED_UPDATE_FIELDS = {"userName", "password","firstName", "lastName", "email", "cellNum"}
-
 # ==================== Update User Profile ====================
 @router.put("/{user_id}")
 async def update_user_profile(user_id: str, user_data: dict, current_user = Depends(get_current_user)):
@@ -138,13 +134,12 @@ async def update_user_profile(user_id: str, user_data: dict, current_user = Depe
             raise HTTPException(status_code=403, detail="Not authorized to update this profile")
         
         safe_data = {k: v for k, v in user_data.items() if k in ALLOWED_UPDATE_FIELDS}
-        user_data = safe_data
 
         if not safe_data:
             raise HTTPException(status_code=400, detail="No valid fields to update")
         
         if "password" in safe_data:
-            safe_data["password"] = argon2.hash(safe_data["password"])
+            safe_data["password"] = ph.hash(safe_data["password"])
 
         if "userName" in safe_data:
             existing = users_collection.find_one({"userName": safe_data["userName"]})

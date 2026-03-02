@@ -3,10 +3,11 @@ USERS ROUTER - Handles user profile operations
 This file manages: viewing user profiles, updating user info
 """
 
-from fastapi import APIRouter, HTTPException, Depends , Request
+from fastapi import APIRouter, HTTPException, Depends , Request, Form
 from pymongo import MongoClient
 from bson import ObjectId
 from bson.errors import InvalidId
+from typing import Optional
 import os
 from argon2 import PasswordHasher
 ph = PasswordHasher()
@@ -22,8 +23,6 @@ MONGO_URI = os.getenv("MONGO_URI", "your-mongo-connection-string")
 client = MongoClient(MONGO_URI, tls=True, tlsAllowInvalidCertificates=False)
 db = client["kingburgerstore_db"]
 users_collection = db["store_users"]
-
-ALLOWED_UPDATE_FIELDS = {"userName", "password","firstName", "lastName", "email", "cellNum"}
 
 # ==================== GET DASHBOARD INFO ====================
 @router.get("/dashboard/info")
@@ -114,18 +113,21 @@ async def get_user_profile(user_id: str, current_user = Depends(get_current_user
 
 # ==================== Update User Profile ====================
 @router.put("/{user_id}")
-async def update_user_profile(user_id: str, user_data: dict, current_user = Depends(get_current_user)):
+async def update_user_profile(user_id: str, 
+    current_user = Depends(get_current_user),
+    userName: Optional[str] = Form(None),
+    password: Optional[str] = Form(None),
+    firstName: Optional[str] = Form(None),
+    lastName: Optional[str] = Form(None),
+    email: Optional[str] = Form(None),
+    cellNum: Optional[str] = Form(None),
+):
     """
     Update a user's profile by their ID
     Requires authentication (must be logged in)
-    
     Example: PUT /users/68f7a75bbe7aff100435ab4e
     Header: Authorization: Bearer your-jwt-token
-    Body: {
-        "firstName": "NewFirstName",
-        "lastName": "NewLastName",
-        ...
-    }
+    Form Data: userName, password, firstName, lastName, email, cellNum
     """
 
     try:
@@ -133,7 +135,7 @@ async def update_user_profile(user_id: str, user_data: dict, current_user = Depe
         if str(current_user["_id"]) != user_id:
             raise HTTPException(status_code=403, detail="Not authorized to update this profile")
         
-        safe_data = {k: v for k, v in user_data.items() if k in ALLOWED_UPDATE_FIELDS}
+        safe_data = {k: v for k, v in {"firstName": firstName, "lastName": lastName, "email": email, "cellNum": cellNum, "userName": userName, "password": password}.items() if v is not None}
 
         if not safe_data:
             raise HTTPException(status_code=400, detail="No valid fields to update")

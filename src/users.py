@@ -25,7 +25,55 @@ users_collection = db["store_users"]
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 
+# ==================== GET DASHBOARD INFO ====================
+@router.get("/dashboard/info")
+async def get_dashboard_info(current_user = Depends(get_current_user)):
+    """
+    Get dashboard information for the logged-in user
+    
+    Example: GET /users/dashboard/info
+    Header: Authorization: Bearer your-jwt-token
+    """
+    
+    return {
+        "success": True,
+        "profileImageUrl": current_user.get("profileImageUrl"),
+        "loggedIn_User": current_user['firstName'],
+        "user_id": str(current_user["_id"]),
+        "userName": current_user.get("userName"),
+        "email": current_user.get("email"),
+        "billing_address": billing_info_helper(current_user)
+    }
+# ==================== ADD/UPDATE BILLING ADDRESS ====================
+@router.post("/update/billing/address")
+async def add_or_update_billing_address(request: Request, current_user = Depends(get_current_user)):
+    billing_address = await request.json()
+    address_name = billing_address.get("address_name")
 
+    if not address_name:
+        raise HTTPException(status_code=400, detail="Address name is required")
+
+    # Remove address_name from the object to store the rest
+    billing_address.pop("address_name")
+
+    try:
+        update_result = users_collection.update_one(
+            {"_id": ObjectId(current_user["_id"])},
+            {"$set": {f"billing_info.billing_address.{address_name}": billing_address}},
+            upsert=True
+        )
+
+        if update_result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        return {
+            "success": True,
+            "message": "Billing information updated successfully"
+        }
+
+    except Exception as error:
+        print(f"❌ Error updating billing info for user {current_user['_id']}: {error}")
+        raise HTTPException(status_code=500, detail=f"Server error: {str(error)}")
 
 # ==================== GET USER BY ID ====================
 @router.get("/{user_id}")
@@ -65,27 +113,6 @@ async def get_user_profile(user_id: str, current_user = Depends(get_current_user
         print(f"❌ Error fetching user {user_id}: {error}")
         raise HTTPException(status_code=500, detail=f"Server error: {str(error)}")
 
-# ==================== GET DASHBOARD INFO ====================
-@router.get("/dashboard/info")
-async def get_dashboard_info(current_user = Depends(get_current_user)):
-    """
-    Get dashboard information for the logged-in user
-    
-    Example: GET /users/dashboard/info
-    Header: Authorization: Bearer your-jwt-token
-    """
-    
-    return {
-        "success": True,
-        "profileImageUrl": current_user.get("profileImageUrl"),
-        "loggedIn_User": current_user['firstName'],
-        "user_id": str(current_user["_id"]),
-        "userName": current_user.get("userName"),
-        "email": current_user.get("email"),
-        "billing_address": billing_info_helper(current_user)
-    }
-
-# Note: Additional user-related routes (e.g., update profile, delete account) TO-DO here.
 
 ALLOWED_UPDATE_FIELDS = {"userName", "password","firstName", "lastName", "email", "cellNum"}
 
@@ -146,37 +173,6 @@ async def update_user_profile(user_id: str, user_data: dict, current_user = Depe
     
     except Exception as error:
         print(f"❌ Error updating user {user_id}: {error}")
-        raise HTTPException(status_code=500, detail=f"Server error: {str(error)}")
-    
-# ==================== ADD/UPDATE BILLING ADDRESS ====================
-@router.post("/update/billing/address")
-async def add_or_update_billing_address(request: Request, current_user = Depends(get_current_user)):
-    billing_address = await request.json()
-    address_name = billing_address.get("address_name")
-
-    if not address_name:
-        raise HTTPException(status_code=400, detail="Address name is required")
-
-    # Remove address_name from the object to store the rest
-    billing_address.pop("address_name")
-
-    try:
-        update_result = users_collection.update_one(
-            {"_id": ObjectId(current_user["_id"])},
-            {"$set": {f"billing_info.billing_address.{address_name}": billing_address}},
-            upsert=True
-        )
-
-        if update_result.matched_count == 0:
-            raise HTTPException(status_code=404, detail="User not found")
-
-        return {
-            "success": True,
-            "message": "Billing information updated successfully"
-        }
-
-    except Exception as error:
-        print(f"❌ Error updating billing info for user {current_user['_id']}: {error}")
         raise HTTPException(status_code=500, detail=f"Server error: {str(error)}")
 
 # ==================== DELETE USER PROFILE ====================

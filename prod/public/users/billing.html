@@ -132,42 +132,6 @@
       transform: none;
     }
 
-    .success-message {
-      background: #d1fae5;
-      border-left: 4px solid #10b981;
-      color: #065f46;
-      padding: 14px 16px;
-      border-radius: 8px;
-      margin-bottom: 24px;
-      display: none;
-      align-items: center;
-      gap: 10px;
-      font-weight: 500;
-    }
-
-    .success-message.show {
-      display: flex;
-      animation: slideDown 0.3s ease;
-    }
-
-    .error-message {
-      background: #fee2e2;
-      border-left: 4px solid #ef4444;
-      color: #991b1b;
-      padding: 14px 16px;
-      border-radius: 8px;
-      margin-bottom: 24px;
-      display: none;
-      align-items: center;
-      gap: 10px;
-      font-weight: 500;
-    }
-
-    .error-message.show {
-      display: flex;
-      animation: slideDown 0.3s ease;
-    }
-
     @keyframes slideDown {
       from {
         opacity: 0;
@@ -244,19 +208,10 @@
 
       <!-- Form Content -->
       <div class="form-section">
-        <!-- Success Message -->
-        <div id="successMessage" class="success-message">
-          <i class="fas fa-check-circle"></i>
-          <span>Billing information saved successfully!</span>
-        </div>
-
-        <!-- Error Message -->
-        <div id="billingMessage" class="error-message"></div>
-
         <!-- Info Box -->
-        <div class="info-box">
-          <i class="fas fa-info-circle"></i>
-          <span>Add or update your delivery addresses. You can save multiple addresses for convenience.</span>
+        <div id="billingMessage" class="info-box hidden">
+          <i id="billingIcon" class="fas"></i>
+          <span id="billingText"></span>
         </div>
 
         <!-- Billing Form -->
@@ -339,26 +294,6 @@
   </script>
   <script type="module" src="billing.js"></script>
 
-  <script>
-    // Success message display helper
-    window.showSuccessMessage = function () {
-      const successMsg = document.getElementById('successMessage');
-      successMsg.classList.add('show');
-      setTimeout(() => {
-        successMsg.classList.remove('show');
-      }, 3000);
-    };
-
-    // Error message display helper
-    window.showErrorMessage = function (message) {
-      const errorMsg = document.getElementById('billingMessage');
-      errorMsg.textContent = message;
-      errorMsg.classList.add('show');
-      setTimeout(() => {
-        errorMsg.classList.remove('show');
-      }, 5000);
-    };
-  </script>
 </body>
 
 </html>

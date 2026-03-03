@@ -512,6 +512,7 @@
 
       if (cart.length === 0) return alert("Your cart is empty!");
       if (!selectedAddressType) return alert("Please select a delivery address!");
+      if (!payment_type) return alert("Please select a payment method!");
 
       await createPayment(payment_type, recalcTotal(cart), selectedAddressType);
     });

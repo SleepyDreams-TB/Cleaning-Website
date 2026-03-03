@@ -86,12 +86,17 @@ document.addEventListener('DOMContentLoaded', () => {
   // Update profile
   document.getElementById('updateBtn')?.addEventListener('click', async () => {
     const data = new URLSearchParams();
-    ["username", "password", "fname", "lname", "email", "cellnumber"].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) {
-        const key = id === "username" ? "userName" : id === "cellnumber" ? "cellNum" : id;
-        data.append(key, el.value || "");
-      }
+
+    const updateFields = {
+      userName: document.getElementById('username')?.value,
+      password: document.getElementById('password')?.value,
+      firstName: document.getElementById('fname')?.value,
+      lastName: document.getElementById('lname')?.value,
+      email: document.getElementById('email')?.value,
+      cellNum: document.getElementById('cellnumber')?.value
+    };
+    Object.entries(updateFields).forEach(([key, value]) => {
+      if (value) data.append(key, value);
     });
 
     try {

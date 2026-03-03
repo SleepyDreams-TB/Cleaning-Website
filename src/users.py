@@ -134,7 +134,7 @@ async def update_user_profile(user_id: str,
         if str(current_user["_id"]) != user_id:
             raise HTTPException(status_code=403, detail="Not authorized to update this profile")
         
-        safe_data = {k: v for k, v in {"firstName": firstName, "lastName": lastName, "email": email, "cellNum": cellNum, "userName": userName, "password": password}.items() if v is not None}
+        safe_data = {k: v for k, v in {"firstName": firstName, "lastName": lastName, "email": email, "cellNum": cellNum, "userName": userName, "password": password}.items() if v is not None and v.strip() != ""}
 
         if not safe_data:
             raise HTTPException(status_code=400, detail="No valid fields to update")

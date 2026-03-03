@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const el = document.getElementById(id);
         if (el) el.disabled = true;
       });
-      window.location.reload();
+      //window.location.reload();
     } catch (err) { console.error(err); alert("Failed to update profile."); }
   });
 });

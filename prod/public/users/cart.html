@@ -420,6 +420,8 @@
           });
 
           delBtn.addEventListener("click", () => {
+            console.log("Item object:", item);
+            console.log("Item ID:", item._id);
             cart = deleteCartItem(item._id);
             renderCart();
           });

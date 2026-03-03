@@ -46,8 +46,7 @@ export function clearCart() {
 export function deleteCartItem(id) {
   let cart = getCart();
   const initialLength = cart.length;
-  // Match against both _id and id for flexibility
-  cart = cart.filter(item => (item._id || item.id) !== id);
+  cart = cart.filter(item => (item.id) !== id);
   saveCart(cart);
   console.log(`Deleted item ${id} from cart. Removed ${initialLength - cart.length} items.`);
   return cart;

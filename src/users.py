@@ -158,7 +158,14 @@ async def update_user_profile(user_id: str,
         
         return {
             "success": True,
-            "message": "User profile updated successfully"
+            "message": "User profile updated successfully",
+            "debug": {
+                "user_id_received": user_id,
+                "current_user_id": str(current_user["_id"]),
+                "fields_being_set": list(safe_data.keys()),
+                "matched_count": update_result.matched_count,
+                "modified_count": update_result.modified_count
+            }
         }
     
     except InvalidId:

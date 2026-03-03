@@ -1,7 +1,6 @@
-"""
-AUTHENTICATION ROUTER - Handles user registration, login, and logout
-This file manages: user signup, login with JWT tokens, and logout
-"""
+#AUTHENTICATION ROUTER - Handles user registration, login, and logout
+#This file manages: user signup, login with JWT #tokens, and logout
+
 
 from fastapi import APIRouter, Form, HTTPException, Header, Depends
 from fastapi.responses import JSONResponse

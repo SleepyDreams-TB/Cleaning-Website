@@ -236,8 +236,8 @@ def login_step(userName: str = Form(...), password: str = Form(...)):
         user = users_collection.find_one({"userName": userName})
         if not user:
             print("❌ User not found")
-            return JSONResponse({"error": "Invalid username or password"}, status_code=401)
-
+            #return JSONResponse({"error": "Invalid username or password"}, status_code=401)
+            return JSONResponse({"error": "USER_NOT_FOUND"}, status_code=401)
         # Verify password
         try:
             password_correct = argon2.verify(password, user.get("password", ""))

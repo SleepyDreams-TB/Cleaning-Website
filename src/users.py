@@ -9,8 +9,7 @@ from bson import ObjectId
 from bson.errors import InvalidId
 from typing import Optional
 import os
-from argon2 import PasswordHasher
-ph = PasswordHasher()
+from passlib.hash import argon2 as ph
 
 # Import the auth dependency
 from auth import get_current_user

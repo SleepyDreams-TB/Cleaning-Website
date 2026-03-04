@@ -10,7 +10,6 @@ import logging
 import sys
 from pythonjsonlogger.jsonlogger import JsonFormatter
 from pymongo import MongoClient
-from bson import ObjectId
 
 # Database setup (assuming MongoDB)
 client = MongoClient(os.getenv("MONGODB_URI"))

@@ -50,7 +50,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Cleaning Website API",
+    title="Kingburger's Store API",
     description="API for cleaning services booking and management",
     version="1.0.0",
     lifespan=lifespan,
@@ -69,7 +69,7 @@ allowed_origins = [
 ]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,  # For development; replace with allowed_origins in production
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
@@ -86,7 +86,7 @@ print("✅ Cache Control middleware configured")
 def root():
     """Root endpoint returning API metadata and documentation link."""
     return {
-        "message": "Welcome to the Cleaning Website API! Visit /docs for API documentation.",
+        "message": "Welcome to Kingburger's Store API! Visit /docs for API documentation.",
         "docs": "/docs",
         "version": "1.0.1"
     }
@@ -97,7 +97,7 @@ def health_check():
     """Health check endpoint for monitoring."""
     return {
         "status": "healthy",
-        "service": "cleaning-website-api"
+        "service": "kingburger's-store-api"
     }
 
 

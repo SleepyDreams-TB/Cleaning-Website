@@ -10,11 +10,16 @@ from urllib.parse import parse_qs
 from models import Order
 from helpers import get_origin_ip, log_event
 from postgresqlDB import db_session
-        
+import httpx, json, time  
+
 # ------------------- Configuration -------------------
 IP_WHITELIST = [ip.strip() for ip in os.getenv("IP_WHITELIST", "").split(",") if ip.strip()]
 router = APIRouter(tags=["webhook"])
 
+#Grafana Loki configuration for pushing logs to Grafana Cloud
+LOKI_URL = "https://sleepydreams.grafana.net/loki/api/v1/push"  
+LOKI_USER = cast(str, os.getenv("LOKI_USER")) 
+LOKI_KEY = cast(str, os.getenv("LOKI_KEY"))
 
 #------------------- Helper: Parse Payload from urlencoded to JSON -------------------
 async def get_payload(request: Request):
@@ -27,27 +32,42 @@ async def get_payload(request: Request):
         return await request.json()
 
 
-def update_order_status(db, merchant_reference: str, status: str, reason: str = None) -> bool:
+def update_order_status(db, merchant_reference: str, status: str, reason: str = None) -> str:
     """Update order status in the database."""
     if not merchant_reference:
-        log_event("warning", "invalid_reference", reference=merchant_reference)
-        return False
+        return "invalid_reference"
 
     order = db.query(Order).filter(Order.merchant_reference == merchant_reference).first()
     if not order:
-        log_event("warning", "order_not_found", merchant_reference=merchant_reference)
-        return False
+        return "order_not_found"
 
     try:
         order.status = status
         order.reason = reason
         order.updated_at = datetime.now(timezone.utc)
-        log_event("info", "order_updated", merchant_reference=merchant_reference, status=status, reason=reason)
-        return True
+        return "order_updated"
     except Exception as e:
-        log_event("error", "order_update_error", merchant_reference=merchant_reference, error=str(e))
-        return False
+        return (f"order_update_error: {str(e)}")
 
+async def push_to_loki(event_type: str, payload: dict):  
+    body = {  
+        "streams": [{  
+            "stream": {  
+                "service": "psp-webhook",  
+                "event_type": event_type  
+            },  
+            "values": [[  
+                str(time.time_ns()),  
+                json.dumps(payload)  
+            ]]  
+        }]  
+    }  
+    async with httpx.AsyncClient() as client:  
+        await client.post(  
+            LOKI_URL,  
+            json=body,  
+            auth=(LOKI_USER, LOKI_KEY)  
+        )  
 
 
 @router.post("/webhook", include_in_schema=False)
@@ -60,7 +80,12 @@ async def webhook(request: Request):
 
     try:
         payload = await get_payload(request)
-        log_event("info", "webhook_received", origin_ip=origin_ip, payload=payload)
+        log_event("info", "webhook_received", origin_ip=origin_ip, **payload)
+        
+        try:
+            await push_to_loki("webhook_received", payload)
+        except Exception as e:
+            log_event("error", "loki_push_error", origin_ip=origin_ip, error=str(e))
 
         merchant_reference = payload.get("merchant_reference")
         status = payload.get("status")
@@ -76,3 +101,10 @@ async def webhook(request: Request):
     except Exception as e:
         log_event("error", "webhook_error", origin_ip=origin_ip, error=str(e))
         raise HTTPException(status_code=500, detail="Internal server error")
+
+
+#@router.post("/webhook/test", include_in_schema=False)
+#async def webhook_test(request: Request):
+#    origin_ip = get_origin_ip(request)
+#    log_event("info", "webhook_test_received", origin_ip=origin_ip)
+#    return JSONResponse({"status": "ok"})

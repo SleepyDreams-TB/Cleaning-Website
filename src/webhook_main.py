@@ -17,7 +17,7 @@ IP_WHITELIST = [ip.strip() for ip in os.getenv("IP_WHITELIST", "").split(",") if
 router = APIRouter(tags=["webhook"])
 
 #Grafana Loki configuration for pushing logs to Grafana Cloud
-LOKI_URL = "https://sleepydreams.grafana.net/loki/api/v1/push"  
+LOKI_URL = cast(str, os.getenv("LOKI_PUSH_URL"))  
 LOKI_USER = cast(str, os.getenv("LOKI_USER")) 
 LOKI_KEY = cast(str, os.getenv("LOKI_KEY"))
 

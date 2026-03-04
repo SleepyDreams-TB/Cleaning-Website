@@ -514,7 +514,10 @@
       if (!selectedAddressType) return alert("Please select a delivery address!");
       if (!payment_type) return alert("Please select a payment method!");
 
-      await createPayment(payment_type, recalcTotal(cart), selectedAddressType);
+      localStorage.set("amount", recalcTotal(cart).toFixed(2));
+      localStorage.set("address_type", selectedAddressType);
+
+      window.location.href = "/paymentselect";
     });
   </script>
 

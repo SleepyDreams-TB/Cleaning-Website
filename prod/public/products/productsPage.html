@@ -309,7 +309,7 @@
     © 2025 King Burger's Store. All rights reserved.
   </footer>
 
-  <!-- Navbar Script -->
+  <!-- Navbar  -->
   <script type="module">
     import { initNavbar } from '/navbar.js';
     document.addEventListener('DOMContentLoaded', () => {
@@ -317,7 +317,7 @@
     });
   </script>
 
-  <!-- Products Script -->
+  <!-- Products  -->
   <script type="module">
     import { addToCart } from '/users/cart.js';
     import { updateCartCount } from '/navbar.js';
@@ -389,20 +389,18 @@
         </div>
       `;
 
-      // Add click event listeners
       document.querySelectorAll('.add-to-cart-btn').forEach(button => {
         button.addEventListener('click', (e) => {
           const productData = JSON.parse(button.getAttribute('data-product'));
           console.log("Adding product to cart:", productData);
 
-          // Add visual feedback
           const originalText = button.innerHTML;
           button.innerHTML = '<i class="fas fa-check"></i> Added!';
           button.classList.add('added');
 
           addToCart(productData);
           updateCartCount();
-          // Reset button after 2 seconds
+
           setTimeout(() => {
             button.innerHTML = originalText;
             button.classList.remove('added');
@@ -411,7 +409,6 @@
       });
     }
 
-    // Load products on page ready
     document.addEventListener('DOMContentLoaded', fetchProducts);
   </script>
 

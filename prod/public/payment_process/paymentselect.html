@@ -183,7 +183,7 @@
             <option value="capitec">Capitec</option>
           </select>
         </div>
-        <button class="submit-btn w-full py-3.5 rounded-xl text-white text-sm font-semibold tracking-wide">
+        <button id="eftsecure-button" class="submit-btn w-full py-3.5 rounded-xl text-white text-sm font-semibold tracking-wide">
           Continue with EFTsecure
         </button>
       </div>
@@ -242,7 +242,7 @@
             <div class="w-2 h-2 rounded-full bg-indigo-400"></div>
           </div>
         </div>
-        <button class="submit-btn w-full py-3.5 rounded-xl text-white text-sm font-semibold tracking-wide">
+        <button id="credit-card-saved" class="submit-btn w-full py-3.5 rounded-xl text-white text-sm font-semibold tracking-wide">
           Pay with Saved Card
         </button>
       </div>
@@ -273,7 +273,7 @@
             </div>
           </div>
         </div>
-        <button class="submit-btn w-full mt-5 py-3.5 rounded-xl text-white text-sm font-semibold tracking-wide">
+        <button id="new-card-details" class="submit-btn w-full mt-5 py-3.5 rounded-xl text-white text-sm font-semibold tracking-wide">
           Pay Securely
         </button>
       </div>
@@ -308,6 +308,98 @@
   </div>
 
   <script>
+    import {createPayment} from '/users/cart.js';
+
+    const guid = localStorage.getItem('guid');
+    const last4Digits = localStorage.getItem('last4Digits');
+
+    const eftButton = document.getElementById('eftsecure-button');
+    const savedCardButton = document.getElementById('credit-card-saved');
+    const newCardButton = document.getElementById('new-card-details');
+
+    const cartAmount = parseFloat(localStorage.getItem('cartAmount')) || 0;
+    const selectedAddressType = localStorage.getItem('selectedAddressType') || 'home';
+
+    //to-fix
+    eftButton.addEventListener('click', () => {
+      createPayment('eftsecure', cartAmount, selectedAddressType)
+        .then(response => {
+          if (response.success) {
+            window.location.href = response.redirectUrl;
+          } else {
+            alert('Failed to initiate EFTsecure payment. Please try again.');
+          }
+    });
+    });
+
+    savedCardButton.addEventListener('click', () => {
+      createPayment('credit_card', cartAmount, selectedAddressType, last4Digits)
+        .then(response => {
+          if (response.success) {
+            window.location.href = "/redirects/";
+          } else {
+            alert('Failed to process card payment. Please try again.');
+          }
+        });
+    });
+
+    saveNewCardButton = document.getElementById('new-card-details');
+
+    saveNewCardButton.addEventListener('click', () => {
+      const cardNumber = document.getElementById('card-number').value.replace(/\s/g, '');
+      const expiryDate = document.getElementById('expiry-date').value;
+      const cvv = document.getElementById('cvv').value;
+      const cardHolderName = document.getElementById('card-holder').value;
+
+      if (!cardNumber || !expiryDate || !cvv || !cardHolderName) {
+        alert('Please fill in all card details.');
+        return;
+      }
+
+      //to-fix
+      createPayment('credit_card', cartAmount, selectedAddressType,
+        cardNumber,
+        expiryDate,
+        cvv,
+        cardHolderName
+      )
+        .then(response => {
+          if (response.success) {
+            window.location.href = response.redirectUrl;
+          } else {
+            alert('Failed to process card payment. Please check your details and try again.');
+          }
+        });
+    });
+
+    newCardButton.addEventListener('click', () => {
+      const cardNumber = document.getElementById('card-number').value.replace(/\s/g, '');
+      const expiryDate = document.getElementById('expiry-date').value;
+      const cvv = document.getElementById('cvv').value;
+      const cardHolderName = document.getElementById('card-holder').value;
+
+      if (!cardNumber || !expiryDate || !cvv || !cardHolderName) {
+        alert('Please fill in all card details.');
+        return;
+      }
+
+      //to-fix
+      createPayment('credit_card', cartAmount, selectedAddressType, {
+        cardNumber,
+        expiryDate,
+        cvv,
+        cardHolderName
+      })
+        .then(response => {
+          if (response.success) {
+            window.location.href = response.redirectUrl;
+          } else {
+            alert('Failed to process card payment. Please check your details and try again.');
+          }
+        });
+    });
+
+
     // ------------------- Tab Switching -------------------
     function selectMethod(method) {
       document.querySelectorAll('.panel').forEach(p => p.classList.add('hidden'));
@@ -325,6 +417,9 @@
       document.getElementById('card-' + type).classList.remove('hidden');
       document.getElementById('card-' + type).classList.add('slide-down');
       document.getElementById('sub-' + type).classList.add('active');
+
+
+
     }
 
     // ------------------- Card Number Formatting -------------------
@@ -347,6 +442,8 @@
         e.preventDefault();
       }
     });
+
+
 
     // ------------------- Expiry Formatting -------------------
     expiryInput.addEventListener('input', (e) => {
@@ -374,7 +471,7 @@
     cvvInput.addEventListener('input', (e) => {
       e.target.value = e.target.value.replace(/\D/g, '').substring(0, 4);
     });
-
+    
     // ------------------- Name Preview -------------------
     cardHolder.addEventListener('input', (e) => {
       document.getElementById('card-preview-name').textContent =

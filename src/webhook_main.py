@@ -63,11 +63,12 @@ async def push_to_loki(event_type: str, payload: dict):
         }]  
     }  
     async with httpx.AsyncClient() as client:  
-        await client.post(  
+        response = await client.post(  
             LOKI_URL,  
             json=body,  
-            auth=(LOKI_USER, LOKI_KEY)  
-        )  
+            auth=(LOKI_USER, LOKI_KEY)
+            )  
+        log_event("info", "loki_push_response", status_code=response.status_code, body=response.text)
 
 
 @router.post("/webhook", include_in_schema=False)

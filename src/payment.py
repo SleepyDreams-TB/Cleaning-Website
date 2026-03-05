@@ -1,59 +1,131 @@
-
-from fastapi import APIRouter
-router = APIRouter()
-
-import random
-import string
-from datetime import datetime, timezone
-from typing import Union
-import httpx
-from fastapi import HTTPException
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from datetime import UTC
-
+from typing import Optional
+import httpx
 from callpayV2_Token import generate_callpay_token
 from dotenv import load_dotenv
 import os
 from typing import cast
+
 load_dotenv()
+router = APIRouter()
 
-CALLPAY_API_URL = cast(str, os.getenv("CALLPAY_API_URL"))
+CALLPAY_BASE_URL = "https://services.callpay.com/api/v2"
 
 
-# ------------------- Payment Endpoint -------------------
-class PaymentRequest(BaseModel):
-    payment_type: str
+def get_callpay_headers() -> dict:
+    creds = generate_callpay_token()
+    return {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Auth-Token": creds["Token"],
+        "Org-Id": creds["org_id"],
+        "Timestamp": creds["timestamp"]
+    }
+
+
+# ------------------- EFT -------------------
+
+class EFTPaymentRequest(BaseModel):
     amount: float
-    merchant_reference: Union[str, None] = None
+    merchant_reference: str
+    customer_bank: str  # e.g. "absa", "fnb"
 
-@router.post("/api/create-payment", include_in_schema=False)
-async def create_payment(payment: PaymentRequest):
-    callpay_creds = generate_callpay_token()
-    merchant_ref = payment.merchant_reference
+@router.post("/api/create-payment/eft")
+async def create_eft_payment(payment: EFTPaymentRequest):
     payload = {
+        "payment_type": "eft",
         "amount": f"{payment.amount:.2f}",
-        "merchant_reference": merchant_ref,
-        "payment_type": payment.payment_type,
+        "merchant_reference": payment.merchant_reference,
+        "customer_bank": payment.customer_bank,
         "notify_url": "https://api.kingburger.site/webhook",
         "success_url": "https://kingburger.site/redirects/success",
         "error_url": "https://kingburger.site/redirects/error",
         "cancel_url": "https://kingburger.site/redirects/cancel"
     }
-    headers = {
-        "Content-Type": "application/x-www-form-urlencoded",
-        "auth-token": callpay_creds["Token"],
-        "org-id": callpay_creds["org_id"],
-        "timestamp": callpay_creds["timestamp"]
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{CALLPAY_BASE_URL}/payment-key",
+                data=payload,
+                headers=get_callpay_headers()
+            )
+            data = response.json()
+        # Returns { key, url, origin } — frontend redirects to data["url"]
+        return {"status": "success", "response": data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"EFT payment setup failed: {e}")
+
+
+# ------------------- Credit Card (Server to Server) -------------------
+
+class CardDataset(BaseModel):
+    cardNumber: str       # raw digits, no spaces
+    expiryDate: str       # frontend sends MM/YY — we convert to MMYY
+    cvv: str
+    cardHolderName: str
+
+class CreditCardPaymentRequest(BaseModel):
+    amount: float
+    merchant_reference: str
+    cardDataset: CardDataset
+    return_url: Optional[str] = "https://kingburger.site/redirects/success"
+
+@router.post("/api/create-payment/credit-card")
+async def create_card_payment(payment: CreditCardPaymentRequest):
+    card = payment.cardDataset
+
+    # Convert MM/YY → MMYY as Callpay expects
+    expiry = card.expiryDate.replace("/", "")
+
+    payload = {
+        "pan": card.cardNumber,
+        "expiry": expiry,
+        "cvv": card.cvv,
+        "amount": f"{payment.amount:.2f}",
+        "merchant_reference": payment.merchant_reference[:20],  # max 20 chars
+        "first_name": card.cardHolderName.split()[0] if card.cardHolderName else "",
+        "last_name": " ".join(card.cardHolderName.split()[1:]) if len(card.cardHolderName.split()) > 1 else "",
+        "return_url": payment.return_url,
+        "notify_url": "https://api.kingburger.site/webhook"
     }
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.post(CALLPAY_API_URL, data=payload, headers=headers)
-            text = response.text
-            try:
-                data = response.json()
-            except Exception:
-                data = {"raw_response": text or "No content returned"}
+            response = await client.post(
+                f"{CALLPAY_BASE_URL}/pay/direct",
+                data=payload,
+                headers=get_callpay_headers()
+            )
+            data = response.json()
+        # type is either "result" (check data["transaction"]["status"])
+        # or "3ds_redirect" (frontend must redirect to data["redirect_url"])
         return {"status": "success", "response": data}
     except Exception as e:
-        print("Payment error:", e)
-        raise HTTPException(status_code=500, detail=f"Payment request failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Card payment failed: {e}")
+
+# ------------------- Token (Saved Card) Payment -------------------
+
+class TokenPaymentRequest(BaseModel):
+    amount: float
+    merchant_reference: str
+    guid: str  # the customer's saved card GUID from Callpay
+
+@router.post("/api/create-payment/saved-card")
+async def create_token_payment(payment: TokenPaymentRequest):
+    payload = {
+        "amount": f"{payment.amount:.2f}",
+        "reference": payment.merchant_reference[:32]  # max 32 chars per Callpay docs
+    }
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{CALLPAY_BASE_URL}/customer-token/{payment.guid}/pay",
+                data=payload,
+                headers=get_callpay_headers()
+            )
+            data = response.json()
+
+        # Response contains: success, amount, reason, callpay_transaction_id,
+        # merchant_reference, gateway_reference, gateway_response
+        return {"status": "success", "response": data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Token payment failed: {e}")

@@ -174,16 +174,21 @@
         <p class="text-white/50 text-sm mb-4">Select your bank to continue with EFTsecure</p>
         <div class="mb-5">
           <label class="block text-xs text-white/40 uppercase tracking-widest mb-2">Your Bank</label>
-          <select class="form-input w-full rounded-xl px-4 py-3 text-sm">
+          <select id="select_bank" class="form-input w-full rounded-xl px-4 py-3 text-sm">
             <option value="">Select a bank...</option>
             <option value="absa">ABSA</option>
             <option value="fnb">First National Bank</option>
             <option value="nedbank">Nedbank</option>
             <option value="standard">Standard Bank</option>
-            <option value="capitec">Capitec</option>
+            <option value="tyme">Tyme - min: R10</option>
+            <option value="investec">Investec</option>
+            <option value="bidvest">Bidvest Bank</option>
+            <option value="oldmutual">Old Mutual</option>
+            <option value="afribank">African Bank</option>
           </select>
         </div>
-        <button id="eftsecure-button" class="submit-btn w-full py-3.5 rounded-xl text-white text-sm font-semibold tracking-wide">
+        <button id="eftsecure-button"
+          class="submit-btn w-full py-3.5 rounded-xl text-white text-sm font-semibold tracking-wide">
           Continue with EFTsecure
         </button>
       </div>
@@ -242,7 +247,8 @@
             <div class="w-2 h-2 rounded-full bg-indigo-400"></div>
           </div>
         </div>
-        <button id="credit-card-saved" class="submit-btn w-full py-3.5 rounded-xl text-white text-sm font-semibold tracking-wide">
+        <button id="credit-card-saved"
+          class="submit-btn w-full py-3.5 rounded-xl text-white text-sm font-semibold tracking-wide">
           Pay with Saved Card
         </button>
       </div>
@@ -273,7 +279,8 @@
             </div>
           </div>
         </div>
-        <button id="new-card-details" class="submit-btn w-full mt-5 py-3.5 rounded-xl text-white text-sm font-semibold tracking-wide">
+        <button id="new-card-details"
+          class="submit-btn w-full mt-5 py-3.5 rounded-xl text-white text-sm font-semibold tracking-wide">
           Pay Securely
         </button>
       </div>
@@ -308,98 +315,6 @@
   </div>
 
   <script>
-    import {createPayment} from '/users/cart.js';
-
-    const guid = localStorage.getItem('guid');
-    const last4Digits = localStorage.getItem('last4Digits');
-
-    const eftButton = document.getElementById('eftsecure-button');
-    const savedCardButton = document.getElementById('credit-card-saved');
-    const newCardButton = document.getElementById('new-card-details');
-
-    const cartAmount = parseFloat(localStorage.getItem('cartAmount')) || 0;
-    const selectedAddressType = localStorage.getItem('selectedAddressType') || 'home';
-
-    //to-fix
-    eftButton.addEventListener('click', () => {
-      createPayment('eftsecure', cartAmount, selectedAddressType)
-        .then(response => {
-          if (response.success) {
-            window.location.href = response.redirectUrl;
-          } else {
-            alert('Failed to initiate EFTsecure payment. Please try again.');
-          }
-    });
-    });
-
-    savedCardButton.addEventListener('click', () => {
-      createPayment('credit_card', cartAmount, selectedAddressType, last4Digits)
-        .then(response => {
-          if (response.success) {
-            window.location.href = "/redirects/";
-          } else {
-            alert('Failed to process card payment. Please try again.');
-          }
-        });
-    });
-
-    saveNewCardButton = document.getElementById('new-card-details');
-
-    saveNewCardButton.addEventListener('click', () => {
-      const cardNumber = document.getElementById('card-number').value.replace(/\s/g, '');
-      const expiryDate = document.getElementById('expiry-date').value;
-      const cvv = document.getElementById('cvv').value;
-      const cardHolderName = document.getElementById('card-holder').value;
-
-      if (!cardNumber || !expiryDate || !cvv || !cardHolderName) {
-        alert('Please fill in all card details.');
-        return;
-      }
-
-      //to-fix
-      createPayment('credit_card', cartAmount, selectedAddressType,
-        cardNumber,
-        expiryDate,
-        cvv,
-        cardHolderName
-      )
-        .then(response => {
-          if (response.success) {
-            window.location.href = response.redirectUrl;
-          } else {
-            alert('Failed to process card payment. Please check your details and try again.');
-          }
-        });
-    });
-
-    newCardButton.addEventListener('click', () => {
-      const cardNumber = document.getElementById('card-number').value.replace(/\s/g, '');
-      const expiryDate = document.getElementById('expiry-date').value;
-      const cvv = document.getElementById('cvv').value;
-      const cardHolderName = document.getElementById('card-holder').value;
-
-      if (!cardNumber || !expiryDate || !cvv || !cardHolderName) {
-        alert('Please fill in all card details.');
-        return;
-      }
-
-      //to-fix
-      createPayment('credit_card', cartAmount, selectedAddressType, {
-        cardNumber,
-        expiryDate,
-        cvv,
-        cardHolderName
-      })
-        .then(response => {
-          if (response.success) {
-            window.location.href = response.redirectUrl;
-          } else {
-            alert('Failed to process card payment. Please check your details and try again.');
-          }
-        });
-    });
-
-
     // ------------------- Tab Switching -------------------
     function selectMethod(method) {
       document.querySelectorAll('.panel').forEach(p => p.classList.add('hidden'));
@@ -417,9 +332,6 @@
       document.getElementById('card-' + type).classList.remove('hidden');
       document.getElementById('card-' + type).classList.add('slide-down');
       document.getElementById('sub-' + type).classList.add('active');
-
-
-
     }
 
     // ------------------- Card Number Formatting -------------------
@@ -471,11 +383,125 @@
     cvvInput.addEventListener('input', (e) => {
       e.target.value = e.target.value.replace(/\D/g, '').substring(0, 4);
     });
-    
+
     // ------------------- Name Preview -------------------
     cardHolder.addEventListener('input', (e) => {
       document.getElementById('card-preview-name').textContent =
         e.target.value.toUpperCase() || 'YOUR NAME';
+    });
+  </script>
+
+  <script type="module">
+    import { createPayment } from '../payment_process/processhelpers.js';
+
+    const eftButton = document.getElementById('eftsecure-button');
+    const bankSelect = document.getElementById('select_bank');
+    const savedCardButton = document.getElementById('credit-card-saved');
+    const newCardButton = document.getElementById('new-card-details');
+    const savedCardTab = document.getElementById('sub-existing');
+
+    const guid = localStorage.getItem('guid');
+    const last4Digits = localStorage.getItem('last4Digits');
+    const cartAmount = parseFloat(localStorage.getItem('amount')) || 0;
+    const selectedAddressType = localStorage.getItem('address_type');
+
+    // Guard — if no address type, something went wrong, send back to cart
+    if (!selectedAddressType) {
+      alert('Session expired. Please try again.');
+      window.location.href = '/users/cart.html';
+    }
+
+    // ----- Populate or hide saved card UI -----
+    if (guid && last4Digits) {
+      document.querySelector('#card-existing .text-white.text-sm.font-medium').textContent =
+        `•••• •••• •••• ${last4Digits}`;
+    } else {
+      // No saved card — hide the tab and default straight to new card
+      savedCardTab.style.display = 'none';
+      selectCardType('new');
+    }
+
+    // ----- EFT -----
+    eftButton.addEventListener('click', async () => {
+      if (!bankSelect.value) {
+        alert('Please select a bank.');
+        return;
+      }
+      eftButton.disabled = true;
+      eftButton.textContent = 'Processing...';
+      try {
+        await createPayment('eft', cartAmount, selectedAddressType, {
+          customer_bank: bankSelect.value
+        });
+      } finally {
+        eftButton.disabled = false;
+        eftButton.textContent = 'Continue with EFTsecure';
+      }
+    });
+
+    // ----- Saved Card -----
+    savedCardButton.addEventListener('click', async () => {
+      if (!guid) {
+        alert('No saved card on file. Please use a new card.');
+        return;
+      }
+      savedCardButton.disabled = true;
+      savedCardButton.textContent = 'Processing...';
+      try {
+        await createPayment('saved_card', cartAmount, selectedAddressType, { guid });
+      } finally {
+        savedCardButton.disabled = false;
+        savedCardButton.textContent = 'Pay with Saved Card';
+      }
+    });
+
+    // ----- New Card -----
+    newCardButton.addEventListener('click', async () => {
+      const cardNumber = document.getElementById('card-number').value.replace(/\s/g, '');
+      const expiryDate = document.getElementById('expiry-date').value;
+      const cvv = document.getElementById('cvv').value;
+      const cardHolderName = document.getElementById('card-holder').value.trim();
+
+      // Validation
+      if (!cardNumber || !expiryDate || !cvv || !cardHolderName) {
+        alert('Please fill in all card details.');
+        return;
+      }
+      if (!/^\d{16}$/.test(cardNumber)) {
+        alert('Please enter a valid 16-digit card number.');
+        return;
+      }
+      if (!/^\d{2}\/\d{2}$/.test(expiryDate)) {
+        alert('Please enter a valid expiry date (MM/YY).');
+        return;
+      }
+      if (!/^\d{3,4}$/.test(cvv)) {
+        alert('Please enter a valid CVV.');
+        return;
+      }
+
+      // Check expiry is not in the past
+      const [month, year] = expiryDate.split('/').map(Number);
+      const now = new Date();
+      const expiry = new Date(2000 + year, month - 1);
+      if (expiry < now) {
+        alert('Your card has expired.');
+        return;
+      }
+
+      newCardButton.disabled = true;
+      newCardButton.textContent = 'Processing...';
+      try {
+        await createPayment('credit_card', cartAmount, selectedAddressType, {
+          cardNumber,
+          expiryDate,
+          cvv,
+          cardHolderName
+        });
+      } finally {
+        newCardButton.disabled = false;
+        newCardButton.textContent = 'Pay Securely';
+      }
     });
   </script>
 </body>

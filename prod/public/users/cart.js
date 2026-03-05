@@ -1,5 +1,6 @@
+//cart.js
 // ----- Notification Helper -----
-function notifyUser(message) {
+export function notifyUser(message) {
   alert(message);
   console.log("User notification:", message);
 }
@@ -46,7 +47,7 @@ export function clearCart() {
 export function deleteCartItem(id) {
   let cart = getCart();
   const initialLength = cart.length;
-  cart = cart.filter(item => (item.id) !== id);
+  cart = cart.filter(item => (item._id || item.id) !== id);
   saveCart(cart);
   console.log(`Deleted item ${id} from cart. Removed ${initialLength - cart.length} items.`);
   return cart;
@@ -104,6 +105,8 @@ export async function createBackendOrder(payment_type, addressType) {
 
   try {
     const addresses = await getBillingInfoAddress(token);
+    if (!addresses) return null;
+
     const deliveryAddress = addresses[addressType];
 
     if (!deliveryAddress) {
@@ -135,76 +138,11 @@ export async function createBackendOrder(payment_type, addressType) {
     console.log("Order creation response:", data);
 
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-
+    const data = await res.json();
     return data;
   } catch (err) {
     console.error("Failed to create backend order:", err);
     notifyUser("We could not create your order. Please try again.");
     return null;
-  }
-}
-
-// ----- Create Payment -----
-export async function createPayment(payment_type, amount, deliveryAddress) {
-  try {
-    const orderData = await createBackendOrder(payment_type, deliveryAddress);
-    if (!orderData || !orderData.merchant_reference) {
-      notifyUser("We could not create your order. Please try again.");
-      return;
-    }
-
-    console.log("Creating payment for merchant_reference:", orderData.merchant_reference);
-
-    const res = await fetch("https://api.kingburger.site/api/create-payment", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        payment_type,
-        amount,
-        merchant_reference: orderData.merchant_reference
-      })
-    });
-
-    const text = await res.text();
-    let data = {};
-    try {
-      data = text ? JSON.parse(text) : {};
-    } catch {
-      console.warn("Failed to parse payment response as JSON, using raw text.");
-      data = { raw_response: text };
-    }
-
-    console.log("Payment response data:", data);
-
-    clearCart();
-
-    if (data && data.response) {
-      const response = data.response;
-      console.log("Payment response object:", response);
-
-      if (response.url) {
-        console.log("Redirecting to payment URL:", response.url);
-        window.location.href = response.url;
-      } else if (response.raw_response) {
-        console.log("Raw response received:", response.raw_response);
-        const urlMatch = response.raw_response.match(/https?:\/\/\S+/);
-        if (urlMatch) {
-          console.log("Extracted URL from raw response:", urlMatch[0]);
-          window.location.href = urlMatch[0];
-        } else {
-          console.error("No URL found in raw_response");
-          notifyUser("Something went wrong. Please try again.");
-        }
-      } else {
-        console.error("Response object does not contain url or raw_response");
-        notifyUser("Something went wrong. Please try again.");
-      }
-    } else {
-      console.error("Data or data.response is undefined or null", data);
-      notifyUser("Something went wrong. Please try again.");
-    }
-  } catch (error) {
-    console.error("Error during payment creation:", error);
-    notifyUser("Something went wrong. Please try again.");
   }
 }

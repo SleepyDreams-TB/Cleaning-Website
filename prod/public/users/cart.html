@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cart - Sparkle Clean</title>
+  <title>Cart - King Burger</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -286,20 +286,10 @@
           <i class="fas fa-map-marker-alt text-purple-600 mr-2"></i>Delivery Address
         </h3>
         <select id="billing-address-select"
-          class="w-full border-2 border-gray-200 rounded-10 px-4 py-3 focus:border-purple-600 focus:outline-none mb-6">
-          <option value="" disabled selected> Choose Your Delivery Address</option>
+          class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:border-purple-600 focus:outline-none mb-6">
+          <option value="" disabled selected>Choose Your Delivery Address</option>
         </select>
-        <!-- 
-        <h3 class="font-bold mb-3 text-gray-700">
-          <i class="fas fa-credit-card text-purple-600 mr-2"></i>Payment Method
-          
-          <select id="payment-method-select"
-            class="w-full border-2 border-gray-200 rounded-10 px-4 py-3 focus:border-purple-600 focus:outline-none mb-6">
-            <option value="" disabled selected>💳 Select Payment Method</option>
-            <option value="eft">Electronic Funds Transfer (EFT)</option>
-            <option value="credit_card">Credit/Debit Card</option>
-          </select>
-          -->
+
         <div class="flex gap-3 justify-end">
           <button id="cancel-order-btn" class="btn-danger">
             <i class="fas fa-times"></i> Cancel
@@ -317,11 +307,10 @@
   </footer>
 
   <script type="module">
-    import { getCart, clearCart, deleteCartItem, recalcTotal, createPayment, saveCart, getBillingInfoAddress } from "./cart.js";
+    import { getCart, clearCart, deleteCartItem, recalcTotal, saveCart, getBillingInfoAddress } from "./cart.js";
 
     let cart = getCart();
     const token = localStorage.getItem("jwt");
-
 
     const cartContainer = document.getElementById("cart-items");
     const totalEl = document.getElementById("total-price");
@@ -333,7 +322,6 @@
     const cancelBtn = document.getElementById("cancel-order-btn");
     const checkoutBtn = document.getElementById("checkoutBtn");
     const addressSelect = document.getElementById("billing-address-select");
-    //const paymentSelect = document.getElementById("payment-method-select");
     const continueShoppingBtn = document.getElementById("continue-shopping");
     const modalCloseBtn = document.getElementById("modal-close");
 
@@ -367,23 +355,21 @@
           </div>
         `;
       } else {
-        cart.forEach((item, index) => {
+        cart.forEach((item) => {
           const div = document.createElement("div");
           div.className = "cart-item p-6";
 
           div.innerHTML = `
             <div class="flex gap-6 items-start">
-              <img src="${item.image_url}" alt="${item.name}" class="w-24 h-24 object-cover rounded-12">
-              
+              <img src="${item.image_url}" alt="${item.name}" class="w-24 h-24 object-cover rounded-xl">
               <div class="flex-1">
                 <h3 class="font-bold text-lg text-gray-800 mb-2">${item.name}</h3>
                 <p class="text-gray-600 text-sm mb-4">Quantity & Price</p>
-                
                 <div class="flex items-center justify-between">
                   <div class="quantity-control">
                     <button class="minus">−</button>
                     <input type="number" step="1" min="1" max="5" value="${item.quantity}" readonly>
-                    <button class="plus">＋</button> 
+                    <button class="plus">＋</button>
                   </div>
                   <div class="price-tag">R${(item.price * item.quantity).toFixed(2)}</div>
                   <button class="btn-danger delete-btn">
@@ -421,8 +407,9 @@
             }
           });
 
+          // FIX 1: Use _id || id to handle both MongoDB _id and plain id fields
           delBtn.addEventListener("click", () => {
-            cart = deleteCartItem(item.id);
+            cart = deleteCartItem(item._id || item.id);
             renderCart();
           });
 
@@ -455,8 +442,11 @@
       }
 
       if (cart.length === 0) return alert("Your cart is empty!");
-      orderModel.classList.add("show");
+
+      // FIX 2: Always clear order details before re-rendering to prevent
+      // duplicate totals if the modal is opened more than once
       orderDetails.innerHTML = "";
+      orderModel.classList.add("show");
 
       cart.forEach(item => {
         const div = document.createElement("div");
@@ -468,17 +458,19 @@
         orderDetails.appendChild(div);
       });
 
-      const addresses = await getBillingInfoAddress(token);
-
-      if (addresses) {
-        addressSelect.innerHTML = `<option value="" disabled selected>📍 Choose Your Delivery Address</option>`;
-        Object.keys(addresses).forEach(addressType => {
-          const addr = addresses[addressType];
-          const option = document.createElement("option");
-          option.value = addressType;
-          option.textContent = `${addr.street}, ${addr.suburb}, ${addr.city}, ${addr.postal_code}`;
-          addressSelect.appendChild(option);
-        });
+      // Only fetch addresses on the first open — if already populated, skip
+      if (addressSelect.options.length <= 1) {
+        const addresses = await getBillingInfoAddress(token);
+        if (addresses) {
+          addressSelect.innerHTML = `<option value="" disabled selected>📍 Choose Your Delivery Address</option>`;
+          Object.keys(addresses).forEach(addressType => {
+            const addr = addresses[addressType];
+            const option = document.createElement("option");
+            option.value = addressType;
+            option.textContent = `${addr.street}, ${addr.suburb}, ${addr.city}, ${addr.postal_code}`;
+            addressSelect.appendChild(option);
+          });
+        }
       }
 
       const totalDiv = document.createElement("div");
@@ -494,18 +486,13 @@
     });
 
     let selectedAddressType = null;
-    let payment_type = null;
+    // FIX 3: Removed unused payment_type variable
 
     addressSelect.addEventListener("change", (e) => {
       selectedAddressType = e.target.value;
     });
 
-    paymentSelect.addEventListener("change", (e) => {
-      payment_type = e.target.value;
-    });
-
-    checkoutBtn.addEventListener("click", async () => {
-
+    checkoutBtn.addEventListener("click", () => {
       if (!token) {
         alert("Please log in to proceed with the checkout.");
         window.location.href = "/login";
@@ -514,12 +501,11 @@
 
       if (cart.length === 0) return alert("Your cart is empty!");
       if (!selectedAddressType) return alert("Please select a delivery address!");
-      //if (!payment_type) return alert("Please select a payment method!");
 
       localStorage.setItem("amount", recalcTotal(cart).toFixed(2));
       localStorage.setItem("address_type", selectedAddressType);
 
-      window.location.href = "/paymentselect";
+      window.location.href = "../payment_process/paymentselect.html";
     });
   </script>
 

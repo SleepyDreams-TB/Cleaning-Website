@@ -1,35 +1,5 @@
-// ----- Notification Helper (internal only) -----
-function notifyUser(message) {
-  alert(message);
-  console.log("User notification:", message);
-}
-
-// ----- Fetch Billing Info -----
-export async function getBillingInfoAddress(token) {
-  if (!token) {
-    notifyUser("Please log in");
-    return null;
-  }
-  try {
-    const res = await fetch("https://api.kingburger.site/users/dashboard/info", {
-      headers: { "Authorization": `Bearer ${token}` }
-    });
-    if (!res.ok) throw new Error("Invalid token");
-    const data = await res.json();
-    const billing_address = data.billing_address;
-
-    if (!billing_address) {
-      notifyUser('No billing information found. Please add a billing address in the "Billing Section".');
-      return null;
-    }
-
-    return billing_address;
-  } catch (err) {
-    console.error("Failed to fetch billing info:", err);
-    notifyUser("Could not fetch billing info. Please try again.");
-    return null;
-  }
-}
+//processhelpers.js
+import { getCart, clearCart, notifyUser, getBillingInfoAddress } from "../users/cart.js";
 
 // ----- Create Order in Backend -----
 export async function createBackendOrder(payment_type, addressType) {
@@ -42,8 +12,6 @@ export async function createBackendOrder(payment_type, addressType) {
   }
 
   const token = localStorage.getItem("jwt");
-  console.log("Token:", token);
-
   if (!token) {
     notifyUser("Please log in before placing an order.");
     return null;
@@ -51,8 +19,9 @@ export async function createBackendOrder(payment_type, addressType) {
 
   try {
     const addresses = await getBillingInfoAddress(token);
-    const deliveryAddress = addresses[addressType];
+    if (!addresses) return null; // notifyUser already called inside getBillingInfoAddress
 
+    const deliveryAddress = addresses[addressType];
     if (!deliveryAddress) {
       notifyUser("Invalid delivery address selected.");
       return null;
@@ -78,11 +47,9 @@ export async function createBackendOrder(payment_type, addressType) {
       })
     });
 
+    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data = await res.json();
     console.log("Order creation response:", data);
-
-    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-
     return data;
   } catch (err) {
     console.error("Failed to create backend order:", err);
@@ -92,66 +59,106 @@ export async function createBackendOrder(payment_type, addressType) {
 }
 
 // ----- Create Payment -----
-export async function createPayment(payment_type, amount, deliveryAddress) {
+const ENDPOINTS = {
+  eft: "https://api.kingburger.site/api/create-payment/eft",
+  credit_card: "https://api.kingburger.site/api/create-payment/credit-card",
+  saved_card: "https://api.kingburger.site/api/create-payment/saved-card"
+};
+
+export async function createPayment(payment_type, amount, deliveryAddress, dataObject) {
+  const orderData = await createBackendOrder(payment_type, deliveryAddress);
+  if (!orderData?.merchant_reference) {
+    notifyUser("We could not create your order. Please try again.");
+    return;
+  }
+
+  // ----- Build request body -----
+  let bodyData = {};
+  if (payment_type === "eft") {
+    if (!dataObject?.customer_bank) {
+      notifyUser("Please select a bank for EFT payment.");
+      return;
+    }
+    bodyData = {
+      amount,
+      merchant_reference: orderData.merchant_reference,
+      customer_bank: dataObject.customer_bank
+    };
+  } else if (payment_type === "credit_card") {
+    bodyData = {
+      amount,
+      merchant_reference: orderData.merchant_reference,
+      cardDataset: dataObject
+    };
+  } else if (payment_type === "saved_card") {
+    if (!dataObject?.guid) {
+      notifyUser("No saved card found. Please use a new card.");
+      return;
+    }
+    bodyData = {
+      amount,
+      merchant_reference: orderData.merchant_reference,
+      guid: dataObject.guid
+    };
+  } else {
+    notifyUser("Unknown payment type.");
+    return;
+  }
+
+  // ----- Send to backend & handle response -----
   try {
-    const orderData = await createBackendOrder(payment_type, deliveryAddress);
-    if (!orderData || !orderData.merchant_reference) {
-      notifyUser("We could not create your order. Please try again.");
+    const res = await fetch(ENDPOINTS[payment_type], {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(bodyData)
+    });
+
+    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+    const data = await res.json();
+    const inner = data.response; // Callpay payload unwrapped from { status, response }
+
+    if (!inner) {
+      notifyUser("Something went wrong. Please try again.");
       return;
     }
 
-    console.log("Creating payment for merchant_reference:", orderData.merchant_reference);
+    if (payment_type === "eft") {
+      // inner = { key, url, origin }
+      if (inner.url) {
+        clearCart();
+        window.location.href = inner.url;
+      } else {
+        notifyUser("Could not initiate EFT payment. Please try again.");
+      }
 
-    const res = await fetch("https://api.kingburger.site/api/create-payment", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        payment_type,
-        amount,
-        merchant_reference: orderData.merchant_reference
-      })
-    });
-
-    const text = await res.text();
-    let data = {};
-    try {
-      data = text ? JSON.parse(text) : {};
-    } catch {
-      console.warn("Failed to parse payment response as JSON, using raw text.");
-      data = { raw_response: text };
-    }
-
-    console.log("Payment response data:", data);
-
-    clearCart();
-
-    if (data && data.response) {
-      const response = data.response;
-      console.log("Payment response object:", response);
-
-      if (response.url) {
-        console.log("Redirecting to payment URL:", response.url);
-        window.location.href = response.url;
-      } else if (response.raw_response) {
-        console.log("Raw response received:", response.raw_response);
-        const urlMatch = response.raw_response.match(/https?:\/\/\S+/);
-        if (urlMatch) {
-          console.log("Extracted URL from raw response:", urlMatch[0]);
-          window.location.href = urlMatch[0];
+    } else if (payment_type === "credit_card") {
+      // inner = { type: "result", transaction: { status, ... } }
+      //      OR { type: "3ds_redirect", redirect_url, gateway_transaction_id }
+      clearCart();
+      if (inner.type === "3ds_redirect") {
+        window.location.href = inner.redirect_url;
+      } else if (inner.type === "result") {
+        if (inner.transaction?.status === "complete") {
+          window.location.href = "/redirects/success";
         } else {
-          console.error("No URL found in raw_response");
-          notifyUser("Something went wrong. Please try again.");
+          notifyUser(`Payment failed: ${inner.transaction?.reason || inner.transaction?.status}`);
         }
       } else {
-        console.error("Response object does not contain url or raw_response");
-        notifyUser("Something went wrong. Please try again.");
+        notifyUser("Unexpected response from payment provider.");
       }
-    } else {
-      console.error("Data or data.response is undefined or null", data);
-      notifyUser("Something went wrong. Please try again.");
+
+    } else if (payment_type === "saved_card") {
+      // inner = { success: 1, amount, reason, callpay_transaction_id, ... }
+      clearCart();
+      if (inner.success === 1) {
+        window.location.href = "/redirects/success";
+      } else {
+        notifyUser(`Payment failed: ${inner.reason || "Unknown error"}`);
+      }
     }
-  } catch (error) {
-    console.error("Error during payment creation:", error);
+
+  } catch (err) {
+    console.error("Payment error:", err);
     notifyUser("Something went wrong. Please try again.");
   }
 }

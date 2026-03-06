@@ -463,6 +463,7 @@
       const cvv = document.getElementById('cvv').value;
       const cardHolderName = document.getElementById('card-holder').value.trim();
       const saveCardBool = document.getElementById('check-save-card').checked;
+      const user_id = localStorage.getItem('user_id');
 
       // Validation
       if (!cardNumber || !expiryDate || !cvv || !cardHolderName) {
@@ -499,7 +500,8 @@
           expiryDate,
           cvv,
           cardHolderName,
-          saveCardBool
+          saveCardBool,
+          jwt_token: localStorage.getItem('jwt')
         });
       } finally {
         newCardButton.disabled = false;

@@ -136,9 +136,7 @@ export async function createBackendOrder(payment_type, addressType) {
 
     const data = await res.json();
     console.log("Order creation response:", data);
-
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-    const data = await res.json();
     return data;
   } catch (err) {
     console.error("Failed to create backend order:", err);

@@ -241,7 +241,6 @@
           </div>
           <div>
             <p class="text-white text-sm font-medium">•••• •••• •••• 4242</p>
-            <p class="text-white/40 text-xs">Expires 08/27</p>
           </div>
           <div class="ml-auto w-4 h-4 rounded-full border-2 border-indigo-400 flex items-center justify-center">
             <div class="w-2 h-2 rounded-full bg-indigo-400"></div>
@@ -283,6 +282,8 @@
           class="submit-btn w-full mt-5 py-3.5 rounded-xl text-white text-sm font-semibold tracking-wide">
           Pay Securely
         </button>
+        <input type="checkbox" id="check-save-card" class="mt-4">
+        <label for="save-card" class="text-white/40 text-sm ml-2">Remember my card for future purchases</label>
       </div>
     </div>
 
@@ -461,6 +462,7 @@
       const expiryDate = document.getElementById('expiry-date').value;
       const cvv = document.getElementById('cvv').value;
       const cardHolderName = document.getElementById('card-holder').value.trim();
+      const saveCardBool = document.getElementById('check-save-card').checked;
 
       // Validation
       if (!cardNumber || !expiryDate || !cvv || !cardHolderName) {
@@ -496,7 +498,8 @@
           cardNumber,
           expiryDate,
           cvv,
-          cardHolderName
+          cardHolderName,
+          saveCardBool
         });
       } finally {
         newCardButton.disabled = false;

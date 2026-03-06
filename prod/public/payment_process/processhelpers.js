@@ -19,7 +19,7 @@ export async function createBackendOrder(payment_type, addressType) {
 
   try {
     const addresses = await getBillingInfoAddress(token);
-    if (!addresses) return null; // notifyUser already called inside getBillingInfoAddress
+    if (!addresses) return null;
 
     const deliveryAddress = addresses[addressType];
     if (!deliveryAddress) {

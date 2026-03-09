@@ -67,13 +67,16 @@ async function createBackendOrder(payment_type, merchant_reference, addressType)
     return null;
   }
 }
+function getEndpoint(type) {
+  switch (type) {
+    case "eft": return "https://api.kingburger.site/api/create-payment/eft";
+    case "credit_card": return "https://api.kingburger.site/api/create-payment/credit-card";
+    case "saved_card": return "https://api.kingburger.site/api/create-payment/saved-card";
+    case "tokenize_card": return "https://api.kingburger.site/api/v2/tokenize-card";
+    default: throw new Error("Unknown payment type");
+  }
+}
 
-const ENDPOINTS = {
-  eft: "https://api.kingburger.site/api/create-payment/eft",
-  credit_card: "https://api.kingburger.site/api/create-payment/credit-card",
-  saved_card: "https://api.kingburger.site/api/create-payment/saved-card",
-  tokenize_card: "https://api.kingburger.site/api/v2/tokenize-card"
-};
 
 // ----- Tokenize Card Data with Callpay -----
 export async function tokenizeCardData(merchant_reference, cardData) {
@@ -86,7 +89,7 @@ export async function tokenizeCardData(merchant_reference, cardData) {
       cvv: cardData.cvv
     };
 
-    const res = await fetch(ENDPOINTS["tokenize_card"], {
+    const res = await fetch(getEndpoint("tokenize_card"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(bodyData)
@@ -164,7 +167,7 @@ export async function createPayment(payment_type, amount, deliveryAddress, saveC
 
   // ----- Send to backend & handle response -----
   try {
-    const res = await fetch(ENDPOINTS[payment_type], {
+    const res = await fetch(getEndpoint(payment_type), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(bodyData)

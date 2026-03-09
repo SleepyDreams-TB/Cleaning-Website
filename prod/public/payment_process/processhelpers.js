@@ -85,10 +85,12 @@ export async function tokenizeCardData(merchant_reference, cardData) {
   try {
     const bodyData = {
       merchant_reference,
-      pan: cardData.pan,
-      cardholder_name: cardData.cardholder_name,
-      expiry: cardData.expiry,
-      cvv: cardData.cvv
+      cardNumber: cardData.pan,
+      cardHolderName: cardData.cardHolderName,
+      expiryDate: cardData.expiry,
+      cvv: cardData.cvv,
+      saveCardBool: false,
+      user_id: cardData.user_id
     };
 
     const res = await fetch(getEndpoint("tokenize_card"), {
@@ -150,11 +152,18 @@ export async function createPayment(payment_type, amount, deliveryAddress, saveC
       customer_bank: dataObject.customer_bank
     };
   } else if (payment_type === "credit_card") {
-    bodyData = {
-      amount,
-      merchant_reference: orderData.merchant_reference,
-      cardDataset: dataObject
-    };
+  bodyData = {
+    amount,
+    merchant_reference: orderData.merchant_reference,
+    cardDataset: {
+      cardNumber: dataObject.pan,
+      expiryDate: dataObject.expiry,
+      cvv: dataObject.cvv,
+      cardHolderName: dataObject.cardHolderName,
+      saveCardBool: false,
+      user_id: dataObject.user_id
+    }
+  };
   } else if (payment_type === "saved_card") {
     if (!dataObject?.guid) {
       notifyUser("No saved card found. Please use a new card.");

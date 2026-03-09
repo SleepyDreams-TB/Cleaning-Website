@@ -143,7 +143,6 @@
         // Store JWT & clear temporary storage
         localStorage.setItem('jwt', result.token);
         localStorage.removeItem('qr_code');
-        localStorage.removeItem('user_id');
         const redirectAfterLogin = sessionStorage.getItem('redirectAfterLogin');
         const redirectTo = redirectAfterLogin || '/';
         sessionStorage.removeItem('redirectAfterLogin');

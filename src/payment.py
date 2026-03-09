@@ -30,8 +30,10 @@ def get_callpay_headers() -> dict:
         "Timestamp": creds["timestamp"]
     }
 #save guid as new field to mongodb where user_id match
-def save_guid_to_db(user_id: str, guid: str):
-    users_collection.update_one({"_id": user_id}, {"$set": {"guid": guid}})
+def save_guid_to_db(user_id: str, guid: str, expiryDate: str = "", lastFour: str = ""):
+    users_collection.update_one({"_id": user_id}, {"$set": {"guid": guid,
+        "expiryDate": expiryDate,
+        "lastFour":lastFour}})
 
     return (f"Saving GUID {guid} for customer {user_id} to the database")
 # ------------------- EFT -------------------
@@ -154,3 +156,29 @@ async def create_token_payment(payment: TokenPaymentRequest):
         return {"status": "success", "response": data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Token payment failed: {e}")
+
+@router.post("/api/tokenize-card")
+async def tokenize_card(merchant_reference : str, card: CardDataset):
+    # Convert MM/YY → MMYY as Callpay expects
+
+    payload = {
+        "merchant_reference": merchant_reference,
+        "pan": card.cardNumber,
+        "expiry": card.expiryDate,
+        "cvv": card.cvv
+    }
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{CALLPAY_BASE_URL}/customer-token/direct",
+                data=payload,
+                headers=get_callpay_headers()
+            )
+            data = response.json()
+
+        # Response contains: success, reason, guid, first_name, last_name
+        if data.get("success"):
+            save_guid_to_db(card.user_id, data["guid"], expiryDate=card.expiryDate, lastFour=card.cardNumber[-4:])
+            return {"status": "success", "response": data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Card tokenization failed: {e}")

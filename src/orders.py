@@ -15,7 +15,7 @@ ALGORITHM = cast(str, os.getenv("ALGORITHM", "HS256"))
 router = APIRouter(prefix="/api", tags=["orders"])
 
 # --- Helper Functions ---
-from helpers import get_user_id_from_token, generate_merchant_reference
+from helpers import get_user_id_from_token
 
 # --- Create Order ---
 @router.post("/orders")
@@ -26,14 +26,13 @@ async def create_order(request: Request, authorization: str = Header(None)):
     items = data.get("items", [])
     payment_type = data.get("payment_type", "unknown")
     delivery_info = data.get("delivery_info")
-
+    merchant_reference = data.get("merchant_reference")
     if not items:
         raise HTTPException(status_code=400, detail="No items provided for order")
     if not delivery_info:
         raise HTTPException(status_code=400, detail="Delivery information is required")
     
     total = sum(item["price"] * item["quantity"] for item in items)
-    merchant_reference = generate_merchant_reference()
 
     try:
         with db_session() as db:
@@ -57,6 +56,7 @@ async def create_order(request: Request, authorization: str = Header(None)):
                 db.add(order_item)
 
             response_data = {
+            "success": True,
             "message": "Order created successfully",
             "merchant_reference": merchant_reference,
             "total": total,

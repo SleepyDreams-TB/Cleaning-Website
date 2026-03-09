@@ -10,6 +10,16 @@ function generateMerchantReference() {
   return `PAY-${timestamp}-${suffix}`;
 }
 
+function getEndpoint(type) {
+  switch (type) {
+    case "eft": return "https://api.kingburger.site/api/create-payment/eft";
+    case "credit_card": return "https://api.kingburger.site/api/create-payment/credit-card";
+    case "saved_card": return "https://api.kingburger.site/api/create-payment/saved-card";
+    case "tokenize_card": return "https://api.kingburger.site/api/tokenize-card";
+    default: throw new Error("Unknown payment type");
+  }
+}
+
 // ----- Create Order in Backend -----
 async function createBackendOrder(payment_type, merchant_reference, addressType) {
   const cart = getCart();
@@ -67,15 +77,7 @@ async function createBackendOrder(payment_type, merchant_reference, addressType)
     return null;
   }
 }
-function getEndpoint(type) {
-  switch (type) {
-    case "eft": return "https://api.kingburger.site/api/create-payment/eft";
-    case "credit_card": return "https://api.kingburger.site/api/create-payment/credit-card";
-    case "saved_card": return "https://api.kingburger.site/api/create-payment/saved-card";
-    case "tokenize_card": return "https://api.kingburger.site/api/tokenize-card";
-    default: throw new Error("Unknown payment type");
-  }
-}
+
 
 
 // ----- Tokenize Card Data with Callpay -----

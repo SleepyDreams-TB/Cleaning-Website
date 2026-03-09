@@ -496,8 +496,8 @@
 
       try {
         await createPayment('credit_card', cartAmount, selectedAddressType, saveCardBool, {
-          cardNumber,
-          expiryDate,
+          pan: cardNumber,
+          expiry: expiryDate,
           cvv,
           cardHolderName,
           user_id: localStorage.getItem('user_id')

@@ -112,13 +112,12 @@ export async function tokenizeCardData(merchant_reference, cardData) {
 // ----- Create Payment -----
 export async function createPayment(payment_type, amount, deliveryAddress, dataObject) {
   const merchant_reference = generateMerchantReference();
+
   const orderData = await createBackendOrder(payment_type, merchant_reference, deliveryAddress);
   if (!orderData?.success) {
     console.log("Order creation failed)");
     return;
   }
-
-  //tokenize card data if credit card payment
 
   // ----- Build request body -----
   let bodyData = {};

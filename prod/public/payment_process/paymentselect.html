@@ -393,7 +393,7 @@
   </script>
 
   <script type="module">
-    import { createPayment, tokenizeCard } from '../payment_process/processhelpers.js';
+    import { createPayment, tokenizeCardData } from '../payment_process/processhelpers.js';
 
     const eftButton = document.getElementById('eftsecure-button');
     const bankSelect = document.getElementById('select_bank');
@@ -493,6 +493,14 @@
 
       newCardButton.disabled = true;
       newCardButton.textContent = 'Processing...';
+
+      try {
+        if (saveCardBool) {
+          await tokenizeCardData(merchant_reference, dataObject);
+        }
+      } catch (err) {
+        console.error('Error saving card:', err);
+      }
 
 
       try {

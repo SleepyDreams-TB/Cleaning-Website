@@ -431,7 +431,7 @@
       eftButton.disabled = true;
       eftButton.textContent = 'Processing...';
       try {
-        await createPayment('eft', cartAmount, selectedAddressType, {
+        await createPayment('eft', cartAmount, selectedAddressType, saveCardBool = false, {
           customer_bank: bankSelect.value
         });
       } finally {
@@ -449,7 +449,7 @@
       savedCardButton.disabled = true;
       savedCardButton.textContent = 'Processing...';
       try {
-        await createPayment('saved_card', cartAmount, selectedAddressType, { guid });
+        await createPayment('saved_card', cartAmount, selectedAddressType, saveCardBool = false, { guid });
       } finally {
         savedCardButton.disabled = false;
         savedCardButton.textContent = 'Pay with Saved Card';
@@ -495,16 +495,7 @@
       newCardButton.textContent = 'Processing...';
 
       try {
-        if (saveCardBool) {
-          await tokenizeCardData(merchant_reference, dataObject);
-        }
-      } catch (err) {
-        console.error('Error saving card:', err);
-      }
-
-
-      try {
-        await createPayment('credit_card', cartAmount, selectedAddressType, {
+        await createPayment('credit_card', cartAmount, selectedAddressType, saveCardBool, {
           cardNumber,
           expiryDate,
           cvv,

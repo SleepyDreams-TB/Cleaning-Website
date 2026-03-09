@@ -110,9 +110,19 @@ export async function tokenizeCardData(merchant_reference, cardData) {
 
 
 // ----- Create Payment -----
-export async function createPayment(payment_type, amount, deliveryAddress, dataObject) {
+export async function createPayment(payment_type, amount, deliveryAddress, saveCardBool, dataObject) {
   const merchant_reference = generateMerchantReference();
 
+  if (saveCardBool) {
+    try {
+      const token = await tokenizeCardData(merchant_reference, dataObject);
+    }
+    catch (err) {
+      console.error("Error tokenizing card for saving:", err);
+      notifyUser("Could not save card details. Please check your information and try again.");
+      return;
+    }
+  }
   const orderData = await createBackendOrder(payment_type, merchant_reference, deliveryAddress);
   if (!orderData?.success) {
     console.log("Order creation failed)");

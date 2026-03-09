@@ -86,7 +86,7 @@ export async function tokenizeCardData(merchant_reference, cardData) {
       cvv: cardData.cvv
     };
 
-    const res = await fetch(ENDPOINTS[tokenize_card], {
+    const res = await fetch(ENDPOINTS["tokenize_card"], {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(bodyData)

@@ -163,10 +163,12 @@ async def create_token_payment(payment: TokenPaymentRequest):
 async def tokenize_card(card: CardDataset):
     # Convert MM/YY → MMYY as Callpay expects
 
+    expiry = card.expiryDate.replace("/", "")
+
     payload = {
         "merchant_reference": card.merchant_reference,
         "pan": card.cardNumber,
-        "expiry": card.expiryDate,
+        "expiry": expiry,
         "cvv": card.cvv
     }
     try:

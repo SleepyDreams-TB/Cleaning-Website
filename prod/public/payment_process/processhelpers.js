@@ -80,7 +80,7 @@ export async function tokenizeCardData(merchant_reference, cardData) {
   try {
     const bodyData = {
       merchant_reference,
-      pan = cardData.pan,
+      pan: cardData.pan,
       cardholder_name: cardData.cardholder_name,
       expiry: cardData.expiry,
       cvv: cardData.cvv

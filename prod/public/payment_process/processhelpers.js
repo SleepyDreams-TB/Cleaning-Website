@@ -100,8 +100,8 @@ export async function tokenizeCardData(merchant_reference, cardData) {
     });
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data = await res.json();
-    if (data?.response?.success === 1 && data.response?.token) {
-      return data.response.token;
+    if (data?.status === "success" && data?.response?.guid) {
+      return data.response.guid;
     } else {
       console.error("Card tokenization failed:", data);
       notifyUser("Card details are invalid. Please check and try again.");

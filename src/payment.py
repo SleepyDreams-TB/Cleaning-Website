@@ -72,6 +72,7 @@ async def create_eft_payment(payment: EFTPaymentRequest):
 # ------------------- Credit Card (Server to Server) -------------------
 
 class CardDataset(BaseModel):
+    merchant_reference: str
     cardNumber: str       # raw digits, no spaces
     expiryDate: str       # frontend sends MM/YY — we convert to MMYY
     cvv: str
@@ -158,11 +159,11 @@ async def create_token_payment(payment: TokenPaymentRequest):
         raise HTTPException(status_code=500, detail=f"Token payment failed: {e}")
 
 @router.post("/api/tokenize-card")
-async def tokenize_card(merchant_reference : str, card: CardDataset):
+async def tokenize_card(card: CardDataset):
     # Convert MM/YY → MMYY as Callpay expects
 
     payload = {
-        "merchant_reference": merchant_reference,
+        "merchant_reference": card.merchant_reference,
         "pan": card.cardNumber,
         "expiry": card.expiryDate,
         "cvv": card.cvv

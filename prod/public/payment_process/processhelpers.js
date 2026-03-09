@@ -68,7 +68,7 @@ const ENDPOINTS = {
 export async function createPayment(payment_type, amount, deliveryAddress, dataObject) {
   const orderData = await createBackendOrder(payment_type, deliveryAddress);
   if (!orderData?.merchant_reference) {
-    notifyUser("We could not create your order. Please try again.");
+    console.log("Order creation failed)");
     return;
   }
 

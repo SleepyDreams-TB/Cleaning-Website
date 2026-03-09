@@ -162,7 +162,7 @@ async def create_token_payment(payment: TokenPaymentRequest):
 @router.post("/api/tokenize-card")
 async def tokenize_card(card: CardDataset):
     # Convert MM/YY → MMYY as Callpay expects
-
+    print("Received card data:", card)
     expiry = card.expiryDate.replace("/", "")
 
     payload = {
@@ -181,7 +181,7 @@ async def tokenize_card(card: CardDataset):
             data = response.json()
 
         # Response contains: success, reason, guid, first_name, last_name
-        if data.get("success"):
+        if data.get("guid"):
             save_guid_to_db(card.user_id, data["guid"], expiryDate=card.expiryDate, lastFour=card.cardNumber[-4:])
             return {"status": "success", "response": data}
         else:

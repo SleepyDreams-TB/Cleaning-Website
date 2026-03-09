@@ -1,17 +1,25 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
+from jose import JWTError, jwt
 import httpx
 from callpayV2_Token import generate_callpay_token
 from dotenv import load_dotenv
 import os
 from typing import cast
+from pymongo import MongoClient
 
 load_dotenv()
 router = APIRouter()
 
 CALLPAY_BASE_URL = "https://services.callpay.com/api/v2"
+SECRET_KEY = cast(str, os.getenv("SECRET_KEY"))
+ALGORITHM = cast(str, os.getenv("ALGORITHM", "HS256"))
 
+MONGO_URI = cast(str, os.getenv("MONGO_URI"))
+client = MongoClient(MONGO_URI, tls=True, tlsAllowInvalidCertificates=False)
+db = client["kingburgerstore_db"]
+users_collection = db["store_users"]
 
 def get_callpay_headers() -> dict:
     creds = generate_callpay_token()
@@ -21,8 +29,11 @@ def get_callpay_headers() -> dict:
         "Org-Id": creds["org_id"],
         "Timestamp": creds["timestamp"]
     }
+#save guid as new field to mongodb where user_id match
+def save_guid_to_db(user_id: str, guid: str):
+    users_collection.update_one({"_id": user_id}, {"$set": {"guid": guid}})
 
-
+    return (f"Saving GUID {guid} for customer {user_id} to the database")
 # ------------------- EFT -------------------
 
 class EFTPaymentRequest(BaseModel):
@@ -63,12 +74,25 @@ class CardDataset(BaseModel):
     expiryDate: str       # frontend sends MM/YY — we convert to MMYY
     cvv: str
     cardHolderName: str
+    saveCardBool: bool
+    user_id: str
+
 
 class CreditCardPaymentRequest(BaseModel):
     amount: float
     merchant_reference: str
     cardDataset: CardDataset
-    return_url: Optional[str] = "https://kingburger.site/redirects/success"
+    return_url: Optional[str]
+
+def get_id_from_token(jwt_token) -> str:
+    try:
+        payload = jwt.decode(jwt_token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("user_id")
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid token payload")
+        return user_id
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
 
 @router.post("/api/create-payment/credit-card")
 async def create_card_payment(payment: CreditCardPaymentRequest):
@@ -85,7 +109,7 @@ async def create_card_payment(payment: CreditCardPaymentRequest):
         "merchant_reference": payment.merchant_reference[:20],  # max 20 chars
         "first_name": card.cardHolderName.split()[0] if card.cardHolderName else "",
         "last_name": " ".join(card.cardHolderName.split()[1:]) if len(card.cardHolderName.split()) > 1 else "",
-        "return_url": payment.return_url,
+        "return_url": "https://kingburger.site/redirects/success",
         "notify_url": "https://api.kingburger.site/webhook"
     }
     try:
@@ -96,8 +120,9 @@ async def create_card_payment(payment: CreditCardPaymentRequest):
                 headers=get_callpay_headers()
             )
             data = response.json()
-        # type is either "result" (check data["transaction"]["status"])
-        # or "3ds_redirect" (frontend must redirect to data["redirect_url"])
+        
+        #Callpay returns { success, reason, callpay_transaction_id, merchant_reference, gateway_reference, gateway_response }
+
         return {"status": "success", "response": data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Card payment failed: {e}")

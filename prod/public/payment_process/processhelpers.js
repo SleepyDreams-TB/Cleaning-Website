@@ -72,7 +72,7 @@ function getEndpoint(type) {
     case "eft": return "https://api.kingburger.site/api/create-payment/eft";
     case "credit_card": return "https://api.kingburger.site/api/create-payment/credit-card";
     case "saved_card": return "https://api.kingburger.site/api/create-payment/saved-card";
-    case "tokenize_card": return "https://api.kingburger.site/api/v2/tokenize-card";
+    case "tokenize_card": return "https://api.kingburger.site/api/tokenize-card";
     default: throw new Error("Unknown payment type");
   }
 }
@@ -105,10 +105,13 @@ export async function tokenizeCardData(merchant_reference, cardData) {
     }
 
   } catch (err) {
-    console.error("Card tokenization error:", err);
-    notifyUser("Something went wrong while processing your card. Please try again.");
-    return null;
-  }
+  console.error("Card tokenization error:", err);
+  console.error("Error name:", err.name);
+  console.error("Error message:", err.message);
+  console.error("cardData received:", cardData);
+  notifyUser("Something went wrong while processing your card. Please try again.");
+  return null;
+}
 }
 
 

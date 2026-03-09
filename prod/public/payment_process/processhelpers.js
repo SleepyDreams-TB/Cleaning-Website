@@ -1,8 +1,17 @@
 //processhelpers.js
 import { getCart, clearCart, notifyUser, getBillingInfoAddress } from "../users/cart.js";
 
+// ----- Generate Unique Merchant Reference -----
+function generateMerchantReference() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const suffix = Array.from({ length: 3 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+  const now = new Date();
+  const timestamp = now.toISOString().replace(/[-:T]/g, '').slice(0, 12);
+  return `PAY-${timestamp}-${suffix}`;
+}
+
 // ----- Create Order in Backend -----
-async function createBackendOrder(payment_type, addressType) {
+async function createBackendOrder(payment_type, merchant_reference, addressType) {
   const cart = getCart();
   console.log("Current cart:", cart);
 
@@ -36,6 +45,7 @@ async function createBackendOrder(payment_type, addressType) {
       body: JSON.stringify({
         payment_type,
         items: cart,
+        merchant_reference,
         delivery_info: {
           type: addressType,
           street: deliveryAddress.street,
@@ -58,19 +68,57 @@ async function createBackendOrder(payment_type, addressType) {
   }
 }
 
-// ----- Create Payment -----
 const ENDPOINTS = {
   eft: "https://api.kingburger.site/api/create-payment/eft",
   credit_card: "https://api.kingburger.site/api/create-payment/credit-card",
-  saved_card: "https://api.kingburger.site/api/create-payment/saved-card"
+  saved_card: "https://api.kingburger.site/api/create-payment/saved-card",
+  tokenize_card: "https://api.kingburger.site/api/v2/tokenize-card"
 };
 
+// ----- Tokenize Card Data with Callpay -----
+export async function tokenizeCardData(merchant_reference, cardData) {
+  try {
+    const bodyData = {
+      merchant_reference,
+      pan = cardData.pan,
+      cardholder_name: cardData.cardholder_name,
+      expiry: cardData.expiry,
+      cvv: cardData.cvv
+    };
+
+    const res = await fetch(ENDPOINTS[tokenize_card], {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(bodyData)
+    });
+    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+    const data = await res.json();
+    if (data?.response?.success === 1 && data.response?.token) {
+      return data.response.token;
+    } else {
+      console.error("Card tokenization failed:", data);
+      notifyUser("Card details are invalid. Please check and try again.");
+      return null;
+    }
+
+  } catch (err) {
+    console.error("Card tokenization error:", err);
+    notifyUser("Something went wrong while processing your card. Please try again.");
+    return null;
+  }
+}
+
+
+// ----- Create Payment -----
 export async function createPayment(payment_type, amount, deliveryAddress, dataObject) {
-  const orderData = await createBackendOrder(payment_type, deliveryAddress);
-  if (!orderData?.merchant_reference) {
+  const merchant_reference = generateMerchantReference();
+  const orderData = await createBackendOrder(payment_type, merchant_reference, deliveryAddress);
+  if (!orderData?.success) {
     console.log("Order creation failed)");
     return;
   }
+
+  //tokenize card data if credit card payment
 
   // ----- Build request body -----
   let bodyData = {};

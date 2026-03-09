@@ -182,5 +182,7 @@ async def tokenize_card(card: CardDataset):
         if data.get("success"):
             save_guid_to_db(card.user_id, data["guid"], expiryDate=card.expiryDate, lastFour=card.cardNumber[-4:])
             return {"status": "success", "response": data}
+        else:
+            return {"status": "failed", "response": data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Card tokenization failed: {e}")

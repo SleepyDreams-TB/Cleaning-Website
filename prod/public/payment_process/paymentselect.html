@@ -436,7 +436,7 @@
       eftButton.disabled = true;
       eftButton.textContent = 'Processing...';
       try {
-        await createPayment('eft', cartAmount, selectedAddressType, saveCardBool = false, {
+        await createPayment('eft', cartAmount, selectedAddressType, false, {
           customer_bank: bankSelect.value
         });
       } finally {
@@ -454,7 +454,7 @@
       savedCardButton.disabled = true;
       savedCardButton.textContent = 'Processing...';
       try {
-        await createPayment('saved_card', cartAmount, selectedAddressType, saveCardBool = false, { guid });
+        await createPayment('saved_card', cartAmount, selectedAddressType, false, { guid });
       } finally {
         savedCardButton.disabled = false;
         savedCardButton.textContent = 'Pay with Saved Card';

@@ -166,6 +166,7 @@ async def create_token_payment(payment: TokenPaymentRequest):
         "amount": f"{payment.amount:.2f}",
         "reference": payment.merchant_reference[:32],  # max 32 chars per Callpay docs
         "notify_url": "https://api.kingburger.site/webhook",
+        "return_url": "https://kingburger.site/redirects/return",
         "success_url": "https://kingburger.site/redirects/success",
         "error_url": "https://kingburger.site/redirects/error",
         "cancel_url": "https://kingburger.site/redirects/cancel"

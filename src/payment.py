@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from typing import Optional
 from jose import JWTError, jwt
@@ -96,9 +96,12 @@ def get_id_from_token(jwt_token) -> str:
         raise HTTPException(status_code=401, detail="Invalid token")
 
 @router.post("/api/create-payment/credit-card")
-async def create_card_payment(payment: CreditCardPaymentRequest):
+async def create_card_payment(payment: CreditCardPaymentRequest, request: Request):
+    body = await request.json()
+    print("Raw request body:", body)
+    
     card = payment.cardDataset
-
+    
     # Convert MM/YY → MMYY as Callpay expects
     expiry = card.expiryDate.replace("/", "")
 

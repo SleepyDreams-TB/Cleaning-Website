@@ -190,6 +190,7 @@ export async function createPayment(payment_type, amount, deliveryAddress, saveC
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data = await res.json();
     const inner = data.response; // Callpay payload unwrapped from { status, response }
+    console.log('Payment response:', inner);
 
     if (!inner) {
       notifyUser("Something went wrong. Please try again.");
@@ -208,11 +209,11 @@ export async function createPayment(payment_type, amount, deliveryAddress, saveC
     } else if (payment_type === "credit_card") {
       // inner = { type: "result", transaction: { status, ... } }
       //      OR { type: "3ds_redirect", redirect_url, gateway_transaction_id }
-      clearCart();
+
       if (inner.type === "3ds_redirect") {
         window.location.href = inner.redirect_url;
       } else if (inner.type === "result") {
-        if (inner.transaction?.status === "complete") {
+        if (inner.status === "complete") {
           window.location.href = "/redirects/success";
         } else {
           notifyUser(`Payment failed: ${inner.transaction?.reason || inner.transaction?.status}`);
@@ -223,14 +224,15 @@ export async function createPayment(payment_type, amount, deliveryAddress, saveC
 
     } else if (payment_type === "saved_card") {
       // inner = { success: 1, amount, reason, callpay_transaction_id, ... }
-      clearCart();
       if (inner.type === "3ds_redirect") {
+        clearCart();
         window.location.href = inner.redirect_url;
       } else if (inner.type === "result") {
         if (inner.transaction?.status === "complete") {
+          clearCart();
           window.location.href = "/redirects/success";
         } else {
-          notifyUser(`Payment failed: ${inner.transaction?.reason || inner.transaction?.status}`);
+          notifyUser(`Payment failed: ${inner.reason || "Unknown error"}`);
         }
       } else {
         notifyUser("Unexpected response from payment provider.");

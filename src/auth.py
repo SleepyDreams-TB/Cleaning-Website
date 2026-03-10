@@ -100,7 +100,7 @@ def generate_qr(user_id: str):
             {"$set": {"2fa_secret": user_2fa_secret}}
         )
 
-    issuer_name = "CleaningWebsite"
+    issuer_name = "KingburgerStore"
     otpauth_uri = pyotp.totp.TOTP(user_2fa_secret).provisioning_uri(
         name=user["email"], issuer_name=issuer_name
     )

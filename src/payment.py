@@ -109,7 +109,7 @@ async def create_card_payment(payment: CreditCardPaymentRequest):
         "expiry": expiry,
         "cvv": card.cvv,
         "amount": f"{payment.amount:.2f}",
-        "merchant_reference": payment.merchant_reference[:20],  # max 20 chars
+        "merchant_reference": payment.merchant_reference,
         "first_name": card.cardHolderName.split()[0] if card.cardHolderName else "",
         "last_name": " ".join(card.cardHolderName.split()[1:]) if len(card.cardHolderName.split()) > 1 else "",
         "return_url": "https://kingburger.site/redirects/success",

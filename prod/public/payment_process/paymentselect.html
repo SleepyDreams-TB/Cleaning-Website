@@ -420,7 +420,7 @@
     if (guid && last4Digits) {
       document.getElementById('saved-card-pan').textContent =
         `•••• •••• •••• ${last4Digits}`;
-      document.getElementById("card-expiry").textContent = expiryDate;
+      document.getElementById("card-expiry").textContent = savedExpiryDate;
     } else {
       // No saved card — hide the tab and default straight to new card
       savedCardTab.style.display = 'none';

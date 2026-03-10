@@ -224,10 +224,16 @@ export async function createPayment(payment_type, amount, deliveryAddress, saveC
     } else if (payment_type === "saved_card") {
       // inner = { success: 1, amount, reason, callpay_transaction_id, ... }
       clearCart();
-      if (inner.success === 1) {
-        window.location.href = "/redirects/success";
+      if (inner.type === "3ds_redirect") {
+        window.location.href = inner.redirect_url;
+      } else if (inner.type === "result") {
+        if (inner.transaction?.status === "complete") {
+          window.location.href = "/redirects/success";
+        } else {
+          notifyUser(`Payment failed: ${inner.transaction?.reason || inner.transaction?.status}`);
+        }
       } else {
-        notifyUser(`Payment failed: ${inner.reason || "Unknown error"}`);
+        notifyUser("Unexpected response from payment provider.");
       }
     }
 

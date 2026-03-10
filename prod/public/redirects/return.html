@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Redirecting...</title>
+</head>
+
+<body>
+  <p>Please wait, redirecting...</p>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const success = params.get('success');
+    const status = params.get('status');
+
+    if (success === 'true' && status === 'complete') {
+      window.location.href = '/redirects/success';
+    } else if (status === 'cancel') {
+      window.location.href = '/redirects/cancel';
+    } else {
+      window.location.href = '/redirects/error';
+    }
+  </script>
+</body>
+
+</html>

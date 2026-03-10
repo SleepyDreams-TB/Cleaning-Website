@@ -16,8 +16,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
-from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
 import ssl
 
 from cache_middleware import CacheControlMiddleware
@@ -102,12 +100,6 @@ def health_check():
         "status": "healthy",
         "service": "kingburger's-store-api"
     }
-
-
-@app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request, exc):
-    print("Validation error:", exc.errors(), file=sys.stderr, flush=True)
-    return JSONResponse(status_code=422, content={"detail": exc.errors()})
 
 # Router Registration
 app.include_router(auth_router)

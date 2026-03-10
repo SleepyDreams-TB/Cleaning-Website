@@ -83,7 +83,6 @@ class CreditCardPaymentRequest(BaseModel):
     amount: float
     merchant_reference: str
     cardDataset: CardDataset
-    return_url: Optional[str]
 
 def get_id_from_token(jwt_token) -> str:
     try:

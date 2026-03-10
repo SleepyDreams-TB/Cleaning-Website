@@ -419,7 +419,7 @@
     // ----- Populate or hide saved card UI -----
     if (guid && last4Digits) {
       document.getElementById('save-card-pan').textContent =
-        `•••• •••• •••• ${last4Digits}`;
+        `•••• •••• ••••` + last4Digits;
       document.getElementById("card-expiry").textContent = expiryDate;
     } else {
       // No saved card — hide the tab and default straight to new card

@@ -164,20 +164,13 @@ class TokenizeCardDataset(CardDataset):
 
 @router.post("/api/tokenize-card")
 async def tokenize_card(card: TokenizeCardDataset):
-    logger.info("✅ Tokenize endpoint hit")
-    logger.info(f"Received card data: {card}")
-    
     expiry = card.expiryDate.replace("/", "")
-    logger.info(f"Converted expiry: {expiry}")
-
     payload = {
         "merchant_reference": card.merchant_reference,
         "pan": card.cardNumber,
         "expiry": expiry,
         "cvv": card.cvv
     }
-    logger.info(f"Callpay payload: {payload}")
-    
     try:
         async with httpx.AsyncClient() as client:
             response = await client.post(
@@ -185,18 +178,11 @@ async def tokenize_card(card: TokenizeCardDataset):
                 data=payload,
                 headers=get_callpay_headers()
             )
-            logger.info(f"Callpay response status: {response.status_code}")
             data = response.json()
-            logger.info(f"Callpay response data: {data}")
-
         if data.get("guid"):
-            logger.info(f"✅ GUID received, saving to DB for user: {card.user_id}")
             save_guid_to_db(card.user_id, data["guid"], expiryDate=card.expiryDate, lastFour=card.cardNumber[-4:])
-            logger.info("✅ GUID saved to DB")
             return {"status": "success", "response": data}
         else:
-            logger.warning(f"❌ No GUID in response: {data}")
             return {"status": "failed", "response": data}
     except Exception as e:
-        logger.error(f"❌ Tokenization exception: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Card tokenization failed: {e}")

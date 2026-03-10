@@ -17,9 +17,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 import ssl
+import logging
+logging.basicConfig(level=logging.INFO)
 
-from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
 from cache_middleware import CacheControlMiddleware
 from auth import router as auth_router
 from users import router as users_router
@@ -33,10 +33,6 @@ from debug_router import debug_router
 from models import Base
 from postgresqlDB import engine
 from postgresqlDB import init_db
-
-import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -106,13 +102,6 @@ def health_check():
         "status": "healthy",
         "service": "kingburger's-store-api"
     }
-
-
-
-@app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request, exc):
-    logger.error(f"Validation error: {exc.errors()}")
-    return JSONResponse(status_code=422, content={"detail": exc.errors()})
 
 # Router Registration
 app.include_router(auth_router)

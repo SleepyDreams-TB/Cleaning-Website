@@ -7,9 +7,11 @@ from callpayV2_Token import generate_callpay_token
 from dotenv import load_dotenv
 import os
 from typing import cast
-from pymongo import MongoClient
 import logging
 logger = logging.getLogger(__name__)
+
+from pymongo import MongoClient
+from bson import ObjectId
 
 load_dotenv()
 router = APIRouter()
@@ -33,9 +35,16 @@ def get_callpay_headers() -> dict:
     }
 #save guid as new field to mongodb where user_id match
 def save_guid_to_db(user_id: str, guid: str, expiryDate: str = "", lastFour: str = ""):
-    users_collection.update_one({"_id": user_id}, {"$set": {"guid": guid,
-        "expiryDate": expiryDate,
-        "lastFour":lastFour}})
+    users_collection.update_one(
+        {"_id": ObjectId(user_id)},
+        {"$set": {
+            "billing_info.hashed_card_data": {
+                "guid": guid,
+                "lastFour": lastFour,
+                "expiryDate": expiryDate
+            }
+        }}
+    )
 
     return (f"Saving GUID {guid} for customer {user_id} to the database")
 # ------------------- EFT -------------------

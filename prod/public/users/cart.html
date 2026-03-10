@@ -502,7 +502,7 @@
 
       try {
         const cardDetails = await getCardDetails(token);
-        if (cardDetails?.guid) {
+        if (cardDetails.guid) {
           localStorage.setItem("guid", cardDetails.guid);
           localStorage.setItem("last4Digits", cardDetails.lastFour);
           localStorage.setItem("expiryDate", cardDetails.expiryDate)
@@ -510,7 +510,7 @@
           localStorage.removeItem("guid");
           localStorage.removeItem("last4Digits");
         }
-      } catch {
+      } catch (err) {
         console.error("Failed to fetch card details:", err);
       }
 

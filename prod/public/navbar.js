@@ -10,16 +10,15 @@ function isProtectedPage() {
 }
 
 function isLoggedIn() {
-  return !!localStorage.getItem('jwt')
+  return !!localStorage.getItem('jwt');
 }
 
 // Update cart count
 export function updateCartCount() {
   const cart = JSON.parse(localStorage.getItem('checkoutCart') || '[]');
-  const cartBadge = document.querySelector('.cart-badge');
-  if (cartBadge) {
-    cartBadge.textContent = cart.length;
-  }
+  document.querySelectorAll('.cart-badge').forEach(badge => {
+    badge.textContent = cart.length;
+  });
 }
 
 export async function initNavbar(containerId = "navbar-container") {
@@ -33,51 +32,77 @@ export async function initNavbar(containerId = "navbar-container") {
     if (!response.ok) throw new Error("Failed to fetch navbar HTML");
     container.innerHTML = await response.text();
 
+    // --- Hamburger toggle ---
+    const hamburgerButton = container.querySelector("#hamburgerButton");
+    const hamburgerIcon = container.querySelector("#hamburgerIcon");
+    const mobileMenu = container.querySelector("#mobileMenu");
+
+    if (hamburgerButton && mobileMenu) {
+      hamburgerButton.addEventListener("click", () => {
+        const isOpen = !mobileMenu.classList.contains("hidden");
+        mobileMenu.classList.toggle("hidden", isOpen);
+        hamburgerIcon.classList.toggle("fa-bars", isOpen);
+        hamburgerIcon.classList.toggle("fa-times", !isOpen);
+      });
+    }
+
+    // --- Auth state ---
     const loginButton = container.querySelector("#loginButton");
     const userDropdownButton = container.querySelector("#userDropdownButton");
-
+    const mobileLoggedOut = container.querySelector("#mobileLoggedOut");
+    const mobileLoggedIn = container.querySelector("#mobileLoggedIn");
 
     if (!isLoggedIn()) {
-      // Show Login Button
+      // Desktop: show login button
       loginButton.classList.remove("hidden");
       userDropdownButton.classList.add("hidden");
+      // Mobile: show login, hide user section
+      mobileLoggedOut.classList.remove("hidden");
+      mobileLoggedIn.classList.add("hidden");
 
       if (isProtectedPage()) {
         sessionStorage.setItem('redirectAfterLogin', window.location.pathname);
         window.location.href = "/index";
       }
+
+      updateCartCount();
       return;
-    } else {
-      // Show User Dropdown
-      loginButton.classList.add("hidden");
-      userDropdownButton.classList.remove("hidden");
-      userDropdownButton.classList.add("flex");
     }
+
+    // Logged in — hide login, show user dropdown on desktop
+    loginButton.classList.add("hidden");
+    userDropdownButton.classList.remove("hidden");
+    userDropdownButton.classList.add("flex");
+    // Mobile: hide login, show user section
+    mobileLoggedOut.classList.add("hidden");
+    mobileLoggedIn.classList.remove("hidden");
 
     // Fetch user info
     try {
       const res = await fetch("https://api.kingburger.site/users/dashboard/info", {
         headers: { "Authorization": `Bearer ${localStorage.getItem('jwt')}` }
       });
+
       if (!res.ok) {
         localStorage.removeItem("jwt");
-        if (isProtectedPage()) {
-          window.location.href = "/index";
-        }
+        if (isProtectedPage()) window.location.href = "/index";
         throw new Error("Invalid token");
       }
 
       const data = await res.json();
+      const profileUrl = data.profileImageUrl || "https://media.kingburger.site/images/default-profile.png";
+      const userName = data.loggedIn_User || "User";
 
-      // Dropdown toggle logic
+      // --- Desktop dropdown ---
       const dropdownMenu = container.querySelector("#userDropdownMenu");
       const logoutLink = container.querySelector("#logoutLink");
 
-      userDropdownButton.querySelector("#profileImage").src = data.profileImageUrl || "https://media.kingburger.site/images/default-profile.png";
-      userDropdownButton.querySelector("#userNameText").textContent = data.loggedIn_User || "User";
+      container.querySelector("#profileImage").src = profileUrl;
+      container.querySelector("#userNameText").textContent = userName;
 
       if (userDropdownButton && dropdownMenu) {
-        userDropdownButton.addEventListener("click", () => {
+        userDropdownButton.addEventListener("click", (e) => {
+          e.stopPropagation();
           dropdownMenu.classList.toggle("hidden");
         });
 
@@ -89,7 +114,19 @@ export async function initNavbar(containerId = "navbar-container") {
       }
 
       if (logoutLink) {
-        logoutLink.addEventListener("click", e => {
+        logoutLink.addEventListener("click", () => {
+          localStorage.removeItem("jwt");
+          window.location.href = "/index";
+        });
+      }
+
+      // --- Mobile user section ---
+      container.querySelector("#mobileProfileImage").src = profileUrl;
+      container.querySelector("#mobileUserName").textContent = userName;
+
+      const mobileLogoutLink = container.querySelector("#mobileLogoutLink");
+      if (mobileLogoutLink) {
+        mobileLogoutLink.addEventListener("click", () => {
           localStorage.removeItem("jwt");
           window.location.href = "/index";
         });
@@ -97,10 +134,14 @@ export async function initNavbar(containerId = "navbar-container") {
 
     } catch (err) {
       console.error("Failed to fetch user info:", err);
-      // Show Login Button on error
+      // Fall back to showing login
       loginButton.classList.remove("hidden");
       userDropdownButton.classList.add("hidden");
+      mobileLoggedOut.classList.remove("hidden");
+      mobileLoggedIn.classList.add("hidden");
     }
+
+    updateCartCount();
 
   } catch (err) {
     console.error("Failed to load navbar:", err);

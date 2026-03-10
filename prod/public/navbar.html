@@ -1,4 +1,7 @@
-<nav class="bg-black shadow-lg">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<nav class="bg-black shadow-lg relative z-50">
   <div class="container mx-auto px-4">
     <div class="flex items-center h-16 w-full">
 
@@ -8,8 +11,8 @@
         <span class="text-white font-bold text-xl">King Burger's Store</span>
       </div>
 
-      <!-- Navigation Links -->
-      <div class="hidden md:flex items-center flex-1 ml-10 gap-8">
+      <!-- Desktop Navigation Links (lg+) -->
+      <div class="hidden lg:flex items-center flex-1 ml-10 gap-8">
         <a href="/index"
           class="relative flex items-center gap-1.5 px-3 py-2 rounded-lg font-medium text-[#667eea] transition-all duration-300 hover:text-white hover:bg-white/10 hover:-translate-y-0.5 group">
           <i class="fas fa-home"></i> Home
@@ -35,7 +38,7 @@
             class="absolute bottom-0 left-0 h-0.5 w-0 bg-[#667eea] transition-all duration-300 group-hover:w-full"></span>
         </a>
 
-        <!-- Cart -->
+        <!-- Cart (Desktop) -->
         <a href="/users/cart"
           class="relative flex items-center text-[#667eea] text-xl ml-auto transition-all duration-300 hover:text-white hover:scale-110 shrink-0"
           title="Shopping Cart">
@@ -44,7 +47,7 @@
             class="absolute -top-2 -right-2 bg-[#667eea] text-white text-[11px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-black cart-badge">0</span>
         </a>
 
-        <!-- Dropdown Container -->
+        <!-- Desktop Dropdown Container -->
         <div id="dropdownContainer" class="relative shrink-0 flex items-center">
 
           <!-- Login Button -->
@@ -62,7 +65,7 @@
             <i class="bi bi-list text-lg shrink-0"></i>
           </button>
 
-          <!-- Dropdown Menu -->
+          <!-- Desktop Dropdown Menu -->
           <div id="userDropdownMenu"
             class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.3)] py-1 z-50 border border-gray-100 overflow-hidden top-full">
             <a href="/users/profile"
@@ -87,17 +90,95 @@
               <i class="fas fa-sign-out-alt w-5 text-center"></i> Logout
             </button>
           </div>
-
         </div>
       </div>
+
+      <!-- Mobile Right Side: Cart + Hamburger (below lg) -->
+      <div class="flex lg:hidden items-center gap-4 ml-auto">
+        <!-- Cart (Mobile) -->
+        <a href="/users/cart"
+          class="relative flex items-center text-[#667eea] text-xl transition-all duration-300 hover:text-white"
+          title="Shopping Cart">
+          <i class="fas fa-shopping-cart"></i>
+          <span
+            class="absolute -top-2 -right-2 bg-[#667eea] text-white text-[11px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-black cart-badge">0</span>
+        </a>
+
+        <!-- Hamburger Button -->
+        <button id="hamburgerButton"
+          class="text-[#667eea] text-2xl transition-all duration-300 hover:text-white focus:outline-none">
+          <i id="hamburgerIcon" class="fas fa-bars"></i>
+        </button>
+      </div>
+
     </div>
   </div>
+
+  <!-- Mobile Menu (below lg) -->
+  <div id="mobileMenu" class="hidden lg:hidden bg-black border-t border-white/10 px-4 pb-4">
+
+    <!-- Nav Links -->
+    <div class="flex flex-col pt-2 gap-1">
+      <a href="/index"
+        class="flex items-center gap-2 px-3 py-3 rounded-lg font-medium text-[#667eea] transition-all duration-200 hover:text-white hover:bg-white/10">
+        <i class="fas fa-home w-5 text-center"></i> Home
+      </a>
+      <a href="/About-Us"
+        class="flex items-center gap-2 px-3 py-3 rounded-lg font-medium text-[#667eea] transition-all duration-200 hover:text-white hover:bg-white/10">
+        <i class="fas fa-info-circle w-5 text-center"></i> About Us
+      </a>
+      <a href="/ContactUs"
+        class="flex items-center gap-2 px-3 py-3 rounded-lg font-medium text-[#667eea] transition-all duration-200 hover:text-white hover:bg-white/10">
+        <i class="fas fa-envelope w-5 text-center"></i> Contact
+      </a>
+      <a href="/products/productsPage"
+        class="flex items-center gap-2 px-3 py-3 rounded-lg font-medium text-[#667eea] transition-all duration-200 hover:text-white hover:bg-white/10">
+        <i class="fas fa-shopping-bag w-5 text-center"></i> Products
+      </a>
+    </div>
+
+    <hr class="border-white/10 my-3">
+
+    <!-- Mobile: Logged Out -->
+    <div id="mobileLoggedOut">
+      <a href="/login"
+        class="flex items-center justify-center gap-2 bg-[#667eea] text-white px-5 py-2.5 rounded-lg font-semibold text-sm transition-all duration-300 hover:bg-[#5a6fd6]">
+        <i class="fas fa-sign-in-alt"></i> Login
+      </a>
+    </div>
+
+    <!-- Mobile: Logged In -->
+    <div id="mobileLoggedIn" class="hidden">
+      <!-- User Header -->
+      <div class="flex items-center gap-3 px-3 py-3">
+        <img id="mobileProfileImage" src="" alt="Profile" class="w-10 h-10 rounded-full border-2 border-[#667eea]">
+        <span id="mobileUserName" class="text-white font-semibold"></span>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <a href="/users/profile"
+          class="flex items-center gap-2 px-3 py-3 rounded-lg font-medium text-gray-300 transition-all duration-200 hover:text-white hover:bg-white/10">
+          <i class="fas fa-user text-[#667eea] w-5 text-center"></i> Profile
+        </a>
+        <a href="/users/billing"
+          class="flex items-center gap-2 px-3 py-3 rounded-lg font-medium text-gray-300 transition-all duration-200 hover:text-white hover:bg-white/10">
+          <i class="fas fa-credit-card text-[#667eea] w-5 text-center"></i> Billing
+        </a>
+        <a href="/users/cart"
+          class="flex items-center gap-2 px-3 py-3 rounded-lg font-medium text-gray-300 transition-all duration-200 hover:text-white hover:bg-white/10">
+          <i class="fas fa-shopping-cart text-[#667eea] w-5 text-center"></i> Cart
+        </a>
+        <a href="/users/orders"
+          class="flex items-center gap-2 px-3 py-3 rounded-lg font-medium text-gray-300 transition-all duration-200 hover:text-white hover:bg-white/10">
+          <i class="fas fa-box text-[#667eea] w-5 text-center"></i> Orders
+        </a>
+        <hr class="border-white/10 my-1">
+        <button id="mobileLogoutLink"
+          class="flex items-center gap-2 px-3 py-3 rounded-lg font-semibold text-red-400 transition-all duration-200 hover:text-red-300 hover:bg-white/10">
+          <i class="fas fa-sign-out-alt w-5 text-center"></i> Logout
+        </button>
+      </div>
+    </div>
+
+  </div>
 </nav>
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-
-<script>
-  import { updateCartCount } from '/navbar.js';
-  updateCartCount();
-</script>

@@ -134,6 +134,7 @@ async def create_card_payment(payment: CreditCardPaymentRequest):
         "first_name": card.cardHolderName.split()[0] if card.cardHolderName else "",
         "last_name": " ".join(card.cardHolderName.split()[1:]) if len(card.cardHolderName.split()) > 1 else "",
         "notify_url": "https://api.kingburger.site/webhook",
+        "return_url": "https://kingburger.site/redirects/return",
         "success_url": "https://kingburger.site/redirects/success",
         "error_url": "https://kingburger.site/redirects/error",
         "cancel_url": "https://kingburger.site/redirects/cancel"

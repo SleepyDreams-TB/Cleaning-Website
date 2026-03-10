@@ -133,8 +133,10 @@ async def create_card_payment(payment: CreditCardPaymentRequest):
         "merchant_reference": payment.merchant_reference,
         "first_name": card.cardHolderName.split()[0] if card.cardHolderName else "",
         "last_name": " ".join(card.cardHolderName.split()[1:]) if len(card.cardHolderName.split()) > 1 else "",
-        "return_url": "https://kingburger.site/redirects/success",
-        "notify_url": "https://api.kingburger.site/webhook"
+        "notify_url": "https://api.kingburger.site/webhook",
+        "success_url": "https://kingburger.site/redirects/success",
+        "error_url": "https://kingburger.site/redirects/error",
+        "cancel_url": "https://kingburger.site/redirects/cancel"
     }
     try:
         async with httpx.AsyncClient() as client:
@@ -162,7 +164,11 @@ class TokenPaymentRequest(BaseModel):
 async def create_token_payment(payment: TokenPaymentRequest):
     payload = {
         "amount": f"{payment.amount:.2f}",
-        "reference": payment.merchant_reference[:32]  # max 32 chars per Callpay docs
+        "reference": payment.merchant_reference[:32],  # max 32 chars per Callpay docs
+        "notify_url": "https://api.kingburger.site/webhook",
+        "success_url": "https://kingburger.site/redirects/success",
+        "error_url": "https://kingburger.site/redirects/error",
+        "cancel_url": "https://kingburger.site/redirects/cancel"
     }
     try:
         async with httpx.AsyncClient() as client:
@@ -180,9 +186,10 @@ async def create_token_payment(payment: TokenPaymentRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Token payment failed: {e}")
 
+# ------------------- Tokenize Card endpoint to get guid -------------------
+
 class TokenizeCardDataset(CardDataset):
     merchant_reference: str
-
 
 @router.post("/api/tokenize-card")
 async def tokenize_card(card: TokenizeCardDataset):
@@ -191,7 +198,11 @@ async def tokenize_card(card: TokenizeCardDataset):
         "merchant_reference": card.merchant_reference,
         "pan": card.cardNumber,
         "expiry": expiry,
-        "cvv": card.cvv
+        "cvv": card.cvv,
+        "notify_url": "https://api.kingburger.site/webhook",
+        "success_url": "https://kingburger.site/redirects/success",
+        "error_url": "https://kingburger.site/redirects/error",
+        "cancel_url": "https://kingburger.site/redirects/cancel"
     }
     try:
         async with httpx.AsyncClient() as client:

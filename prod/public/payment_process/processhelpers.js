@@ -92,14 +92,23 @@ export async function tokenizeCardData(merchant_reference, cardData) {
       user_id: cardData.user_id
     };
 
+    console.log("Tokenizing card with body:", JSON.stringify(bodyData, null, 2));
+
     const res = await fetch(getEndpoint("tokenize_card"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(bodyData)
     });
+
+    console.log("Tokenize response status:", res.status);
+
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data = await res.json();
+
+    console.log("Tokenize response data:", data);
+
     if (data?.status === "success" && data?.response?.guid) {
+      console.log("Tokenization successful, guid:", data.response.guid);
       return data.response.guid;
     } else {
       console.error("Card tokenization failed:", data);
@@ -116,7 +125,6 @@ export async function tokenizeCardData(merchant_reference, cardData) {
     return null;
   }
 }
-
 
 // ----- Create Payment -----
 export async function createPayment(payment_type, amount, deliveryAddress, saveCardBool, dataObject) {

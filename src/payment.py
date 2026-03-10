@@ -9,6 +9,7 @@ import os
 from typing import cast
 import logging
 logger = logging.getLogger(__name__)
+from helpers import get_user_id_from_token
 
 from pymongo import MongoClient
 from bson import ObjectId
@@ -47,6 +48,24 @@ def save_guid_to_db(user_id: str, guid: str, expiryDate: str = "", lastFour: str
     )
 
     return (f"Saving GUID {guid} for customer {user_id} to the database")
+
+# ------------------- Helper: Get Card Details from Mongo -------------------  
+@router.post("/api/get-card")
+def get_card_details(jwt: str) -> dict:
+    try:
+        user_id = get_user_id_from_token(f"Bearer {jwt}")
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid token payload")
+        
+        user = users_collection.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        billing_info = user.get("billing_info", {})
+        return billing_info.get("hashed_card_data", {})
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
 # ------------------- EFT -------------------
 
 class EFTPaymentRequest(BaseModel):

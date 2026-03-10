@@ -16,7 +16,25 @@ function getEndpoint(type) {
     case "credit_card": return "https://api.kingburger.site/api/create-payment/credit-card";
     case "saved_card": return "https://api.kingburger.site/api/create-payment/saved-card";
     case "tokenize_card": return "https://api.kingburger.site/api/tokenize-card";
+    case "get-card": return "https://api.kingburger.site/api/get-card";
     default: throw new Error("Unknown payment type");
+  }
+}
+
+export async function getCardDetails(jwt) {
+  try {
+    const res = await fetch(getEndpoint("get-card"), {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + jwt
+      }
+    });
+    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+    return await res.json();
+  } catch (err) {
+    console.error("Failed to get card details:", err);
+    return null;
   }
 }
 

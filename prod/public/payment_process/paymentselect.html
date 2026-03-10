@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Payment Selection</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="icon" type="image/x-icon" href="/assets/burger.ico">
   <link
     href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap"
     rel="stylesheet">
@@ -240,7 +241,8 @@
             </svg>
           </div>
           <div>
-            <p class="text-white text-sm font-medium">•••• •••• •••• 4242</p>
+            <p id="saved-card-pan" class="text-white text-sm font-medium">•••• •••• •••• 1234</p>
+            <p id="card-expiry" class="text-white/40 text-xs mt-0.5">Expires 12/26</p>
           </div>
           <div class="ml-auto w-4 h-4 rounded-full border-2 border-indigo-400 flex items-center justify-center">
             <div class="w-2 h-2 rounded-full bg-indigo-400"></div>
@@ -401,8 +403,10 @@
     const newCardButton = document.getElementById('new-card-details');
     const savedCardTab = document.getElementById('sub-existing');
 
-    const guid = localStorage.getItem('guid');
+    const savedGuid = localStorage.getItem('guid');
     const last4Digits = localStorage.getItem('last4Digits');
+    const savedExpiryDate = localStorage.getItem("expiryDate");
+
     const cartAmount = parseFloat(localStorage.getItem('amount')) || 0;
     const selectedAddressType = localStorage.getItem('address_type');
 
@@ -414,8 +418,9 @@
 
     // ----- Populate or hide saved card UI -----
     if (guid && last4Digits) {
-      document.querySelector('#card-existing .text-white.text-sm.font-medium').textContent =
+      document.getElementById('save-card-pan').textContent =
         `•••• •••• •••• ${last4Digits}`;
+      document.getElementById("card-expiry").textContent = expiryDate;
     } else {
       // No saved card — hide the tab and default straight to new card
       savedCardTab.style.display = 'none';

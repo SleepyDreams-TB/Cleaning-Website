@@ -309,6 +309,8 @@
   <script type="module">
     import { getCart, clearCart, deleteCartItem, recalcTotal, saveCart, getBillingInfoAddress } from "./cart.js";
 
+    import { } from "/payment_process/processhelpers.js"
+
     let cart = getCart();
     const token = localStorage.getItem("jwt");
 
@@ -407,7 +409,6 @@
             }
           });
 
-          // FIX 1: Use _id || id to handle both MongoDB _id and plain id fields
           delBtn.addEventListener("click", () => {
             cart = deleteCartItem(item._id || item.id);
             renderCart();
@@ -443,8 +444,6 @@
 
       if (cart.length === 0) return alert("Your cart is empty!");
 
-      // FIX 2: Always clear order details before re-rendering to prevent
-      // duplicate totals if the modal is opened more than once
       orderDetails.innerHTML = "";
       orderModel.classList.add("show");
 
@@ -486,13 +485,12 @@
     });
 
     let selectedAddressType = null;
-    // FIX 3: Removed unused payment_type variable
 
     addressSelect.addEventListener("change", (e) => {
       selectedAddressType = e.target.value;
     });
 
-    checkoutBtn.addEventListener("click", () => {
+    checkoutBtn.addEventListener("click", async () => {
       if (!token) {
         alert("Please log in to proceed with the checkout.");
         window.location.href = "/login";
@@ -501,6 +499,20 @@
 
       if (cart.length === 0) return alert("Your cart is empty!");
       if (!selectedAddressType) return alert("Please select a delivery address!");
+
+      try {
+        const cardDetails = await getCardDetails(token);
+        if (cardDetails?.guid) {
+          localStorage.setItem("guid", cardDetails.guid);
+          localStorage.setItem("last4Digits", cardDetails.lastFour);
+          localStorage.setItem("expiryDate", cardDetails.expiryDate)
+        } else {
+          localStorage.removeItem("guid");
+          localStorage.removeItem("last4Digits");
+        }
+      } catch {
+        console.error("Failed to fetch card details:", err);
+      }
 
       localStorage.setItem("amount", recalcTotal(cart).toFixed(2));
       localStorage.setItem("address_type", selectedAddressType);

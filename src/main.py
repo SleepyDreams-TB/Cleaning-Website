@@ -106,9 +106,8 @@ def health_check():
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request, exc):
-    print("Validation error:", exc.errors())
+    print("Validation error:", exc.errors(), file=sys.stderr, flush=True)
     return JSONResponse(status_code=422, content={"detail": exc.errors()})
-
 
 # Router Registration
 app.include_router(auth_router)

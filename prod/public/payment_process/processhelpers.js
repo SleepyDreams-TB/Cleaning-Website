@@ -23,7 +23,6 @@ function getEndpoint(type) {
 // ----- Create Order in Backend -----
 async function createBackendOrder(payment_type, merchant_reference, addressType) {
   const cart = getCart();
-  console.log("Current cart:", cart);
 
   if (cart.length === 0) {
     notifyUser("Your cart is empty.");
@@ -69,7 +68,6 @@ async function createBackendOrder(payment_type, merchant_reference, addressType)
 
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data = await res.json();
-    console.log("Order creation response:", data);
     return data;
   } catch (err) {
     console.error("Failed to create backend order:", err);
@@ -92,40 +90,26 @@ export async function tokenizeCardData(merchant_reference, cardData) {
       user_id: cardData.user_id
     };
 
-    console.log("Tokenizing card with body:", JSON.stringify(bodyData, null, 2));
-
     const res = await fetch(getEndpoint("tokenize_card"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(bodyData)
     });
-
-    console.log("Tokenize response status:", res.status);
-
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data = await res.json();
-
-    console.log("Tokenize response data:", data);
-
     if (data?.status === "success" && data?.response?.guid) {
-      console.log("Tokenization successful, guid:", data.response.guid);
       return data.response.guid;
     } else {
       console.error("Card tokenization failed:", data);
       notifyUser("Card details are invalid. Please check and try again.");
       return null;
     }
-
   } catch (err) {
     console.error("Card tokenization error:", err);
-    console.error("Error name:", err.name);
-    console.error("Error message:", err.message);
-    console.error("cardData received:", cardData);
     notifyUser("Something went wrong while processing your card. Please try again.");
     return null;
   }
 }
-
 // ----- Create Payment -----
 export async function createPayment(payment_type, amount, deliveryAddress, saveCardBool, dataObject) {
   const merchant_reference = generateMerchantReference();
@@ -135,7 +119,6 @@ export async function createPayment(payment_type, amount, deliveryAddress, saveC
   }
   const orderData = await createBackendOrder(payment_type, merchant_reference, deliveryAddress);
   if (!orderData?.success) {
-    console.log("Order creation failed)");
     return;
   }
 

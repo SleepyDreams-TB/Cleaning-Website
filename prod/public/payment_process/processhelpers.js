@@ -89,7 +89,6 @@ export async function tokenizeCardData(merchant_reference, cardData) {
       cardHolderName: cardData.cardHolderName,
       expiryDate: cardData.expiry,
       cvv: cardData.cvv,
-      saveCardBool: false,
       user_id: cardData.user_id
     };
 
@@ -109,13 +108,13 @@ export async function tokenizeCardData(merchant_reference, cardData) {
     }
 
   } catch (err) {
-  console.error("Card tokenization error:", err);
-  console.error("Error name:", err.name);
-  console.error("Error message:", err.message);
-  console.error("cardData received:", cardData);
-  notifyUser("Something went wrong while processing your card. Please try again.");
-  return null;
-}
+    console.error("Card tokenization error:", err);
+    console.error("Error name:", err.name);
+    console.error("Error message:", err.message);
+    console.error("cardData received:", cardData);
+    notifyUser("Something went wrong while processing your card. Please try again.");
+    return null;
+  }
 }
 
 
@@ -124,14 +123,7 @@ export async function createPayment(payment_type, amount, deliveryAddress, saveC
   const merchant_reference = generateMerchantReference();
 
   if (saveCardBool) {
-    try {
-      const token = await tokenizeCardData(merchant_reference, dataObject);
-    }
-    catch (err) {
-      console.error("Error tokenizing card for saving:", err);
-      notifyUser("Could not save card details. Please check your information and try again.");
-      return;
-    }
+    await tokenizeCardData(merchant_reference, dataObject);
   }
   const orderData = await createBackendOrder(payment_type, merchant_reference, deliveryAddress);
   if (!orderData?.success) {
@@ -148,22 +140,21 @@ export async function createPayment(payment_type, amount, deliveryAddress, saveC
     }
     bodyData = {
       amount,
-      merchant_reference: orderData.merchant_reference,
+      merchant_reference: merchant_reference,
       customer_bank: dataObject.customer_bank
     };
   } else if (payment_type === "credit_card") {
-  bodyData = {
-    amount,
-    merchant_reference: orderData.merchant_reference,
-    cardDataset: {
-      cardNumber: dataObject.pan,
-      expiryDate: dataObject.expiry,
-      cvv: dataObject.cvv,
-      cardHolderName: dataObject.cardHolderName,
-      saveCardBool: false,
-      user_id: dataObject.user_id
-    }
-  };
+    bodyData = {
+      amount,
+      merchant_reference: merchant_reference,
+      cardDataset: {
+        cardNumber: dataObject.pan,
+        expiryDate: dataObject.expiry,
+        cvv: dataObject.cvv,
+        cardHolderName: dataObject.cardHolderName,
+        user_id: dataObject.user_id
+      }
+    };
   } else if (payment_type === "saved_card") {
     if (!dataObject?.guid) {
       notifyUser("No saved card found. Please use a new card.");
@@ -171,7 +162,7 @@ export async function createPayment(payment_type, amount, deliveryAddress, saveC
     }
     bodyData = {
       amount,
-      merchant_reference: orderData.merchant_reference,
+      merchant_reference: merchant_reference,
       guid: dataObject.guid
     };
   } else {

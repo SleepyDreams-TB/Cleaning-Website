@@ -120,8 +120,18 @@ app.post('/users/check_user_avail', async (req, res) => {
 app.get('/api/bin/:bin', (req, res) => {
     fetch(`https://api.apiverve.com/v1/binlookup?bin=${req.paramas.bin}`,
         { headers: { 'x-api-key': binAPIkey } })
-        .then(response => response.json())
-        .then(data => res.json(data));
+        .then(response => {
+            console.log('BIN API status:', response.status); // add this
+            return response.json();
+        })
+        .then(data => {
+            console.log('BIN API response:', data); // and this
+            res.json(data);
+        })
+        .catch(err => {
+            console.error('BIN API error:', err); // and this
+            res.status(500).json({ error: err.message });
+        });
 });
 
 // ==================== Health Check ====================

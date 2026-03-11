@@ -1,4 +1,4 @@
-import { apiFetch } from '/utils/api.js';
+import { apiFetch } from '/utils.js';
 
 document.addEventListener("DOMContentLoaded", () => {
   const billingForm = document.getElementById("billingForm");

@@ -143,7 +143,7 @@
 
     <!-- Payment Method Tabs -->
     <div class="flex gap-2 mb-6">
-      <button onclick="selectMethod('eft')" id="tab-eft"
+      <button id="tab-eft"
         class="payment-btn flex-1 py-3 px-4 rounded-xl text-sm font-medium text-white flex flex-col items-center gap-1.5 active">
         <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -151,7 +151,7 @@
         </svg>
         <span>EFTsecure</span>
       </button>
-      <button onclick="selectMethod('card')" id="tab-card"
+      <button id="tab-card"
         class="payment-btn flex-1 py-3 px-4 rounded-xl text-sm font-medium text-white flex flex-col items-center gap-1.5">
         <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -159,7 +159,7 @@
         </svg>
         <span>Credit Card</span>
       </button>
-      <button onclick="selectMethod('paypal')" id="tab-paypal"
+      <button id="tab-paypal"
         class="payment-btn flex-1 py-3 px-4 rounded-xl text-sm font-medium text-white flex flex-col items-center gap-1.5">
         <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -202,7 +202,7 @@
       <div class="card-shine rounded-2xl p-6 border border-white/[0.06] mb-4 h-44 flex flex-col justify-between">
         <div class="flex justify-between items-start">
           <div class="chip"></div>
-          <span class="text-white/30 text-xs tracking-widest uppercase">Credit</span>
+          <span id="card-brand" class="text-indigo-400 text-xs font-semibold tracking-widest uppercase"></span>
         </div>
         <div>
           <p id="card-preview-number" class="mono text-white/80 text-lg tracking-[0.2em] mb-3">•••• •••• •••• ••••</p>
@@ -221,12 +221,11 @@
 
       <!-- Card Sub-tabs -->
       <div class="flex gap-2 mb-4">
-        <button onclick="selectCardType('existing')" id="sub-existing"
+        <button id="sub-existing"
           class="payment-btn flex-1 py-2.5 px-3 rounded-xl text-xs font-medium text-white active">
           Saved Card
         </button>
-        <button onclick="selectCardType('new')" id="sub-new"
-          class="payment-btn flex-1 py-2.5 px-3 rounded-xl text-xs font-medium text-white">
+        <button id="sub-new" class="payment-btn flex-1 py-2.5 px-3 rounded-xl text-xs font-medium text-white">
           New Card
         </button>
       </div>
@@ -261,9 +260,6 @@
             <label class="block text-xs text-white/40 uppercase tracking-widest mb-2">Card Number</label>
             <input id="card-number" type="text" inputmode="numeric" placeholder="1234 5678 9012 3456" maxlength="19"
               autocomplete="cc-number" class="form-input w-full rounded-xl px-4 py-3 text-sm mono">
-            <span id="card-brand"
-              class="inline-block mt-2 px-3 py-1 rounded-lg text-xs font-semibold tracking-widest uppercase bg-indigo-500/10 border border-indigo-500/20 text-indigo-400"></span>
-
           </div>
           <div>
             <label class="block text-xs text-white/40 uppercase tracking-widest mb-2">Cardholder Name</label>
@@ -288,7 +284,7 @@
           Pay Securely
         </button>
         <input type="checkbox" id="check-save-card" class="mt-4">
-        <label for="save-card" class="text-white/40 text-sm ml-2">Remember my card for future purchases</label>
+        <label for="check-save-card" class="text-white/40 text-sm ml-2">Remember my card for future purchases</label>
       </div>
     </div>
 
@@ -321,7 +317,8 @@
   </div>
 
   <script type="module">
-    import { lookupBin } from '../payment_process/processhelpers.js?v=4';
+    import { lookupBin, createPayment, tokenizeCardData } from '../payment_process/processhelpers.js?v=4';
+
     // ------------------- Tab Switching -------------------
     function selectMethod(method) {
       document.querySelectorAll('.panel').forEach(p => p.classList.add('hidden'));
@@ -341,18 +338,25 @@
       document.getElementById('sub-' + type).classList.add('active');
     }
 
+    // Bind tab buttons
+    document.getElementById('tab-eft').addEventListener('click', () => selectMethod('eft'));
+    document.getElementById('tab-card').addEventListener('click', () => selectMethod('card'));
+    document.getElementById('tab-paypal').addEventListener('click', () => selectMethod('paypal'));
+    document.getElementById('sub-existing').addEventListener('click', () => selectCardType('existing'));
+    document.getElementById('sub-new').addEventListener('click', () => selectCardType('new'));
+
     // ------------------- Card Number Formatting -------------------
     const cardNumberInput = document.getElementById('card-number');
     const expiryInput = document.getElementById('expiry-date');
     const cvvInput = document.getElementById('cvv');
     const cardHolder = document.getElementById('card-holder');
-    const cardType = document.getElementById('bin-scheme');
+
+    let binFetched = false;
 
     cardNumberInput.addEventListener('input', (e) => {
-      let binFetched = false;
-
       let value = e.target.value.replace(/\D/g, '').substring(0, 16);
       e.target.value = value.replace(/(.{4})/g, '$1 ').trim();
+
       const preview = value.padEnd(16, '•');
       document.getElementById('card-preview-number').textContent =
         preview.replace(/(.{4})/g, '$1 ').trim();
@@ -361,19 +365,16 @@
 
       if (currentBin.length === 6 && !binFetched) {
         binFetched = true;
-
         lookupBin(currentBin)
-          .then(binData => {
-            document.getElementById('card-brand').textContent = binData.brand;
-          })
-          .catch(err => {
-            console.error('BIN lookup failed:', err.message);
+          .then(brand => {
+            if (!brand) return;
+            document.getElementById('card-brand').textContent = brand;
           });
       }
 
-      // Reset flag if user deletes digits
       if (currentBin.length < 6) {
         binFetched = false;
+        document.getElementById('card-brand').textContent = '';
       }
     });
 
@@ -383,8 +384,6 @@
         e.preventDefault();
       }
     });
-
-
 
     // ------------------- Expiry Formatting -------------------
     expiryInput.addEventListener('input', (e) => {
@@ -397,8 +396,7 @@
       } else {
         e.target.value = value;
       }
-      document.getElementById('card-preview-expiry').textContent =
-        e.target.value || 'MM/YY';
+      document.getElementById('card-preview-expiry').textContent = e.target.value || 'MM/YY';
     });
 
     expiryInput.addEventListener('keydown', (e) => {
@@ -418,42 +416,32 @@
       document.getElementById('card-preview-name').textContent =
         e.target.value.toUpperCase() || 'YOUR NAME';
     });
-  </script>
 
-  <script type="module">
-    import { createPayment, tokenizeCardData } from '../payment_process/processhelpers.js?v=4';
-
-    const eftButton = document.getElementById('eftsecure-button');
-    const bankSelect = document.getElementById('select_bank');
-    const savedCardButton = document.getElementById('credit-card-saved');
-    const newCardButton = document.getElementById('new-card-details');
-    const savedCardTab = document.getElementById('sub-existing');
-
+    // ------------------- localStorage -------------------
     const guid = localStorage.getItem('guid');
     const last4Digits = localStorage.getItem('last4Digits');
-    const savedExpiryDate = localStorage.getItem("expiryDate");
-
+    const savedExpiryDate = localStorage.getItem('expiryDate');
     const cartAmount = parseFloat(localStorage.getItem('amount')) || 0;
     const selectedAddressType = localStorage.getItem('address_type');
 
-    // Guard — if no address type, something went wrong, send back to cart
     if (!selectedAddressType) {
       alert('Session expired. Please try again.');
       window.location.href = '/users/cart.html';
     }
 
-    // ----- Populate or hide saved card UI -----
+    // ------------------- Saved Card UI -------------------
     if (guid && last4Digits) {
-      document.getElementById('saved-card-pan').textContent =
-        `•••• •••• •••• ${last4Digits}`;
-      document.getElementById("card-expiry").textContent = savedExpiryDate;
+      document.getElementById('saved-card-pan').textContent = `•••• •••• •••• ${last4Digits}`;
+      document.getElementById('card-expiry').textContent = savedExpiryDate;
     } else {
-      // No saved card — hide the tab and default straight to new card
-      savedCardTab.style.display = 'none';
+      document.getElementById('sub-existing').style.display = 'none';
       selectCardType('new');
     }
 
-    // ----- EFT -----
+    // ------------------- EFT -------------------
+    const eftButton = document.getElementById('eftsecure-button');
+    const bankSelect = document.getElementById('select_bank');
+
     eftButton.addEventListener('click', async () => {
       if (!bankSelect.value) {
         alert('Please select a bank.');
@@ -471,7 +459,9 @@
       }
     });
 
-    // ----- Saved Card -----
+    // ------------------- Saved Card -------------------
+    const savedCardButton = document.getElementById('credit-card-saved');
+
     savedCardButton.addEventListener('click', async () => {
       if (!guid) {
         alert('No saved card on file. Please use a new card.');
@@ -487,7 +477,9 @@
       }
     });
 
-    // ----- New Card -----
+    // ------------------- New Card -------------------
+    const newCardButton = document.getElementById('new-card-details');
+
     newCardButton.addEventListener('click', async () => {
       const cardNumber = document.getElementById('card-number').value.replace(/\s/g, '');
       const expiryDate = document.getElementById('expiry-date').value;
@@ -495,7 +487,6 @@
       const cardHolderName = document.getElementById('card-holder').value.trim();
       const saveCardBool = document.getElementById('check-save-card').checked;
 
-      // Validation
       if (!cardNumber || !expiryDate || !cvv || !cardHolderName) {
         alert('Please fill in all card details.');
         return;
@@ -513,11 +504,9 @@
         return;
       }
 
-      // Check expiry is not in the past
       const [month, year] = expiryDate.split('/').map(Number);
-      const now = new Date();
       const expiry = new Date(2000 + year, month - 1);
-      if (expiry < now) {
+      if (expiry < new Date()) {
         alert('Your card has expired.');
         return;
       }
@@ -538,6 +527,7 @@
         newCardButton.textContent = 'Pay Securely';
       }
     });
+
   </script>
 </body>
 

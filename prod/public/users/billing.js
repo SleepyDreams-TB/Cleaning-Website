@@ -68,13 +68,15 @@ document.addEventListener("DOMContentLoaded", () => {
           <button class="btn-edit" data-key="${name}">
             <i class="fas fa-pen"></i> Edit
           </button>
-          <button class="btn-delete" data-key="${name}">
-            <i class="fas fa-trash"></i>
-          </button>
+          
         </div>
       </div>
     `).join("");
 
+    /*<button class="btn-delete" data-key="${name}">
+                <i class="fas fa-trash"></i>
+              </button>
+    */
     addressList.querySelectorAll(".btn-edit").forEach(btn => {
       btn.addEventListener("click", () => loadAddressIntoForm(btn.dataset.key));
     });

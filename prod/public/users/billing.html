@@ -53,16 +53,15 @@
     }
 
     .form-group label {
-      display: block;
+      display: flex;
+      align-items: center;
+      gap: 8px;
       font-weight: 600;
       color: #1f2937;
       margin-bottom: 8px;
       font-size: 14px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
     }
 
     .form-group label i {
@@ -85,12 +84,6 @@
       outline: none;
       border-color: #667eea;
       box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
-
-    .form-input:disabled {
-      background: #f9fafb;
-      color: #6b7280;
-      cursor: not-allowed;
     }
 
     .form-grid {
@@ -118,7 +111,7 @@
       justify-content: center;
       gap: 8px;
       font-size: 16px;
-      margin-top: 32px;
+      margin-top: 8px;
     }
 
     .btn-submit:hover {
@@ -127,21 +120,32 @@
     }
 
     .btn-submit:disabled {
-      opacity: 0.5;
+      opacity: 0.6;
       cursor: not-allowed;
       transform: none;
+      box-shadow: none;
     }
 
-    @keyframes slideDown {
-      from {
-        opacity: 0;
-        transform: translateY(-10px);
-      }
+    .btn-cancel {
+      background: #f3f4f6;
+      color: #6b7280;
+      padding: 14px 32px;
+      border-radius: 10px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 16px;
+      margin-top: 8px;
+    }
 
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+    .btn-cancel:hover {
+      background: #e5e7eb;
     }
 
     .info-box {
@@ -163,6 +167,113 @@
       margin: 32px 0;
     }
 
+    /* ── Address Cards ── */
+    .address-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f9fafb;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 12px;
+      transition: border-color 0.2s;
+    }
+
+    .address-card:hover {
+      border-color: #667eea;
+    }
+
+    .address-card-name {
+      font-weight: 700;
+      color: #1f2937;
+      font-size: 15px;
+      margin-bottom: 4px;
+    }
+
+    .address-card-name i {
+      color: #667eea;
+    }
+
+    .address-card-detail {
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    .address-card-actions {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+      margin-left: 16px;
+    }
+
+    .btn-edit {
+      background: #eff6ff;
+      color: #667eea;
+      border: 1px solid #667eea;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-edit:hover {
+      background: #667eea;
+      color: white;
+    }
+
+    .btn-delete {
+      background: #fff0f0;
+      color: #ef4444;
+      border: 1px solid #ef4444;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-delete:hover {
+      background: #ef4444;
+      color: white;
+    }
+
+    .btn-add-new {
+      background: white;
+      color: #667eea;
+      border: 2px dashed #667eea;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 14px;
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    .btn-add-new:hover {
+      background: #eff6ff;
+    }
+
+    .section-label {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #9ca3af;
+      margin-bottom: 16px;
+    }
+
     @media (max-width: 768px) {
       .form-grid {
         grid-template-columns: 1fr;
@@ -182,6 +293,23 @@
 
       .billing-header h2 {
         font-size: 24px;
+      }
+
+      .address-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .address-card-actions {
+        margin-left: 0;
+        width: 100%;
+      }
+
+      .btn-edit,
+      .btn-delete {
+        flex: 1;
+        justify-content: center;
       }
     }
   </style>
@@ -206,15 +334,33 @@
         <p>Manage your delivery addresses</p>
       </div>
 
-      <!-- Form Content -->
+      <!-- Content -->
       <div class="form-section">
-        <!-- Info Box -->
+
+        <!-- Message Box -->
         <div id="billingMessage" class="info-box hidden">
           <i id="billingIcon" class="fas"></i>
           <span id="billingText"></span>
         </div>
 
-        <!-- Billing Form -->
+        <!-- ── Saved Addresses Section ── -->
+        <div class="section-label">
+          <i class="fas fa-bookmark"></i> Saved Addresses
+        </div>
+
+        <div id="addressList">
+          <!-- Rendered by billing.js -->
+        </div>
+
+        <button id="addNewBtn" class="btn-add-new">
+          <i class="fas fa-plus"></i> Add New Address
+        </button>
+
+        <div class="divider"></div>
+
+        <!-- ── Form Section ── -->
+        <div class="section-label" id="formTitle">Add New Address</div>
+
         <form id="billingForm" class="space-y-0">
 
           <!-- Address Name -->
@@ -231,7 +377,6 @@
 
           <!-- Address Details Grid -->
           <div class="form-grid">
-            <!-- Street -->
             <div class="form-group">
               <label for="street">
                 <i class="fas fa-road"></i> Street Address
@@ -239,7 +384,6 @@
               <input type="text" id="street" class="form-input" placeholder="123 Main Street" required>
             </div>
 
-            <!-- Suburb -->
             <div class="form-group">
               <label for="suburb">
                 <i class="fas fa-location-dot"></i> Suburb
@@ -247,7 +391,6 @@
               <input type="text" id="suburb" class="form-input" placeholder="e.g., Sandton" required>
             </div>
 
-            <!-- City -->
             <div class="form-group">
               <label for="city">
                 <i class="fas fa-building"></i> City
@@ -255,7 +398,6 @@
               <input type="text" id="city" class="form-input" placeholder="e.g., Johannesburg" required>
             </div>
 
-            <!-- Postal Code -->
             <div class="form-group">
               <label for="postal_code">
                 <i class="fas fa-envelope"></i> Postal Code
@@ -267,7 +409,7 @@
           <div class="divider"></div>
 
           <!-- Country -->
-          <div class="form-group form-grid full">
+          <div class="form-group">
             <label for="country">
               <i class="fas fa-globe"></i> Country
             </label>
@@ -275,10 +417,15 @@
               required>
           </div>
 
-          <!-- Submit Button -->
-          <button type="submit" class="btn-submit">
-            <i class="fas fa-save"></i> Save Billing Information
+          <!-- Buttons -->
+          <button type="submit" id="submitBtn" class="btn-submit">
+            <i class="fas fa-save"></i> Save Address
           </button>
+
+          <button type="button" id="cancelBtn" class="btn-cancel hidden">
+            <i class="fas fa-times"></i> Cancel Edit
+          </button>
+
         </form>
       </div>
     </div>

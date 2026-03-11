@@ -14,3 +14,44 @@ function escapeHtml(text) {
     };
     return String(text).replace(/[&<>"']/g, m => map[m]);
 }
+
+//API Fetch wrapper - import on each page 
+const BASE_URL = "https://api.kingburger.site";
+
+export async function apiFetch(path, options = {}) {
+    const token = localStorage.getItem("jwt");
+
+    const res = await fetch(`${BASE_URL}${path}`, {
+        ...options,
+        headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            ...options.headers,
+        },
+    });
+
+    if (res.status === 401) {
+        localStorage.removeItem("jwt");
+        sessionStorage.removeItem("navbar_user_cache");
+        window.location.href = "/redirects/401";
+        return null;
+    }
+
+    let data = null;
+    try {
+        data = await res.json();
+    } catch {
+        throw new Error("Invalid server response");
+    }
+
+    return { ok: res.ok, status: res.status, data };
+}
+
+export async function safeJson(res) {
+    if (!res) return null;
+    try {
+        return await res.json();
+    } catch {
+        throw new Error("Invalid server response");
+    }
+}

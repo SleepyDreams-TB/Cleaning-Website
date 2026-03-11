@@ -8,10 +8,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Only read the URL, don't create engine yet
 DATABASE_URL = cast(str, os.getenv("DATABASE_URL"))
 
-# These will be initialized when needed
 engine: Optional[object] = None
 SessionLocal: Optional[sessionmaker] = None
 
@@ -27,10 +25,24 @@ def init_db():
             logger.warning("DATABASE_URL not set - database functionality will be unavailable")
             return
         
-        engine = create_engine(DATABASE_URL, echo=True)
+        engine = create_engine(
+            DATABASE_URL,
+            echo=True,
+            pool_pre_ping=True,       # Test connection before using it (fixes Railway drops)
+            pool_recycle=300,          # Recycle connections every 5 mins (before Railway kills them)
+            pool_size=5,               # Max persistent connections
+            max_overflow=10,           # Extra connections allowed under load
+            pool_timeout=30,           # Wait up to 30s for a connection
+            connect_args={
+                "connect_timeout": 10,
+                "keepalives": 1,
+                "keepalives_idle": 30,
+                "keepalives_interval": 10,
+                "keepalives_count": 5,
+            }
+        )
         SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
         
-        # Create tables
         Base.metadata.create_all(bind=engine)
         logger.info("Database initialized successfully")
     except Exception as e:
@@ -46,13 +58,13 @@ def db_session():
     if engine is None:
         raise RuntimeError("Database not initialized - DATABASE_URL may be missing")
     
-    db = SessionLocal()  # create a new database session
+    db = SessionLocal()
     try:
-        yield db          # give this session to whatever code is inside the "with" block
-        db.commit()       # if everything inside "with" ran without errors, commit changes
+        yield db
+        db.commit()
     except Exception as e:
-        db.rollback()     # if an exception happens, roll back all changes
+        db.rollback()
         logger.error(f"Database session error: {e}")
-        raise             # re-raise the exception so it's not silently ignored
+        raise
     finally:
-        db.close()        # always close the session at the end
+        db.close()

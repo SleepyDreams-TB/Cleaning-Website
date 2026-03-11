@@ -131,7 +131,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }),
     });
 
-    if (!result) return; // 401 — redirect already triggered
+    if (!result) return; // 401
 
     const { ok, data } = result;
 
@@ -149,7 +149,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function fetchBillingInfo(userId) {
     const result = await apiFetch(`/users/${userId}`);
-    if (!result) return; // 401 — redirect already triggered
+    if (!result) return; // 401
 
     const { ok, data } = result;
 
@@ -177,7 +177,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!billingForm) return;
 
     const result = await apiFetch("/users/dashboard/info");
-    if (!result) return; // 401 — redirect already triggered
+    if (!result) return; // 401
 
     const { ok, data } = result;
 

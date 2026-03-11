@@ -1,7 +1,8 @@
 const PROTECTED_PATHS = [
   '/users/profile',
   '/users/billing',
-  '/users/orders'
+  '/users/orders',
+  '/users/saved_cards'
 ];
 
 const CACHE_KEY = 'navbar_user_cache';

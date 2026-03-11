@@ -261,6 +261,9 @@
             <label class="block text-xs text-white/40 uppercase tracking-widest mb-2">Card Number</label>
             <input id="card-number" type="text" inputmode="numeric" placeholder="1234 5678 9012 3456" maxlength="19"
               autocomplete="cc-number" class="form-input w-full rounded-xl px-4 py-3 text-sm mono">
+            <span id="card-brand"
+              class="inline-block mt-2 px-3 py-1 rounded-lg text-xs font-semibold tracking-widest uppercase bg-indigo-500/10 border border-indigo-500/20 text-indigo-400"></span>
+
           </div>
           <div>
             <label class="block text-xs text-white/40 uppercase tracking-widest mb-2">Cardholder Name</label>
@@ -318,6 +321,7 @@
   </div>
 
   <script>
+    import { lookupBin } from '../payment_process/processhelpers.js?v=4';
     // ------------------- Tab Switching -------------------
     function selectMethod(method) {
       document.querySelectorAll('.panel').forEach(p => p.classList.add('hidden'));
@@ -342,13 +346,35 @@
     const expiryInput = document.getElementById('expiry-date');
     const cvvInput = document.getElementById('cvv');
     const cardHolder = document.getElementById('card-holder');
+    const cardType = document.getElementById('bin-scheme');
 
     cardNumberInput.addEventListener('input', (e) => {
+      let binFetched = false;
+
       let value = e.target.value.replace(/\D/g, '').substring(0, 16);
       e.target.value = value.replace(/(.{4})/g, '$1 ').trim();
       const preview = value.padEnd(16, '•');
       document.getElementById('card-preview-number').textContent =
         preview.replace(/(.{4})/g, '$1 ').trim();
+
+      const currentBin = value.substring(0, 6);
+
+      if (currentBin.length === 6 && !binFetched) {
+        binFetched = true;
+
+        lookupBin(currentBin)
+          .then(binData => {
+            document.getElementById('card-brand').textContent = binData.brand;
+          })
+          .catch(err => {
+            console.error('BIN lookup failed:', err.message);
+          });
+      }
+
+      // Reset flag if user deletes digits
+      if (currentBin.length < 6) {
+        binFetched = false;
+      }
     });
 
     cardNumberInput.addEventListener('keydown', (e) => {

@@ -1,6 +1,8 @@
 //processhelpers.js
 import { getCart, clearCart, notifyUser, getBillingInfoAddress } from "../users/cart.js";
 
+const binAPIkey = process.env.BININFO_KEY
+
 // ----- Generate Unique Merchant Reference -----
 function generateMerchantReference() {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -19,6 +21,22 @@ function getEndpoint(type) {
     case "get-card": return "https://api.kingburger.site/api/get-card";
     default: throw new Error("Unknown payment type");
   }
+}
+
+// ----- Bin Lookup function
+export function lookupBin(bin) {
+  fetch(`https://api.apiverve.com/v1/binlookup?bin=${bin}`,
+    {
+      headers: { 'x-api-key': binAPIkey }
+    }
+  ).then(res => {
+    if (!res.ok) throw new Error("BIN lookup failed");
+    return res.json();
+  }).then(data => {
+    const binData = data.data
+    const scheme = binData.brand;
+    return scheme;
+  })
 }
 
 export async function getCardDetails(jwt) {

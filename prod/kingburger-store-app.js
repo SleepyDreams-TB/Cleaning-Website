@@ -10,7 +10,7 @@ import { dirname, join } from "path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-
+const binAPIkey = process.env.BININFO_KEY
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -115,6 +115,13 @@ app.post('/users/check_user_avail', async (req, res) => {
         console.error("❌ check_user_avail error:", err);
         res.status(500).json({ error: "Server error" });
     }
+});
+// ==================== BIN Lookup ===================
+app.get('/api/bin/:bin', (req, res) => {
+    fetch(`https://api.apiverve.com/v1/binlookup?bin=${req.paramas.bin}`,
+        { headers: { 'x-api-key': binAPIkey } })
+        .then(response => response.json())
+        .then(data => res.json(data));
 });
 
 // ==================== Health Check ====================

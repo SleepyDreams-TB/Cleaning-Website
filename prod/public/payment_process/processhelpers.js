@@ -1,7 +1,6 @@
 //processhelpers.js
 import { getCart, clearCart, notifyUser, getBillingInfoAddress } from "../users/cart.js";
 
-const binAPIkey = process.env.BININFO_KEY
 
 // ----- Generate Unique Merchant Reference -----
 function generateMerchantReference() {
@@ -25,18 +24,20 @@ function getEndpoint(type) {
 
 // ----- Bin Lookup function
 export function lookupBin(bin) {
-  fetch(`https://api.apiverve.com/v1/binlookup?bin=${bin}`,
-    {
-      headers: { 'x-api-key': binAPIkey }
-    }
-  ).then(res => {
-    if (!res.ok) throw new Error("BIN lookup failed");
-    return res.json();
-  }).then(data => {
-    const binData = data.data
-    const scheme = binData.brand;
-    return scheme;
-  })
+  return fetch(`/api/bin/${bin}`)
+    .then(res => {
+      if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+      return res.json();
+    })
+    .then(data => {
+      const binData = data.data
+      const scheme = binData.brand;
+      return scheme;
+    })
+    .catch(err => {
+      console.error("BIN lookup failed:", err.message);
+      return null;
+    });
 }
 
 export async function getCardDetails(jwt) {

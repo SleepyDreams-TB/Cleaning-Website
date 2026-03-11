@@ -118,7 +118,7 @@ app.post('/users/check_user_avail', async (req, res) => {
 });
 // ==================== BIN Lookup ===================
 app.get('/api/bin/:bin', (req, res) => {
-    fetch(`https://api.apiverve.com/v1/binlookup?bin=${req.paramas.bin}`,
+    fetch(`https://api.apiverve.com/v1/binlookup?bin=${req.params.bin}`,
         { headers: { 'x-api-key': binAPIkey } })
         .then(response => {
             console.log('BIN API status:', response.status); // add this

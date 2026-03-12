@@ -169,6 +169,8 @@
     </script>
 
     <script type="module">
+        import { config } from "../config.js";
+
         const form = document.getElementById('registerForm');
         const alertContainer = document.getElementById('alert-container');
 
@@ -179,7 +181,7 @@
             const data = Object.fromEntries(formData.entries());
 
             try {
-                const res = await fetch('https://api.kingburger.site/auth/register', {
+                const res = await fetch(`${config.BACKEND_URL}/auth/register`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded'

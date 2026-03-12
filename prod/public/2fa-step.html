@@ -95,6 +95,8 @@
 
   <script type="module">
     // Check if user is new or existing and show appropriate message
+    import { config } from "../config.js";
+
     document.addEventListener('DOMContentLoaded', () => {
       const qrCode = localStorage.getItem('qr_code');
       const registered = localStorage.getItem('registered');
@@ -127,7 +129,7 @@
       const data = new URLSearchParams({ user_id, digit_code });
 
       try {
-        const res = await fetch('https://api.kingburger.site/auth/qr-step', {
+        const res = await fetch(`${config.BACKEND_URL}/auth/qr-step`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: data

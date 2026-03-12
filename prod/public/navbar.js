@@ -5,6 +5,8 @@ const PROTECTED_PATHS = [
   '/users/saved_cards'
 ];
 
+import { config } from "../config.js";
+
 const CACHE_KEY = 'navbar_user_cache';
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
@@ -67,7 +69,7 @@ function applyUserToNavbar(container, data) {
 }
 
 async function fetchAndCacheUser(container) {
-  const res = await fetch("https://api.kingburger.site/users/dashboard/info", {
+  const res = await fetch(`${config.BACKEND_URL}/users/dashboard/info`, {
     headers: { "Authorization": `Bearer ${localStorage.getItem('jwt')}` }
   });
 

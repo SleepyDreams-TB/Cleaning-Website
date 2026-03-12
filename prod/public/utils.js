@@ -14,14 +14,14 @@ function escapeHtml(text) {
     };
     return String(text).replace(/[&<>"']/g, m => map[m]);
 }
-import { config } from "../config.js";
 
 //API Fetch wrapper - import on each page 
+const BASE_URL = "https://api.kingburger.site";
 
 export async function apiFetch(path, options = {}) {
     const token = localStorage.getItem("jwt");
 
-    const res = await fetch(`${config.BACKEND_URL}${path}`, {
+    const res = await fetch(`${BASE_URL}${path}`, {
         ...options,
         headers: {
             "Content-Type": "application/json",

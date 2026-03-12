@@ -1,5 +1,4 @@
 // profile.js
-import { config } from "../config.js";
 
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -17,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // fetch user and populate form
   async function fetchUser() {
     try {
-      const res = await fetch(`${config.BACKEND_URL}/users/${userId}`, {
+      const res = await fetch(`https://api.kingburger.site/users/${userId}`, {
         headers: { 'Authorization': `Bearer ${JWT}` }
       });
       if (!res.ok) throw new Error("Failed to fetch user");
@@ -101,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     try {
-      const res = await fetch(`${config.BACKEND_URL}/users/${userId}`, {
+      const res = await fetch(`https://api.kingburger.site/users/${userId}`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${JWT}`, 'Content-Type': 'application/x-www-form-urlencoded' },
         body: data.toString()

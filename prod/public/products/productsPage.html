@@ -321,13 +321,12 @@
   <script type="module">
     import { addToCart } from '/users/cart.js';
     import { updateCartCount } from '/navbar.js';
-    import { config } from "../config.js";
 
     let allProducts = [];
 
     async function fetchProducts() {
       try {
-        const response = await fetch(`${config.BACKEND_URL}/products/`);
+        const response = await fetch('https://api.kingburger.site/products/');
         const data = await response.json();
         allProducts = data.products || [];
         renderProducts(allProducts);

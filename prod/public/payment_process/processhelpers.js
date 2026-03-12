@@ -1,6 +1,6 @@
 //processhelpers.js
 import { getCart, clearCart, notifyUser, getBillingInfoAddress } from "../users/cart.js";
-import { config } from "../config.js";
+
 
 // ----- Generate Unique Merchant Reference -----
 function generateMerchantReference() {
@@ -13,11 +13,11 @@ function generateMerchantReference() {
 
 function getEndpoint(type) {
   switch (type) {
-    case "eft": return `/api/create-payment/eft`;
-    case "credit_card": return `${config.BACKEND_URL}/api/create-payment/credit-card`;
-    case "saved_card": return `${config.BACKEND_URL}/api/create-payment/saved-card`;
-    case "tokenize_card": return `${config.BACKEND_URL}/api/tokenize-card`;
-    case "get-card": return `${config.BACKEND_URL}/api/get-card`;
+    case "eft": return "https://api.kingburger.site/api/create-payment/eft";
+    case "credit_card": return "https://api.kingburger.site/api/create-payment/credit-card";
+    case "saved_card": return "https://api.kingburger.site/api/create-payment/saved-card";
+    case "tokenize_card": return "https://api.kingburger.site/api/tokenize-card";
+    case "get-card": return "https://api.kingburger.site/api/get-card";
     default: throw new Error("Unknown payment type");
   }
 }
@@ -82,7 +82,7 @@ async function createBackendOrder(payment_type, merchant_reference, addressType)
       return null;
     }
 
-    const res = await fetch("${config.BACKEND_URL}/api/orders", {
+    const res = await fetch("https://api.kingburger.site/api/orders", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

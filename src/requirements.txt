@@ -42,6 +42,12 @@ python-dotenv==1.1.1      # .env support
 httpx==0.28.1             # Async HTTP requests
 
 # --------------------------
+# Paypal
+# --------------------------
+paypal-server-sdk==1.0.0
+
+
+# --------------------------
 # 2FA / QR Code
 # --------------------------
 pyotp==2.9.0              # TOTP 2FA codes

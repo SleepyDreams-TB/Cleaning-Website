@@ -37,14 +37,15 @@ def get_callpay_headers() -> dict:
         "Timestamp": creds["timestamp"]
     }
 #save guid as new field to mongodb where user_id match
-def save_guid_to_db(user_id: str, guid: str, expiryDate: str = "", lastFour: str = ""):
+def save_guid_to_db(user_id: str, guid: str, expiryDate: str = "", lastFour: str = "", cardScheme = ""):
     users_collection.update_one(
         {"_id": ObjectId(user_id)},
         {"$set": {
             "billing_info.hashed_card_data": {
                 "guid": guid,
                 "lastFour": lastFour,
-                "expiryDate": expiryDate
+                "expiryDate": expiryDate,
+                "scheme": cardScheme
             }
         }}
     )
@@ -101,6 +102,7 @@ class CardDataset(BaseModel):
     cvv: str
     cardHolderName: str
     user_id: str
+    cardScheme: str
 
 
 class CreditCardPaymentRequest(BaseModel):
@@ -215,7 +217,7 @@ async def tokenize_card(card: TokenizeCardDataset):
             )
             data = response.json()
         if data.get("guid"):
-            save_guid_to_db(card.user_id, data["guid"], expiryDate=card.expiryDate, lastFour=card.cardNumber[-4:])
+            save_guid_to_db(card.user_id, data["guid"], expiryDate=card.expiryDate, lastFour=card.cardNumber[-4:], cardScheme = card.cardScheme)
             return {"status": "success", "response": data}
         else:
             return {"status": "failed", "response": data}

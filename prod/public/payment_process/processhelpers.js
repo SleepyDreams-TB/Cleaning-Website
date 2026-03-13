@@ -120,7 +120,7 @@ export async function tokenizeCardData(merchant_reference, cardData) {
       expiryDate: cardData.expiry,
       cvv: cardData.cvv,
       user_id: cardData.user_id,
-      scheme: cardData.cardScheme
+      cardScheme: cardData.cardScheme
     };
 
     const res = await fetch(getEndpoint("tokenize_card"), {

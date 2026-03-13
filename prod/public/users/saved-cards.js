@@ -61,6 +61,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           <div>
             <div class="card-digits">•••• •••• •••• ${card.lastFour}</div>
             <div class="card-expiry">Expires ${card.expiryDate}</div>
+            <div class="card-scheme">${card.cardScheme}</div>
           </div>
         </div>
       </div>

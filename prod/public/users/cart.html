@@ -505,7 +505,8 @@
         if (cardDetails.guid) {
           localStorage.setItem("guid", cardDetails.guid);
           localStorage.setItem("last4Digits", cardDetails.lastFour);
-          localStorage.setItem("expiryDate", cardDetails.expiryDate)
+          localStorage.setItem("expiryDate", cardDetails.expiryDate);
+          localStorage.setItem("cardScheme", cardDetails.cardScheme);
         } else {
           localStorage.removeItem("guid");
           localStorage.removeItem("last4Digits");

@@ -176,7 +176,8 @@ export async function createPayment(payment_type, amount, deliveryAddress, saveC
         expiryDate: dataObject.expiry,
         cvv: dataObject.cvv,
         cardHolderName: dataObject.cardHolderName,
-        user_id: dataObject.user_id
+        user_id: dataObject.user_id,
+        cardScheme: dataObject.cardScheme
       }
     };
   } else if (payment_type === "saved_card") {

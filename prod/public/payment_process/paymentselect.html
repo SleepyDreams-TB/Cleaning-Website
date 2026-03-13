@@ -242,6 +242,7 @@
           <div>
             <p id="saved-card-pan" class="text-white text-sm font-medium">•••• •••• •••• 1234</p>
             <p id="card-expiry" class="text-white/40 text-xs mt-0.5">Expires 12/26</p>
+            <p id="saved-card-scheme" class="text-indigo-400 text-xs font-semibold tracking-widest uppercase"></p>
           </div>
           <div class="ml-auto w-4 h-4 rounded-full border-2 border-indigo-400 flex items-center justify-center">
             <div class="w-2 h-2 rounded-full bg-indigo-400"></div>
@@ -423,6 +424,7 @@
     const savedExpiryDate = localStorage.getItem('expiryDate');
     const cartAmount = parseFloat(localStorage.getItem('amount')) || 0;
     const selectedAddressType = localStorage.getItem('address_type');
+    const savedCardScheme = localStorage.getItem('cardScheme');
 
     if (!selectedAddressType) {
       alert('Session expired. Please try again.');
@@ -433,6 +435,7 @@
     if (guid && last4Digits) {
       document.getElementById('saved-card-pan').textContent = `•••• •••• •••• ${last4Digits}`;
       document.getElementById('card-expiry').textContent = savedExpiryDate;
+      document.getElementById('card-scheme').textContent = savedCardScheme;
     } else {
       document.getElementById('sub-existing').style.display = 'none';
       selectCardType('new');

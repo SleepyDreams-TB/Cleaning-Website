@@ -485,6 +485,7 @@
       const expiryDate = document.getElementById('expiry-date').value;
       const cvv = document.getElementById('cvv').value;
       const cardHolderName = document.getElementById('card-holder').value.trim();
+      const cardScheme = document.getElementById('card-brand').value;
       const saveCardBool = document.getElementById('check-save-card').checked;
 
       if (!cardNumber || !expiryDate || !cvv || !cardHolderName) {
@@ -520,6 +521,7 @@
           expiry: expiryDate,
           cvv,
           cardHolderName,
+          cardScheme,
           user_id: localStorage.getItem('user_id')
         });
       } finally {

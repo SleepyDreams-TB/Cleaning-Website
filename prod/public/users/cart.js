@@ -36,7 +36,6 @@ export function addToCart(product) {
   }
 
   saveCart(cart);
-  notifyUser(`${product.name} added to cart!`);
 }
 
 export function clearCart() {
@@ -61,7 +60,7 @@ export function recalcTotal(cart) {
 export async function getBillingInfoAddress(token) {
 
   if (!token) {
-    notifyUser("Please log in");
+    notifyUser("Please log in before placing an order.");
     return null;
   }
   try {
@@ -80,7 +79,6 @@ export async function getBillingInfoAddress(token) {
     return billing_address
   } catch (err) {
     console.error("Failed to fetch billing info:", err);
-    notifyUser("Could not fetch billing info. Please try again.");
     return null;
   }
 }

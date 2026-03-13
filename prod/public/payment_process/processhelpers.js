@@ -61,11 +61,6 @@ export async function getCardDetails(jwt) {
 async function createBackendOrder(payment_type, merchant_reference, addressType) {
   const cart = getCart();
 
-  if (cart.length === 0) {
-    notifyUser("Your cart is empty.");
-    return null;
-  }
-
   const token = localStorage.getItem("jwt");
   if (!token) {
     notifyUser("Please log in before placing an order.");
@@ -124,7 +119,8 @@ export async function tokenizeCardData(merchant_reference, cardData) {
       cardHolderName: cardData.cardHolderName,
       expiryDate: cardData.expiry,
       cvv: cardData.cvv,
-      user_id: cardData.user_id
+      user_id: cardData.user_id,
+      scheme: cardData.cardScheme
     };
 
     const res = await fetch(getEndpoint("tokenize_card"), {

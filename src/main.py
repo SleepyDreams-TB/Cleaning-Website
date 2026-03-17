@@ -29,6 +29,7 @@ from orders import router as orders_router
 from webhook_main import router as webhook_router
 from password_generator import router as password_generator_router
 from debug_router import debug_router
+from paypal_router import router as paypal_router
 
 from models import Base
 from postgresqlDB import engine
@@ -114,6 +115,7 @@ app.include_router(orders_router)
 app.include_router(password_generator_router)
 app.include_router(webhook_router)
 app.include_router(debug_router)
+app.include_router(paypal_router)
 
 print("✅ All routers registered")
 

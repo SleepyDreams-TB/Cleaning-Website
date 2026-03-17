@@ -10,7 +10,7 @@ from typing import cast
 import logging
 logger = logging.getLogger(__name__)
 from auth import get_current_user
-
+from models import CreditCardPaymentRequest, EFTPaymentRequest, TokenPaymentRequest, TokenizeCardDataset
 
 
 from pymongo import MongoClient
@@ -63,11 +63,6 @@ async def get_card_details(current_user = Depends(get_current_user)) -> dict:
 
 # ------------------- EFT -------------------
 
-class EFTPaymentRequest(BaseModel):
-    amount: float
-    merchant_reference: str
-    customer_bank: str  # e.g. "absa", "fnb"
-
 @router.post("/api/create-payment/eft")
 async def create_eft_payment(payment: EFTPaymentRequest):
     payload = {
@@ -96,19 +91,7 @@ async def create_eft_payment(payment: EFTPaymentRequest):
 
 # ------------------- Credit Card (Server to Server) -------------------
 
-class CardDataset(BaseModel):
-    cardNumber: str       # raw digits, no spaces
-    expiryDate: str       # frontend sends MM/YY — we convert to MMYY
-    cvv: str
-    cardHolderName: str
-    user_id: str
-    cardScheme: str
 
-
-class CreditCardPaymentRequest(BaseModel):
-    amount: float
-    merchant_reference: str
-    cardDataset: CardDataset
 
 def get_id_from_token(jwt_token) -> str:
     try:
@@ -158,11 +141,6 @@ async def create_card_payment(payment: CreditCardPaymentRequest):
 
 # ------------------- Token (Saved Card) Payment -------------------
 
-class TokenPaymentRequest(BaseModel):
-    amount: float
-    merchant_reference: str
-    guid: str  # the customer's saved card GUID from Callpay
-
 @router.post("/api/create-payment/saved-card")
 async def create_token_payment(payment: TokenPaymentRequest):
     payload = {
@@ -191,9 +169,6 @@ async def create_token_payment(payment: TokenPaymentRequest):
         raise HTTPException(status_code=500, detail=f"Token payment failed: {e}")
 
 # ------------------- Tokenize Card endpoint to get guid -------------------
-
-class TokenizeCardDataset(CardDataset):
-    merchant_reference: str
 
 @router.post("/api/tokenize-card")
 async def tokenize_card(card: TokenizeCardDataset):
@@ -224,4 +199,5 @@ async def tokenize_card(card: TokenizeCardDataset):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Card tokenization failed: {e}")
 
-# ----------------- Paypal ----------------
+
+# ------------------------- Paypal Capture Request --------------------

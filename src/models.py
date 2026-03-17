@@ -84,3 +84,31 @@ class OrderItem(Base):
     quantity = Column(Integer, nullable=False)
 
     order = relationship("Order", back_populates="items")
+
+# --------------- Payment Body Models --------------------
+class EFTPaymentRequest(BaseModel):
+    amount: float
+    merchant_reference: str
+    customer_bank: str  # e.g. "absa", "fnb"
+
+class CardDataset(BaseModel):
+    cardNumber: str       
+    expiryDate: str       # frontend sends MM/YY — we convert to MMYY
+    cvv: str
+    cardHolderName: str
+    user_id: str
+    cardScheme: str
+
+
+class CreditCardPaymentRequest(BaseModel):
+    amount: float
+    merchant_reference: str
+    cardDataset: CardDataset
+
+class TokenPaymentRequest(BaseModel):
+    amount: float
+    merchant_reference: str
+    guid: str
+
+class TokenizeCardDataset(CardDataset):
+    merchant_reference: str

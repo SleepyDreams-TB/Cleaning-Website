@@ -103,7 +103,7 @@ async def webhook(request: Request):
         log_event("error", "webhook_error", origin_ip=origin_ip, error=str(e))
         raise HTTPException(status_code=500, detail="Internal server error")
 
-
+# ------------------Paypal Webhook Endpoint --------------
 #@router.post("/webhook/test", include_in_schema=False)
 #async def webhook_test(request: Request):
 #    origin_ip = get_origin_ip(request)

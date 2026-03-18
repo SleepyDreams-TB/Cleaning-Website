@@ -13,11 +13,13 @@ BASE_URL = cast(str, os.getenv("BASE_URL"))
 if demo_mode:
     paypal_username = cast(str, os.getenv("PAYPAL_SANDBOX_USERNAME"))
     paypal_password = cast(str, os.getenv("PAYPAL_SANDBOX_PASSWORD"))
-    PAYPAL_ENV_URL = cast(str, os.getenv("PAYPAL_SANDBOX_URL"))
+    PAYPAL_TOKEN_URL = cast(str, os.getenv("PAYPAL_SANDBOX_TOKEN_URL"))
+    PAYPAL_API_URL = cast(str, os.getenv("PAYPAL_SANDBOX_API_URL")) 
 else:
     paypal_username = cast(str, os.getenv("PAYPAL_PROD_USERNAME"))
     paypal_password = cast(str, os.getenv("PAYPAL_PROD_PASSWORD"))
-    PAYPAL_ENV_URL = cast(str, os.getenv("PAYPAL_PROD_URL"))
+    PAYPAL_TOKEN_URL = cast(str, os.getenv("PAYPAL_PROD_TOKEN_URL"))
+    PAYPAL_API_URL = cast(str, os.getenv("PAYPAL_PROD_API_URL"))
 
 @router.post("/api/paypal-new")
 async def new_payer_paypal_token():
@@ -30,7 +32,7 @@ async def new_payer_paypal_token():
     try:
         async with httpx.AsyncClient() as client:
             response = await client.post(
-                f"{PAYPAL_ENV_URL}",
+                PAYPAL_TOKEN_URL,
                 data=payload,
                 auth=(paypal_username, paypal_password)
             )
@@ -53,7 +55,7 @@ async def existing_payer_paypal_token(customer_id: str):
     try:
         async with httpx.AsyncClient() as client:
             response = await client.post(
-                f"{PAYPAL_ENV_URL}",
+                PAYPAL_API_URL,
                 data=payload,
                 auth=(paypal_username, paypal_password)
             )
@@ -96,7 +98,7 @@ async def create_order(request: PayPalOrderRequest):
 
     async with httpx.AsyncClient() as client:
         res = await client.post(
-            f"{PAYPAL_ENV_URL}/v2/checkout/orders",
+            f"{PAYPAL_API_URL}/v2/checkout/orders",
             json=payload,
             headers={"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"}
         )

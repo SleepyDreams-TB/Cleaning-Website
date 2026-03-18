@@ -112,3 +112,7 @@ class TokenPaymentRequest(BaseModel):
 
 class TokenizeCardDataset(CardDataset):
     merchant_reference: str
+
+class PayPalOrderRequest(BaseModel):
+    merchant_reference: str
+    amount: float

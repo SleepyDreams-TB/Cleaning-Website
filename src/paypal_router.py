@@ -3,10 +3,13 @@ from fastapi import APIRouter, HTTPException, Header, Depends
 import os
 from typing import cast
 import httpx
-router = APIRouter()
 
+from models import PayPalOrderRequest
+
+router = APIRouter()
 demo_mode = True
 BASE_URL = cast(str, os.getenv("BASE_URL"))
+
 if demo_mode:
     paypal_username = cast(str, os.getenv("PAYPAL_SANDBOX_USERNAME"))
     paypal_password = cast(str, os.getenv("PAYPAL_SANDBOX_PASSWORD"))
@@ -63,9 +66,11 @@ async def existing_payer_paypal_token(customer_id: str):
     
 # ------------------------- Paypal Capture Request --------------------
 @router.post("/api/paypal/create-order")
-async def create_order(merchant_reference: str, amount: float):
+async def create_order(request: PayPalOrderRequest):
+    merchant_reference = request.merchant_reference
+    amount = request.amount
     token = await new_payer_paypal_token()
-    access_token = token['order_id']
+    access_token = token['id_token']
 
     payload = {
         "intent": "CAPTURE",
@@ -97,5 +102,10 @@ async def create_order(merchant_reference: str, amount: float):
         )
         data = res.json()
 
-    approve_url = next(l["href"] for l in data["links"] if l["rel"] == "approve")
+    try:
+        approve_url = next(l["href"] for l in data.get("links", []) if l["rel"] == "approve")
+    except StopIteration:
+        raise HTTPException(status_code=500, detail="Failed to get PayPal approve URL")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"PayPal API error: {e}")
     return {"approve_url": approve_url}

@@ -8,14 +8,17 @@ from fastapi import HTTPException
 from typing import cast
 import logging
 import sys
+import httpx
 from pythonjsonlogger.jsonlogger import JsonFormatter
 from pymongo import MongoClient
+
 
 # Database setup (assuming MongoDB)
 client = MongoClient(os.getenv("MONGODB_URI"))
 db = client['kingburgerstore_db']
 SECRET_KEY = cast(str, os.getenv("SECRET_KEY"))
 ALGORITHM = cast(str, os.getenv("ALGORITHM", "HS256"))
+APIVERVE_KEY = cast(str, os.getenv("APIVERVE_KEY"))
 
 # ------------------- Helper: Generate Merchant Reference -------------------
 def generate_merchant_reference():
@@ -44,6 +47,25 @@ def get_user_id_from_token(authorization: str):
 def billing_info_helper(current_user: dict) -> dict:
         return current_user.get("billing_info", {}).get("billing_address", {})
 
+# ------------------- Helper: Currency Converter API -------------------
+
+async def convert_currency(amount: float, from_currency: str, to_currency: str) -> float:
+    """Convert amount from one currency to another"""
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f'https://api.apiverve.com/v1/currencyconverter',
+                params={
+                    'value': amount,
+                    'from': from_currency,
+                    'to': to_currency
+                },
+                headers={'x-api-key': APIVERVE_KEY}
+            )
+            data = response.json()
+            return float(data['result']['new_amount'])
+    except Exception as e:
+        raise Exception(f"Currency conversion failed: {e}")
 
 # ------------------- Helper: Get Client IP from request -------------------
 def get_origin_ip(request: Request) -> str:

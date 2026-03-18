@@ -6,7 +6,7 @@ import httpx
 
 from models import PayPalOrderRequest
 from loki_logger import push_to_loki
-
+from helpers import convert_currency
 router = APIRouter()
 demo_mode = True
 BASE_URL = cast(str, os.getenv("BASE_URL"))
@@ -71,16 +71,18 @@ async def existing_payer_paypal_token(customer_id: str):
 @router.post("/api/paypal/create-order")
 async def create_order(request: PayPalOrderRequest):
     merchant_reference = request.merchant_reference
-    amount = request.amount
+    zar_amount = request.amount
     
     try:
+        amount_usd = await convert_currency(zar_amount, "ZAR", "USD")
+
         token_response = await new_payer_paypal_token()
         access_token = token_response['id_token']
 
         payload = {
             "intent": "CAPTURE",
             "purchase_units": [{
-                "amount": {"currency_code": "ZAR", "value": f"{amount:.2f}"},
+                "amount": {"currency_code": "USD", "value": f"{amount_usd:.2f}"},
                 "custom_id": merchant_reference
             }],
             "payment_source": {
@@ -109,7 +111,7 @@ async def create_order(request: PayPalOrderRequest):
             if res.status_code != 201:
                 await push_to_loki("paypal", "create_order_error", {
                     "merchant_reference": merchant_reference,
-                    "amount": amount,
+                    "amount": amount_usd,
                     "status_code": res.status_code,
                     "response": res.text
                 })
@@ -118,7 +120,7 @@ async def create_order(request: PayPalOrderRequest):
             data = res.json()
             await push_to_loki("paypal", "create_order_success", {
                 "merchant_reference": merchant_reference,
-                "amount": amount
+                "amount": amount_usd
             })
 
         approve_url = next(l["href"] for l in data.get("links", []) if l["rel"] == "approve")
@@ -127,7 +129,7 @@ async def create_order(request: PayPalOrderRequest):
     except Exception as e:
         await push_to_loki("paypal", "create_order_exception", {
             "merchant_reference": merchant_reference,
-            "amount": amount,
+            "zar_amount": zar_amount,
             "error": str(e)
         })
         raise HTTPException(status_code=500, detail=f"PayPal API error: {str(e)}")

@@ -18,6 +18,7 @@ function getEndpoint(type) {
     case "saved_card": return "https://api.kingburger.site/api/create-payment/saved-card";
     case "tokenize_card": return "https://api.kingburger.site/api/tokenize-card";
     case "get-card": return "https://api.kingburger.site/api/get-card";
+    case "paypal": return "/api/paypal/create-order";
     default: throw new Error("Unknown payment type");
   }
 }
@@ -191,10 +192,10 @@ export async function createPayment(payment_type, amount, deliveryAddress, saveC
       guid: dataObject.guid
     };
   } else if (payment_type === "paypal") {
-  bodyData = {
+    bodyData = {
       amount,
       merchant_reference: merchant_reference
-  };
+    };
 
   } else {
     notifyUser("Unknown payment type.");
@@ -226,14 +227,6 @@ export async function createPayment(payment_type, amount, deliveryAddress, saveC
         window.location.href = inner.url;
       } else {
         notifyUser("Could not initiate EFT payment. Please try again.");
-      }
-    } else if (payment_type === "paypal") {
-    if (data.approve_url) {
-        clearCart();
-        localStorage.setItem("paypal_merchant_reference", merchant_reference);
-        window.location.href = data.approve_url;
-      } else {
-          notifyUser("Could not initiate PayPal payment. Please try again.");
       }
 
     } else if (payment_type === "credit_card") {
@@ -267,8 +260,16 @@ export async function createPayment(payment_type, amount, deliveryAddress, saveC
       } else {
         notifyUser("Unexpected response from payment provider.");
       }
-    }
+    } else if (payment_type === "paypal") {
+      if (data.approve_url) {
+        clearCart();
+        localStorage.setItem("merchant_reference", merchant_reference);
+        window.location.href = data.approve_url;
+      } else {
+        notifyUser("Could not initiate PayPal payment. Please try again.");
+      }
 
+    }
   } catch (err) {
     console.error("Payment error:", err);
     notifyUser("Something went wrong. Please try again.");

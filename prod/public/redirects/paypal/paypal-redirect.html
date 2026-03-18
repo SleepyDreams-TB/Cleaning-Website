@@ -2,36 +2,47 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <title>Redirecting...</title>
+    <meta charset="UTF-8">
+    <title>Redirecting...</title>
 </head>
 
 <body>
-  <p>Please wait, redirecting...</p>
+    <p>Please wait, redirecting...</p>
     <script>
-        const params = new URLSearchParams(window.location.search)
-        const token = params.get('token')
+        (async () => {
+            const params = new URLSearchParams(window.location.search)
+            const token = params.get('token')
+            const merchant_reference = localStorage.getItem('merchant_reference')
 
-        if (!token) {
-            window.location.href = '/checkout/failed.html'
-        }
+            if (!token || !merchant_reference) {
+                window.location.href = '/checkout/failed.html'
+                return
+            }
 
-        const res = await fetch('/api/paypal/capture', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ order_id: token })
-        })
+            try {
+                const res = await fetch('/api/paypal/capture', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        order_id: token,
+                        merchant_reference: merchant_reference
+                    })
+                })
 
-        const data = await res.json()
+                const data = await res.json()
 
-        if (data.status === 'success') {
-            window.location.href = '/checkout/success.html'
-        } else {
-            window.location.href = '/checkout/failed.html'
-        }
+                if (data.status === 'success') {
+                    localStorage.removeItem('merchant_reference')
+                    window.location.href = '/checkout/success.html'
+                } else {
+                    window.location.href = '/checkout/failed.html'
+                }
+            } catch (err) {
+                console.error('PayPal capture error:', err)
+                window.location.href = '/checkout/failed.html'
+            }
+        })()
     </script>
 </body>
 
 </html>
-
-

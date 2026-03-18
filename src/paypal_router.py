@@ -65,6 +65,7 @@ async def existing_payer_paypal_token(customer_id: str):
 @router.post("/api/paypal/create-order")
 async def create_order(merchant_reference: str, amount: float):
     token = await new_payer_paypal_token()
+    access_token = token['order_id']
 
     payload = {
         "intent": "CAPTURE",
@@ -90,9 +91,9 @@ async def create_order(merchant_reference: str, amount: float):
 
     async with httpx.AsyncClient() as client:
         res = await client.post(
-            f"{BASE_URL}/v2/checkout/orders",
+            f"{PAYPAL_ENV_URL}/v2/checkout/orders",
             json=payload,
-            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+            headers={"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"}
         )
         data = res.json()
 

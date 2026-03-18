@@ -44,6 +44,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // ==================== API Routes ====================
 
+import paypalRouter from './routes/paypal_router.js'
+app.use(paypalRouter)
+
 //mailer via mailjet API
 const mailjet = Mailjet.apiConnect(
     process.env.MJ_APIKEY_PUBLIC,

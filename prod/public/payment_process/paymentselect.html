@@ -289,20 +289,34 @@
       </div>
     </div>
 
-    <!-- PayPal Panel -->
+        <!-- PayPal Panel -->
     <div id="panel-paypal" class="panel hidden">
       <div class="card-shine rounded-2xl p-6 border border-white/[0.06] text-center">
         <div class="w-14 h-14 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
           <svg class="w-7 h-7 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
-            <path
-              d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 0 0-.607-.541c-.013.076-.026.175-.041.254-.59 3.025-2.566 6.082-8.558 6.082H9.828l-1.323 8.4h3.297c.524 0 .967-.382 1.05-.9l.944-5.985h2.17c4.938 0 7.485-2.4 8.337-6.738.3-1.517.13-2.733-.081-3.572z" />
+            <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 0 0-.607-.541c-.013.076-.026.175-.041.254-.59 3.025-2.566 6.082-8.558 6.082H9.828l-1.323 8.4h3.297c.524 0 .967-.382 1.05-.9l.944-5.985h2.17c4.938 0 7.485-2.4 8.337-6.738.3-1.517.13-2.733-.081-3.572z"/>
           </svg>
         </div>
         <p class="text-white font-medium mb-1">Pay with PayPal</p>
         <p class="text-white/40 text-sm mb-5">You'll be redirected to PayPal to complete your payment</p>
-        <button class="submit-btn w-full py-3.5 rounded-xl text-white text-sm font-semibold tracking-wide">
+        <button id="paypal-btn" class="submit-btn w-full py-3.5 rounded-xl text-white text-sm font-semibold tracking-wide">
           Continue to PayPal
         </button>
+
+        <!-- Iframe loads here after button click -->
+        <div id="paypal-iframe-wrap" class="hidden mt-5">
+          <div class="flex items-center justify-center gap-2 mb-3">
+            <div class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></div>
+            <p class="text-white/40 text-xs">Complete your payment in the window below</p>
+          </div>
+          <iframe
+            id="paypal-iframe"
+            src=""
+            class="w-full rounded-xl border border-white/[0.06]"
+            style="height: 500px;"
+            allow="payment">
+          </iframe>
+        </div>
       </div>
     </div>
 
@@ -532,7 +546,44 @@
         newCardButton.textContent = 'Pay Securely';
       }
     });
+    // ------------------- Paypal -------------------
 
+    const paypalBtn = document.getElementById('paypal-btn')
+
+    paypalBtn.addEventListener('click', async () => {
+        paypalBtn.disabled = true
+        paypalBtn.textContent = 'Loading...'
+
+        try {
+            const order_id = localStorage.getItem('order_id')
+
+            const res = await fetch(`/api/paypal/create-order`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ order_id, amount: cartAmount })
+            })
+
+            const { approve_url } = await res.json()
+            window.location.href = approve_url
+
+        } catch (e) {
+            alert('Failed to initiate PayPal payment.')
+            paypalBtn.disabled = false
+            paypalBtn.textContent = 'Continue to PayPal'
+        }
+    })
+
+    document.querySelector('#panel-paypal button').addEventListener('click', async () => {
+    const btn = document.querySelector('#panel-paypal button')
+    btn.disabled = true
+    btn.textContent = 'Redirecting...'
+    try {
+        await createPayment('paypal', cartAmount, selectedAddressType, false, {})
+    } finally {
+        btn.disabled = false
+        btn.textContent = 'Continue to PayPal'
+    }
+})
   </script>
 </body>
 

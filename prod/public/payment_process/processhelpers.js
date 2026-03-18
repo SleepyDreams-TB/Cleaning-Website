@@ -190,6 +190,12 @@ export async function createPayment(payment_type, amount, deliveryAddress, saveC
       merchant_reference: merchant_reference,
       guid: dataObject.guid
     };
+  } else if (payment_type === "paypal") {
+  bodyData = {
+      amount,
+      merchant_reference: merchant_reference
+  };
+
   } else {
     notifyUser("Unknown payment type.");
     return;
@@ -220,6 +226,14 @@ export async function createPayment(payment_type, amount, deliveryAddress, saveC
         window.location.href = inner.url;
       } else {
         notifyUser("Could not initiate EFT payment. Please try again.");
+      }
+    } else if (payment_type === "paypal") {
+    if (data.approve_url) {
+        clearCart();
+        localStorage.setItem("paypal_merchant_reference", merchant_reference);
+        window.location.href = data.approve_url;
+      } else {
+          notifyUser("Could not initiate PayPal payment. Please try again.");
       }
 
     } else if (payment_type === "credit_card") {

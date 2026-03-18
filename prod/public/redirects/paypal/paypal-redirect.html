@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Redirecting...</title>
+</head>
+
+<body>
+  <p>Please wait, redirecting...</p>
+    <script>
+        const params = new URLSearchParams(window.location.search)
+        const token = params.get('token')
+
+        if (!token) {
+            window.location.href = '/checkout/failed.html'
+        }
+
+        const res = await fetch('/api/paypal/capture', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ order_id: token })
+        })
+
+        const data = await res.json()
+
+        if (data.status === 'success') {
+            window.location.href = '/checkout/success.html'
+        } else {
+            window.location.href = '/checkout/failed.html'
+        }
+    </script>
+</body>
+
+</html>
+
+

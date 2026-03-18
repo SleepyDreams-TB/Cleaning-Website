@@ -11,12 +11,14 @@ router.post('/create-order', async (req, res) => {
             body: JSON.stringify(req.body)
         })
 
+        const text = await response.text()
+        console.log('🔵 PayPal API raw response:', text)
+
         if (!response.ok) {
-            throw new Error(`Backend returned ${response.status}`)
+            throw new Error(`Backend returned ${response.status}: ${text}`)
         }
 
-        const data = await response.json()
-        console.log('🔵 PayPal API response:', data)
+        const data = JSON.parse(text)
         res.json(data)
     } catch (err) {
         console.error('❌ PayPal create-order error:', err.message)
@@ -34,8 +36,14 @@ router.post('/capture', async (req, res) => {
             body: JSON.stringify(req.body)
         })
 
-        const data = await response.json()
-        console.log('🔵 PayPal capture response:', data)
+        const text = await response.text()
+        console.log('🔵 PayPal capture raw response:', text)
+
+        if (!response.ok) {
+            throw new Error(`Backend returned ${response.status}: ${text}`)
+        }
+
+        const data = JSON.parse(text)
         res.json(data)
     } catch (err) {
         console.error('❌ PayPal capture error:', err.message)
@@ -53,8 +61,14 @@ router.post('/charge', async (req, res) => {
             body: JSON.stringify(req.body)
         })
 
-        const data = await response.json()
-        console.log('🔵 PayPal charge response:', data)
+        const text = await response.text()
+        console.log('🔵 PayPal charge raw response:', text)
+
+        if (!response.ok) {
+            throw new Error(`Backend returned ${response.status}: ${text}`)
+        }
+
+        const data = JSON.parse(text)
         res.json(data)
     } catch (err) {
         console.error('❌ PayPal charge error:', err.message)

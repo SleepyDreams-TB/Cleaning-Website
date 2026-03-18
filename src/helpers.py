@@ -11,7 +11,7 @@ import sys
 import httpx
 from pythonjsonlogger.jsonlogger import JsonFormatter
 from pymongo import MongoClient
-
+from loki_logger import push_to_loki
 
 # Database setup (assuming MongoDB)
 client = MongoClient(os.getenv("MONGODB_URI"))
@@ -63,8 +63,22 @@ async def convert_currency(amount: float, from_currency: str, to_currency: str) 
                 headers={'x-api-key': APIVERVE_KEY}
             )
             data = response.json()
-            return float(data['result']['new_amount'])
+            converted_amount = float(data['result']['new_amount'])
+            await push_to_loki("currency_converter", "conversion_success", {
+                "from_currency": from_currency,
+                "to_currency": to_currency,
+                "original_amount": amount,
+                "converted_amount": converted_amount
+            })
+
+            return converted_amount
     except Exception as e:
+        await push_to_loki("currency_converter", "conversion_error", {
+            "from_currency": from_currency,
+            "to_currency": to_currency,
+            "amount": amount,
+            "error": str(e)
+        })
         raise Exception(f"Currency conversion failed: {e}")
 
 # ------------------- Helper: Get Client IP from request -------------------

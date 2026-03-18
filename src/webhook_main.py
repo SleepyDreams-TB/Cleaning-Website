@@ -11,15 +11,11 @@ from models import Order
 from helpers import get_origin_ip, log_event
 from postgresqlDB import db_session
 import httpx, json, time  
+from loki_logger import push_to_loki
 
 # ------------------- Configuration -------------------
 IP_WHITELIST = [ip.strip() for ip in os.getenv("IP_WHITELIST", "").split(",") if ip.strip()]
 router = APIRouter(tags=["webhook"])
-
-#Grafana Loki configuration for pushing logs to Grafana Cloud
-LOKI_URL = cast(str, os.getenv("LOKI_PUSH_URL"))  
-LOKI_USER = cast(str, os.getenv("LOKI_USER")) 
-LOKI_KEY = cast(str, os.getenv("LOKI_KEY"))
 
 #------------------- Helper: Parse Payload from urlencoded to JSON -------------------
 async def get_payload(request: Request):
@@ -48,27 +44,6 @@ def update_order_status(db, merchant_reference: str, status: str, reason: str = 
         return "order_updated"
     except Exception as e:
         return (f"order_update_error: {str(e)}")
-
-async def push_to_loki(event_type: str, payload: dict):  
-    body = {  
-        "streams": [{  
-            "stream": {  
-                "service": "psp-webhook",  
-                "event_type": event_type  
-            },  
-            "values": [[  
-                str(time.time_ns()),  
-                json.dumps(payload)  
-            ]]  
-        }]  
-    }  
-    async with httpx.AsyncClient() as client:  
-        response = await client.post(  
-            LOKI_URL,  
-            json=body,  
-            auth=(LOKI_USER, LOKI_KEY)
-            )  
-        log_event("info", "loki_push_response", status_code=response.status_code, body=response.text)
 
 
 @router.post("/webhook", include_in_schema=False)

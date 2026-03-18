@@ -11,6 +11,7 @@ import logging
 logger = logging.getLogger(__name__)
 from auth import get_current_user
 from models import CreditCardPaymentRequest, EFTPaymentRequest, TokenPaymentRequest, TokenizeCardDataset
+from loki_logger import push_to_loki
 
 
 from pymongo import MongoClient
@@ -36,6 +37,7 @@ def get_callpay_headers() -> dict:
         "Org-Id": creds["org_id"],
         "Timestamp": creds["timestamp"]
     }
+
 #save guid as new field to mongodb where user_id match
 def save_guid_to_db(user_id: str, guid: str, expiryDate: str = "", lastFour: str = "", cardScheme = ""):
     users_collection.update_one(
@@ -51,6 +53,17 @@ def save_guid_to_db(user_id: str, guid: str, expiryDate: str = "", lastFour: str
     )
 
     return (f"Saving GUID {guid} for customer {user_id} to the database")
+
+#Decode JWT to get user_id
+def get_id_from_token(jwt_token) -> str:
+    try:
+        payload = jwt.decode(jwt_token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("user_id")
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid token payload")
+        return user_id
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
 
 # ------------------- Helper: Get Card Details from Mongo -------------------  
 @router.get("/api/get-card")
@@ -90,19 +103,6 @@ async def create_eft_payment(payment: EFTPaymentRequest):
 
 
 # ------------------- Credit Card (Server to Server) -------------------
-
-
-
-def get_id_from_token(jwt_token) -> str:
-    try:
-        payload = jwt.decode(jwt_token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id = payload.get("user_id")
-        if not user_id:
-            raise HTTPException(status_code=401, detail="Invalid token payload")
-        return user_id
-    except JWTError:
-        raise HTTPException(status_code=401, detail="Invalid token")
-
 @router.post("/api/create-payment/credit-card")
 async def create_card_payment(payment: CreditCardPaymentRequest):
     card = payment.cardDataset
@@ -133,10 +133,21 @@ async def create_card_payment(payment: CreditCardPaymentRequest):
             )
             data = response.json()
         
+        await push_to_loki("eft", "create_eft_payment_success", {
+            "merchant_reference": payment.merchant_reference,
+            "amount": payment.amount,
+            "bank": payment.customer_bank
+        })
+
         #Callpay returns { success, reason, callpay_transaction_id, merchant_reference, gateway_reference, gateway_response }
 
         return {"status": "success", "response": data}
     except Exception as e:
+        await push_to_loki("eft", "create_eft_payment_error", {
+            "merchant_reference": payment.merchant_reference,
+            "amount": payment.amount,
+            "error": str(e)
+        })
         raise HTTPException(status_code=500, detail=f"Card payment failed: {e}")
 
 # ------------------- Token (Saved Card) Payment -------------------
@@ -161,11 +172,20 @@ async def create_token_payment(payment: TokenPaymentRequest):
             )
             data = response.json()
 
+        await push_to_loki("credit_card", "create_card_payment_success", {
+            "merchant_reference": payment.merchant_reference,
+            "amount": payment.amount
+        })
 
         # Response contains: success, amount, reason, callpay_transaction_id,
         # merchant_reference, gateway_reference, gateway_response
         return {"status": "success", "response": data}
     except Exception as e:
+        await push_to_loki("saved_card", "create_token_payment_error", {
+            "merchant_reference": payment.merchant_reference,
+            "amount": payment.amount,
+            "error": str(e)
+        })
         raise HTTPException(status_code=500, detail=f"Token payment failed: {e}")
 
 # ------------------- Tokenize Card endpoint to get guid -------------------
@@ -193,8 +213,17 @@ async def tokenize_card(card: TokenizeCardDataset):
             data = response.json()
         if data.get("guid"):
             save_guid_to_db(card.user_id, data["guid"], expiryDate=card.expiryDate, lastFour=card.cardNumber[-4:], cardScheme = card.cardScheme)
+            await push_to_loki("tokenize", "tokenize_card_success", {
+                "merchant_reference": card.merchant_reference,
+                "user_id": card.user_id
+            })
             return {"status": "success", "response": data}
         else:
             return {"status": "failed", "response": data}
     except Exception as e:
+        await push_to_loki("tokenize", "tokenize_card_error", {
+            "merchant_reference": card.merchant_reference,
+            "user_id": card.user_id,
+            "error": str(e)
+        })
         raise HTTPException(status_code=500, detail=f"Card tokenization failed: {e}")

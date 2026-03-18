@@ -5,6 +5,7 @@ from typing import cast
 import httpx
 
 from models import PayPalOrderRequest
+from loki_logger import push_to_loki
 
 router = APIRouter()
 demo_mode = True
@@ -71,43 +72,62 @@ async def existing_payer_paypal_token(customer_id: str):
 async def create_order(request: PayPalOrderRequest):
     merchant_reference = request.merchant_reference
     amount = request.amount
-    token = await new_payer_paypal_token()
-    access_token = token['id_token']
+    
+    try:
+        token_response = await new_payer_paypal_token()
+        access_token = token_response['id_token']
 
-    payload = {
-        "intent": "CAPTURE",
-        "purchase_units": [{
-            "amount": {"currency_code": "ZAR", "value": f"{amount:.2f}"},
-            "custom_id": merchant_reference
-        }],
-        "payment_source": {
-            "paypal": {
-                "attributes": {
-                    "vault": {
-                        "store_in_vault": "ON_SUCCESS",
-                        "usage_type": "MERCHANT"
+        payload = {
+            "intent": "CAPTURE",
+            "purchase_units": [{
+                "amount": {"currency_code": "ZAR", "value": f"{amount:.2f}"},
+                "custom_id": merchant_reference
+            }],
+            "payment_source": {
+                "paypal": {
+                    "attributes": {
+                        "vault": {
+                            "store_in_vault": "ON_SUCCESS",
+                            "usage_type": "MERCHANT"
+                        }
+                    },
+                    "experience_context": {
+                        "return_url": f"{BASE_URL}/redirects/paypal/paypal-redirect",
+                        "cancel_url": f"{BASE_URL}/redirects/cancel"
                     }
-                },
-                "experience_context": {
-                    "return_url": f"{BASE_URL}/redirects/paypal/paypal-redirect",
-                    "cancel_url": f"{BASE_URL}/redirects/cancel"
                 }
             }
         }
-    }
 
-    async with httpx.AsyncClient() as client:
-        res = await client.post(
-            f"{PAYPAL_API_URL}/v2/checkout/orders",
-            json=payload,
-            headers={"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"}
-        )
-        data = res.json()
+        async with httpx.AsyncClient() as client:
+            res = await client.post(
+                f"{PAYPAL_API_URL}/v2/checkout/orders",
+                json=payload,
+                headers={"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"}
+            )
+            
+            if res.status_code != 201:
+                await push_to_loki("paypal", "create_order_error", {
+                    "merchant_reference": merchant_reference,
+                    "amount": amount,
+                    "status_code": res.status_code,
+                    "response": res.text
+                })
+                raise Exception(f"PayPal API returned {res.status_code}: {res.text}")
+            
+            data = res.json()
+            await push_to_loki("paypal", "create_order_success", {
+                "merchant_reference": merchant_reference,
+                "amount": amount
+            })
 
-    try:
         approve_url = next(l["href"] for l in data.get("links", []) if l["rel"] == "approve")
-    except StopIteration:
-        raise HTTPException(status_code=500, detail="Failed to get PayPal approve URL")
+        return {"approve_url": approve_url}
+        
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"PayPal API error: {e}")
-    return {"approve_url": approve_url}
+        await push_to_loki("paypal", "create_order_exception", {
+            "merchant_reference": merchant_reference,
+            "amount": amount,
+            "error": str(e)
+        })
+        raise HTTPException(status_code=500, detail=f"PayPal API error: {str(e)}")

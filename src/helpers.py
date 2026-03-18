@@ -63,7 +63,8 @@ async def convert_currency(amount: float, from_currency: str, to_currency: str) 
                 headers={'x-api-key': APIVERVE_KEY}
             )
             data = response.json()
-            converted_amount = float(data['result']['new_amount'])
+            converted_amount = float(data['data']['convertedValue'])
+            
             await push_to_loki("currency_converter", "conversion_success", {
                 "from_currency": from_currency,
                 "to_currency": to_currency,

@@ -7,7 +7,7 @@ import Mailjet from "node-mailjet";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 
-import paypalRouter from './routes/paypal_router.js';
+import paypalRouter from './routers/paypal_router.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

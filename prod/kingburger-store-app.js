@@ -7,6 +7,8 @@ import Mailjet from "node-mailjet";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 
+import paypalRouter from './routes/paypal_router.js';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -44,8 +46,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // ==================== API Routes ====================
 
-import paypalRouter from './routes/paypal_router.js'
-app.use(paypalRouter)
+app.use('/api/paypal', paypalRouter)
 
 //mailer via mailjet API
 const mailjet = Mailjet.apiConnect(

@@ -1,9 +1,7 @@
 import express from 'express'
 const router = express.Router()
 
-const BACKEND_URL = process.env.BACKEND_URL
-
-router.post('/api/paypal/create-order', async (req, res) => {
+router.post('/create-order', async (req, res) => {
     const response = await fetch(`https://api.kingburger.site/api/paypal/create-order`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -13,7 +11,7 @@ router.post('/api/paypal/create-order', async (req, res) => {
     res.json(data)
 })
 
-router.post('/api/paypal/capture', async (req, res) => {
+router.post('/capture', async (req, res) => {
     const response = await fetch(`https://api.kingburger.site/api/paypal/capture`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -23,7 +21,7 @@ router.post('/api/paypal/capture', async (req, res) => {
     res.json(data)
 })
 
-router.post('/api/paypal/charge', async (req, res) => {
+router.post('/charge', async (req, res) => {
     const response = await fetch(`https://api.kingburger.site/api/paypal/charge`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

@@ -6,7 +6,7 @@ import httpx
 router = APIRouter()
 
 demo_mode = True
-
+BASE_URL = cast(str, os.getenv("BASE_URL"))
 if demo_mode:
     paypal_username = cast(str, os.getenv("PAYPAL_SANDBOX_USERNAME"))
     paypal_password = cast(str, os.getenv("PAYPAL_SANDBOX_PASSWORD"))
@@ -60,3 +60,41 @@ async def existing_payer_paypal_token(customer_id: str):
         return {"status": "success", "id_token": id_token,"response": data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get paypal Auth Token: {e}")
+    
+# ------------------------- Paypal Capture Request --------------------
+@router.post("/api/paypal/create-order")
+async def create_order(merchant_reference: str, amount: float):
+    token = await new_payer_paypal_token()
+
+    payload = {
+        "intent": "CAPTURE",
+        "purchase_units": [{
+            "amount": {"currency_code": "ZAR", "value": f"{amount:.2f}"},
+            "custom_id": merchant_reference
+        }],
+        "payment_source": {
+            "paypal": {
+                "attributes": {
+                    "vault": {
+                        "store_in_vault": "ON_SUCCESS",
+                        "usage_type": "MERCHANT"
+                    }
+                },
+                "experience_context": {
+                    "return_url": f"{BASE_URL}/redirects/paypal/paypal-redirect",
+                    "cancel_url": f"{BASE_URL}/redirects/cancel"
+                }
+            }
+        }
+    }
+
+    async with httpx.AsyncClient() as client:
+        res = await client.post(
+            f"{BASE_URL}/v2/checkout/orders",
+            json=payload,
+            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+        )
+        data = res.json()
+
+    approve_url = next(l["href"] for l in data["links"] if l["rel"] == "approve")
+    return {"approve_url": approve_url}

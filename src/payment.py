@@ -198,6 +198,3 @@ async def tokenize_card(card: TokenizeCardDataset):
             return {"status": "failed", "response": data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Card tokenization failed: {e}")
-
-
-# ------------------------- Paypal Capture Request --------------------

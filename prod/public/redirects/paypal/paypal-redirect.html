@@ -15,7 +15,7 @@
             const merchant_reference = localStorage.getItem('merchant_reference')
 
             if (!token || !merchant_reference) {
-                window.location.href = '/checkout/failed.html'
+                window.location.href = '/redirects/error.html'
                 return
             }
 
@@ -33,13 +33,13 @@
 
                 if (data.status === 'success') {
                     localStorage.removeItem('merchant_reference')
-                    window.location.href = '/checkout/success.html'
+                    window.location.href = '/redirects/success.html'
                 } else {
-                    window.location.href = '/checkout/failed.html'
+                    window.location.href = '/redirects/error.html'
                 }
             } catch (err) {
                 console.error('PayPal capture error:', err)
-                window.location.href = '/checkout/failed.html'
+                window.location.href = '/redirects/error.html'
             }
         })()
     </script>

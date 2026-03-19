@@ -41,6 +41,7 @@ def update_order_status(db, merchant_reference: str, status: str, reason: str = 
         order.status = status
         order.reason = reason
         order.updated_at = datetime.now(timezone.utc)
+        db.commit()
         return "order_updated"
     except Exception as e:
         return (f"order_update_error: {str(e)}")

@@ -141,7 +141,6 @@ async def create_order(request: PayPalOrderRequest):
                     order.paypal_order_id = paypal_order_id
                     db.commit()
             except Exception as db_error:
-                db.rollback()
                 print(f"Failed to update paypal_order_id: {db_error}")
                 
             await push_to_loki("paypal", "create_order_success", {

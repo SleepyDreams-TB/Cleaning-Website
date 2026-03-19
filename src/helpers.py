@@ -48,31 +48,38 @@ def billing_info_helper(current_user: dict) -> dict:
         return current_user.get("billing_info", {}).get("billing_address", {})
 
 # ------------------- Helper: Currency Converter API -------------------
-
+#
 async def convert_currency(amount: float, from_currency: str, to_currency: str) -> float:
     """Convert amount from one currency to another"""
     try:
+
         async with httpx.AsyncClient() as client:
             response = await client.get(
-                f'https://api.apiverve.com/v1/currencyconverter',
-                params={
-                    'value': amount,
-                    'from': from_currency,
-                    'to': to_currency
-                },
-                headers={'x-api-key': APIVERVE_KEY}
+                f'https://v6.exchangerate-api.com/v6/076823edd4a018b50683afdf/latest/{from_currency}'
             )
             data = response.json()
-            converted_amount = float(data['data']['convertedValue'])
-            
+
+            if data.get("result") == "error":
+                await push_to_loki("currency_converter", "conversion_error", {
+                    "from_currency": from_currency,
+                    "to_currency": to_currency,
+                    "amount": amount,
+                    "error": data.get('error-type')
+                })
+                raise Exception(f"API error: {data.get('error-type')}")
+
+            rates = data.get("conversion_rates", {})
+            converted_amount = amount * rates.get(to_currency, 1)
+
             await push_to_loki("currency_converter", "conversion_success", {
                 "from_currency": from_currency,
                 "to_currency": to_currency,
                 "original_amount": amount,
                 "converted_amount": converted_amount
             })
-
-            return converted_amount
+            
+            return round(converted_amount, 2)
+            
     except Exception as e:
         await push_to_loki("currency_converter", "conversion_error", {
             "from_currency": from_currency,

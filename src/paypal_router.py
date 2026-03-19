@@ -134,13 +134,13 @@ async def create_order(request: PayPalOrderRequest):
                 raise Exception("PayPal did not return a payer-action URL")
             
             # ---------- Store Paypal Order Id in DB ----------- 
-            db = db_session()
             try:
-                order = db.query(Order).filter(Order.merchant_reference == merchant_reference).first()
-                if order:
-                    order.paypal_order_id = paypal_order_id
-                    db.commit()
+                with db_session() as db:
+                    order = db.query(Order).filter(Order.merchant_reference == merchant_reference).first()
+                    if order:
+                        order.paypal_order_id = paypal_order_id
             except Exception as db_error:
+                db.rollback()
                 print(f"Failed to update paypal_order_id: {db_error}")
                 
             await push_to_loki("paypal", "create_order_success", {

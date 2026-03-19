@@ -43,8 +43,9 @@ def update_order_status(db, merchant_reference: str, status: str, reason: str = 
         order.updated_at = datetime.now(timezone.utc)
         db.commit()
         return "order_updated"
-    except Exception as db_error:
-        print(f"Failed to update paypal_order_id: {db_error}")
+    except Exception as e:
+        db.rollback()
+        return (f"order_update_error: {str(e)}")
 
 
 @router.post("/webhook", include_in_schema=False)

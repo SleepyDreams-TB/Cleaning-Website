@@ -10,7 +10,7 @@ from urllib.parse import parse_qs
 from models import Order
 from helpers import get_origin_ip, log_event
 from postgresqlDB import db_session
-import httpx, json, time  
+import httpx, json, time
 from loki_logger import push_to_loki
 
 # ------------------- Configuration -------------------
@@ -59,7 +59,7 @@ async def webhook(request: Request):
     try:
         payload = await get_payload(request)
         log_event("info", "webhook_received", origin_ip=origin_ip, **payload)
-        
+
         try:
             await push_to_loki("webhook_received", payload)
         except Exception as e:
@@ -84,90 +84,101 @@ async def webhook(request: Request):
 @router.post("/webhook/paypal", include_in_schema=False)
 async def paypal_webhook(request: Request):
     origin_ip = get_origin_ip(request)
-    
+
     try:
         payload = await request.json()
         event_type = payload.get("event_type")
         resource = payload.get("resource", {})
-        
-        purchase_units = resource.get("purchase_units", [])
-        custom_id = purchase_units[0].get("custom_id") if purchase_units else None
-        
+
+        # Extract paypal_order_id from supplementary_data (for capture events)
+        paypal_order_id = None
+        if event_type == "PAYMENT.CAPTURE.COMPLETED":
+            supplementary_data = resource.get("supplementary_data", {})
+            related_ids = supplementary_data.get("related_ids", {})
+            paypal_order_id = related_ids.get("order_id")
+        elif event_type == "CHECKOUT.ORDER.COMPLETED":
+            paypal_order_id = resource.get("id")
+
         await push_to_loki("paypal_webhook", "paypal_webhook_received", {
             "event_type": event_type,
-            "order_id": resource.get("id"),
-            "merchant_reference": custom_id,
+            "paypal_order_id": paypal_order_id,
             "status": resource.get("status"),
             "origin_ip": origin_ip
         })
-        
+
         # Handle CHECKOUT.ORDER.COMPLETED event
         if event_type == "CHECKOUT.ORDER.COMPLETED":
-            order_id = resource.get("id")
             status = resource.get("status")
-            
-            if custom_id and status == "APPROVED":
+
+            if paypal_order_id and status == "APPROVED":
                 with db_session() as db:
-                    update_result = update_order_status(db, custom_id, "approved", "PayPal approved - awaiting capture")
-                    
-                    await push_to_loki("paypal_webhook", "paypal_order_approved", {
-                        "merchant_reference": custom_id,
-                        "paypal_order_id": order_id,
-                        "status": status,
-                        "update_result": update_result
-                    })
-                    
-                    log_event("info", "paypal_order_approved", 
-                        merchant_reference=custom_id, 
-                        paypal_order_id=order_id,
-                        status=status
-                    )
-        
+                    order = db.query(Order).filter(Order.paypal_order_id == paypal_order_id).first()
+                    if order:
+                        order.status = "approved"
+                        order.reason = "PayPal approved - awaiting capture"
+                        order.updated_at = datetime.now(timezone.utc)
+                        db.commit()
+
+                        await push_to_loki("paypal_webhook", "paypal_order_approved", {
+                            "paypal_order_id": paypal_order_id,
+                            "status": status
+                        })
+
+                        log_event("info", "paypal_order_approved",
+                            paypal_order_id=paypal_order_id,
+                            status=status
+                        )
+
         # Handle PAYMENT.CAPTURE.COMPLETED event
         elif event_type == "PAYMENT.CAPTURE.COMPLETED":
-            capture_id = resource.get("id")
             status = resource.get("status")
-            
-            if status == "SUCCESS" and custom_id:
+
+            if status == "COMPLETED" and paypal_order_id:
                 with db_session() as db:
-                    update_result = update_order_status(db, custom_id, "completed", "Payment captured successfully")
-                    
-                    await push_to_loki("paypal_webhook", "paypal_payment_captured", {
-                        "merchant_reference": custom_id,
-                        "capture_id": capture_id,
-                        "status": status,
-                        "update_result": update_result
-                    })
-                    
-                    log_event("info", "paypal_payment_captured",
-                        merchant_reference=custom_id,
-                        capture_id=capture_id,
-                        status=status
-                    )
-        
+                    order = db.query(Order).filter(Order.paypal_order_id == paypal_order_id).first()
+                    if order:
+                        order.status = "completed"
+                        order.reason = "Payment captured successfully"
+                        order.updated_at = datetime.now(timezone.utc)
+                        db.commit()
+
+                        await push_to_loki("paypal_webhook", "paypal_payment_captured", {
+                            "paypal_order_id": paypal_order_id,
+                            "status": status
+                        })
+
+                        log_event("info", "paypal_payment_captured",
+                            paypal_order_id=paypal_order_id,
+                            status=status
+                        )
+
         # Handle payment failures
         elif event_type in ["PAYMENT.CAPTURE.DENIED", "PAYMENT.CAPTURE.REFUNDED"]:
             reason = resource.get("status_details", {}).get("reason", "Unknown reason")
-            
-            if custom_id:
+
+            if paypal_order_id:
                 with db_session() as db:
-                    update_result = update_order_status(db, custom_id, "failed", f"PayPal: {event_type} - {reason}")
-                    
-                    await push_to_loki("paypal_webhook", "paypal_payment_failed", {
-                        "merchant_reference": custom_id,
-                        "event_type": event_type,
-                        "reason": reason,
-                        "update_result": update_result
-                    })
-                    
-                    log_event("error", "paypal_payment_failed",
-                        merchant_reference=custom_id,
-                        event_type=event_type,
-                        reason=reason
-                    )
-        
+                    order = db.query(Order).filter(Order.paypal_order_id == paypal_order_id).first()
+                    if order:
+                        order.status = "failed"
+                        order.reason = f"PayPal: {event_type} - {reason}"
+                        order.updated_at = datetime.now(timezone.utc)
+                        db.commit()
+
+                        await push_to_loki("paypal_webhook", "paypal_payment_failed", {
+                            "paypal_order_id": paypal_order_id,
+                            "event_type": event_type,
+                            "reason": reason
+                        })
+
+                        log_event("error", "paypal_payment_failed",
+                            paypal_order_id=paypal_order_id,
+                            event_type=event_type,
+                            reason=reason
+                        )
+
         return JSONResponse({"status": "ok"})
-        
+
     except Exception as e:
         await push_to_loki("paypal_webhook", "paypal_webhook_error", {
             "error": str(e),

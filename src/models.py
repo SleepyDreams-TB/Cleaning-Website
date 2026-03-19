@@ -71,6 +71,7 @@ class Order(Base):
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
     reason = Column(String(255), nullable=True)
+    paypal_order_id = Column(String(255), nullable=True)
     items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
 
 

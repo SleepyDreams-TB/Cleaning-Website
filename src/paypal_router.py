@@ -7,6 +7,9 @@ import httpx
 from models import PayPalOrderRequest, PayPalCaptureRequest
 from loki_logger import push_to_loki
 from helpers import convert_currency
+from postgresqlDB import db_session
+from models import Order
+
 router = APIRouter()
 demo_mode = True
 BASE_URL = cast(str, os.getenv("BASE_URL"))
@@ -118,6 +121,7 @@ async def create_order(request: PayPalOrderRequest):
                 raise Exception(f"PayPal API returned {res.status_code}: {res.text}")
             
             data = res.json()
+            paypal_order_id = data.get("id")
 
             approve_url = next((l["href"] for l in data.get("links", []) if l["rel"] == "payer-action"), None)
 
@@ -129,11 +133,22 @@ async def create_order(request: PayPalOrderRequest):
                 })
                 raise Exception("PayPal did not return a payer-action URL")
             
+            # ---------- Store Paypal Order Id in DB ----------- 
+            db = db_session()
+            try:
+                order = db.query(Order).filter(Order.merchant_reference == merchant_reference).first()
+                if order:
+                    order.paypal_order_id = paypal_order_id
+                    db.commit()
+            except Exception as db_error:
+                db.rollback()
+                print(f"Failed to update paypal_order_id: {db_error}")
+                
             await push_to_loki("paypal", "create_order_success", {
                 "merchant_reference": merchant_reference,
                 "amount_zar": zar_amount,
                 "amount_usd": amount_usd,
-                "paypal_order_id": data.get("id")
+                "paypal_order_id": paypal_order_id
             })
         return {"approve_url": approve_url}
         
@@ -145,7 +160,7 @@ async def create_order(request: PayPalOrderRequest):
         })
         raise HTTPException(status_code=500, detail=f"PayPal API error: {str(e)}")
     
-# -------------------------Step 2:  Paypal Capture Order Request --------------------
+# -------------------------Step 2:  Paypal CAPTURE Order Request --------------------
 
 @router.post("/api/paypal/capture")
 async def capture_order(request: PayPalCaptureRequest):

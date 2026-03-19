@@ -108,7 +108,7 @@ async def create_order(request: PayPalOrderRequest):
                 headers={"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"}
             )
             
-            if res.status_code != 201:
+            if res.status_code != 200:
                 await push_to_loki("paypal", "create_order_error", {
                     "merchant_reference": merchant_reference,
                     "amount": amount_usd,
@@ -118,12 +118,23 @@ async def create_order(request: PayPalOrderRequest):
                 raise Exception(f"PayPal API returned {res.status_code}: {res.text}")
             
             data = res.json()
+
+            approve_url = next((l["href"] for l in data.get("links", []) if l["rel"] == "payer-action"), None)
+
+            if not approve_url:
+                await push_to_loki("paypal", "create_order_error", {
+                    "merchant_reference": merchant_reference,
+                    "amount_usd": amount_usd,
+                    "error": "No payer-action URL in response"
+                })
+                raise Exception("PayPal did not return a payer-action URL")
+            
             await push_to_loki("paypal", "create_order_success", {
                 "merchant_reference": merchant_reference,
-                "amount": amount_usd
+                "amount_zar": zar_amount,
+                "amount_usd": amount_usd,
+                "paypal_order_id": data.get("id")
             })
-
-        approve_url = next(l["href"] for l in data.get("links", []) if l["rel"] == "approve")
         return {"approve_url": approve_url}
         
     except Exception as e:

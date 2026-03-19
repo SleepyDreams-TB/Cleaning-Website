@@ -44,6 +44,7 @@ def update_order_status(db, merchant_reference: str, status: str, reason: str = 
         db.commit()
         return "order_updated"
     except Exception as e:
+        db.rollback()
         return (f"order_update_error: {str(e)}")
 
 

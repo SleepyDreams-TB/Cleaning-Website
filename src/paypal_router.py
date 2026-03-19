@@ -4,7 +4,7 @@ import os
 from typing import cast
 import httpx
 
-from models import PayPalOrderRequest
+from models import PayPalOrderRequest, PayPalCaptureRequest
 from loki_logger import push_to_loki
 from helpers import convert_currency
 router = APIRouter()
@@ -67,7 +67,7 @@ async def existing_payer_paypal_token(customer_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get paypal Auth Token: {e}")
     
-# ------------------------- Paypal Capture Request --------------------
+# -------------------------Step 1:  Paypal Create Order Request --------------------
 @router.post("/api/paypal/create-order")
 async def create_order(request: PayPalOrderRequest):
     merchant_reference = request.merchant_reference
@@ -144,3 +144,57 @@ async def create_order(request: PayPalOrderRequest):
             "error": str(e)
         })
         raise HTTPException(status_code=500, detail=f"PayPal API error: {str(e)}")
+    
+# -------------------------Step 2:  Paypal Capture Order Request --------------------
+
+@router.post("/api/paypal/capture")
+async def capture_order(request: PayPalCaptureRequest):
+    order_id = request.order_id
+    merchant_reference = request.merchant_reference
+    
+    try:
+        token_response = await new_payer_paypal_token()
+        access_token = token_response['id_token']
+
+        payload = {}  # Capture doesn't need a body, just the order_id in the URL
+
+        async with httpx.AsyncClient() as client:
+            res = await client.post(
+                f"{PAYPAL_API_URL}/v2/checkout/orders/{order_id}/pay",
+                json=payload,
+                headers={"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"}
+            )
+            
+            if res.status_code not in (200, 201):
+                await push_to_loki("paypal", "capture_order_error", {
+                    "merchant_reference": merchant_reference,
+                    "order_id": order_id,
+                    "status_code": res.status_code,
+                    "response": res.text
+                })
+                raise Exception(f"PayPal capture failed {res.status_code}: {res.text}")
+            
+            data = res.json()
+            
+            if data.get("status") == "COMPLETED":
+                await push_to_loki("paypal", "capture_order_success", {
+                    "merchant_reference": merchant_reference,
+                    "order_id": order_id,
+                    "paypal_status": data.get("status")
+                })
+                return {"status": "success", "order_id": order_id}
+            else:
+                await push_to_loki("paypal", "capture_order_incomplete", {
+                    "merchant_reference": merchant_reference,
+                    "order_id": order_id,
+                    "paypal_status": data.get("status")
+                })
+                raise Exception(f"Payment status: {data.get('status')}")
+        
+    except Exception as e:
+        await push_to_loki("paypal", "capture_order_exception", {
+            "merchant_reference": merchant_reference,
+            "order_id": order_id,
+            "error": str(e)
+        })
+        raise HTTPException(status_code=500, detail=f"PayPal capture error: {str(e)}")

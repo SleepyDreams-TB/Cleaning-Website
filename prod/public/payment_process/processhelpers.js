@@ -129,6 +129,7 @@ export async function tokenizeCardData(merchant_reference, cardData) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(bodyData)
     });
+
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data = await res.json();
     if (data?.status === "success" && data?.response?.guid) {
@@ -144,6 +145,44 @@ export async function tokenizeCardData(merchant_reference, cardData) {
     return null;
   }
 }
+
+// ----- Create Paypal Payment -----
+export async function createPaypalPayment(amount, deliveryAddress) {
+  const merchant_reference = generateMerchantReference();
+
+  const bodyData = {
+    amount,
+    merchant_reference: merchant_reference
+  };
+
+  const orderData = await createBackendOrder("paypal", merchant_reference, deliveryAddress);
+  if (!orderData?.success) {
+    return;
+  }
+  try {
+    const res = await fetch(getEndpoint("paypal"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(bodyData)
+    });
+
+    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+    const data = await res.json();
+    const approve_url = data.approve_url;
+
+    if (approve_url) {
+      clearCart();
+      localStorage.setItem("merchant_reference", merchant_reference);
+      window.location.href = approve_url;
+    } else {
+      notifyUser("Could not initiate PayPal payment. Please try again.");
+    }
+  } catch (err) {
+    console.error("Payment error:", err);
+    notifyUser("Something went wrong. Please try again.");
+  }
+}
+
 // ----- Create Payment -----
 export async function createPayment(payment_type, amount, deliveryAddress, saveCardBool, dataObject) {
   const merchant_reference = generateMerchantReference();
@@ -191,12 +230,6 @@ export async function createPayment(payment_type, amount, deliveryAddress, saveC
       merchant_reference: merchant_reference,
       guid: dataObject.guid
     };
-  } else if (payment_type === "paypal") {
-    bodyData = {
-      amount,
-      merchant_reference: merchant_reference
-    };
-
   } else {
     notifyUser("Unknown payment type.");
     return;
@@ -259,14 +292,6 @@ export async function createPayment(payment_type, amount, deliveryAddress, saveC
         }
       } else {
         notifyUser("Unexpected response from payment provider.");
-      }
-    } else if (payment_type === "paypal") {
-      if (data.approve_url) {
-        clearCart();
-        localStorage.setItem("merchant_reference", merchant_reference);
-        window.location.href = data.approve_url;
-      } else {
-        notifyUser("Could not initiate PayPal payment. Please try again.");
       }
 
     }

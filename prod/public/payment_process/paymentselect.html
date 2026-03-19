@@ -319,7 +319,7 @@
   </div>
 
   <script type="module">
-    import { lookupBin, createPayment, tokenizeCardData } from '../payment_process/processhelpers.js?v=4';
+    import { lookupBin, createPayment, tokenizeCardData, createPaypalPayment } from '../payment_process/processhelpers.js?v=4';
 
     // ------------------- Tab Switching -------------------
     function selectMethod(method) {
@@ -542,22 +542,10 @@
       paypalBtn.textContent = 'Loading...'
 
       try {
-        await createPayment('paypal', cartAmount, selectedAddressType, false, {})
+        await createPaypalPayment(cartAmount, selectedAddressType)
       } finally {
         paypalBtn.disabled = false
         paypalBtn.textContent = 'Continue to PayPal'
-      }
-    })
-
-    document.querySelector('#panel-paypal button').addEventListener('click', async () => {
-      const btn = document.querySelector('#panel-paypal button')
-      btn.disabled = true
-      btn.textContent = 'Redirecting...'
-      try {
-        await createPayment('paypal', cartAmount, selectedAddressType, false, {})
-      } finally {
-        btn.disabled = false
-        btn.textContent = 'Continue to PayPal'
       }
     })
   </script>

@@ -160,7 +160,7 @@ async def capture_order(request: PayPalCaptureRequest):
 
         async with httpx.AsyncClient() as client:
             res = await client.post(
-                f"{PAYPAL_API_URL}/v2/checkout/orders/{order_id}/pay",
+                f"{PAYPAL_API_URL}/v2/checkout/orders/{order_id}/capture",
                 json=payload,
                 headers={"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"}
             )

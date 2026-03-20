@@ -2,12 +2,29 @@
 <html lang="en">
 
 <head>
+    <link rel="icon" href="/assets/burger.ico" type="image/x-icon">
     <meta charset="UTF-8">
-    <title>Redirecting...</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Processing Payment...</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body>
-    <p>Please wait, redirecting...</p>
+<body class="bg-cover bg-center bg-no-repeat bg-fixed text-gray-800"
+    style="background-image: url('../assets/blueBG.png');">
+
+    <div class="flex items-center justify-center min-h-screen">
+        <div class="bg-white p-10 rounded-lg shadow-lg text-center max-w-md">
+            <div class="flex justify-center mb-6">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600"></div>
+            </div>
+            <h1 class="text-2xl font-bold text-gray-800 mb-2">Processing Payment</h1>
+            <p class="text-gray-600 mb-6">Please wait while we complete your PayPal payment...</p>
+            <div class="bg-gray-100 p-4 rounded">
+                <p class="text-sm text-gray-500">Do not close this window</p>
+            </div>
+        </div>
+    </div>
+
     <script>
         (async () => {
             const params = new URLSearchParams(window.location.search)
@@ -43,6 +60,10 @@
             }
         })()
     </script>
+
+    <footer class="bg-black text-white text-center p-4 mt-8 fixed bottom-0 w-full">
+        © 2025 King Burger's Store. All rights reserved.
+    </footer>
 </body>
 
 </html>

@@ -12,10 +12,17 @@ from helpers import get_origin_ip, log_event
 from postgresqlDB import db_session
 import httpx, json, time
 from loki_logger import push_to_loki
+from pymongo import MongoClient
+
 
 # ------------------- Configuration -------------------
 IP_WHITELIST = [ip.strip() for ip in os.getenv("IP_WHITELIST", "").split(",") if ip.strip()]
 router = APIRouter(tags=["webhook"])
+
+MONGO_URI = cast(str, os.getenv("MONGO_URI"))
+client = MongoClient(MONGO_URI, tls=True, tlsAllowInvalidCertificates=False)
+db = client["kingburgerstore_db"]
+users_collection = db["store_users"]
 
 #------------------- Helper: Parse Payload from urlencoded to JSON -------------------
 async def get_payload(request: Request):
@@ -27,7 +34,7 @@ async def get_payload(request: Request):
     else:
         return await request.json()
 
-
+# Save Paypal Vault ID to Mongo where email match
 def update_order_status(db, merchant_reference: str, status: str, reason: str = None) -> str:
     """Update order status in the database."""
     if not merchant_reference:
@@ -47,6 +54,27 @@ def update_order_status(db, merchant_reference: str, status: str, reason: str = 
         db.rollback()
         return (f"order_update_error: {str(e)}")
 
+#save guid as new field to mongodb where user_id match
+def save_paypal_vault_id(paypal_email: str, vault_id: str = ""):
+    try:
+        result = users_collection.update_one(
+            {"email": paypal_email},
+            {"$set": {
+                "billing_info.paypal_vault": {
+                    "vault_id": vault_id
+                }
+            }}, 
+            upsert=False
+        )
+        
+        if result.matched_count == 0:
+            print(f"User with email {paypal_email} not found")
+            return f"Error: User {paypal_email} not found"
+        
+        return (f"Saving GUID {vault_id} for customer {paypal_email} to the database")
+    except Exception as e:
+        print(f"Error saving vault ID: {e}")
+        return f"Error saving vault ID: {str(e)}"
 
 @router.post("/webhook", include_in_schema=False)
 async def webhook(request: Request):
@@ -96,6 +124,7 @@ async def paypal_webhook(request: Request):
             supplementary_data = resource.get("supplementary_data", {})
             related_ids = supplementary_data.get("related_ids", {})
             paypal_order_id = related_ids.get("order_id")
+        
         elif event_type == "CHECKOUT.ORDER.COMPLETED":
             paypal_order_id = resource.get("id")
 
@@ -151,6 +180,20 @@ async def paypal_webhook(request: Request):
                             paypal_order_id=paypal_order_id,
                             status=status
                         )
+
+        # Handle VAULT.PAYMENT-TOKEN.CREATED event
+        elif event_type == "VAULT.PAYMENT-TOKEN.CREATED":
+            vault_id = resource.get("id")
+            paypal_email = resource.get("payment_source", {}).get("paypal", {}).get("email_address")
+            
+            if vault_id and paypal_email:
+                result = save_paypal_vault_id(paypal_email, vault_id)
+
+                await push_to_loki("paypal_webhook", "vault_token_created", {
+                    "vault_id": vault_id,
+                    "paypal_email": paypal_email,
+                    "result": result
+                })
 
         # Handle payment failures
         elif event_type in ["PAYMENT.CAPTURE.DENIED", "PAYMENT.CAPTURE.REFUNDED"]:

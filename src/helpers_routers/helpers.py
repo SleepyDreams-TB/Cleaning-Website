@@ -1,4 +1,5 @@
-from fastapi import Request
+#helpers.py
+from fastapi import Request, Depends
 from jose import jwt, JWTError
 from datetime import datetime, timezone
 import os
@@ -10,15 +11,17 @@ import logging
 import sys
 import httpx
 from pythonjsonlogger.jsonlogger import JsonFormatter
-from pymongo import MongoClient
-from loki_logger import push_to_loki
+from logs.loki_logger import push_to_loki
 
-# Database setup (assuming MongoDB)
-client = MongoClient(os.getenv("MONGODB_URI"))
-db = client['kingburgerstore_db']
+from bson import ObjectId
+from databaseConnections.mongoClient import get_collection
+users_collection = get_collection("store_users")
+
+
 SECRET_KEY = cast(str, os.getenv("SECRET_KEY"))
 ALGORITHM = cast(str, os.getenv("ALGORITHM", "HS256"))
 APIVERVE_KEY = cast(str, os.getenv("APIVERVE_KEY"))
+EXCHANGE_RATE_KEY = cast(str, os.getenv("EXCHANGE_RATE_KEY"))
 
 # ------------------- Helper: Generate Merchant Reference -------------------
 def generate_merchant_reference():
@@ -27,22 +30,44 @@ def generate_merchant_reference():
     return f"PAY-{timestamp}-{suffix}"
 
 
-# ------------------- Helper: Extract User ID from JWT Token -------------------
-def get_user_id_from_token(authorization: str): 
-    """Extract user_id from Bearer JWT token."""
-    if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Missing or invalid Authorization header")
+def get_current_user(request: Request):
+    token = request.cookies.get("access_token")
 
-    token = authorization.split(" ")[1]
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = payload.get("user_id")
         if not user_id:
             raise HTTPException(status_code=401, detail="Invalid token payload")
-        return user_id
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
-    
+
+    user = users_collection.find_one({"_id": ObjectId(user_id)})
+    if not user:
+        raise HTTPException(status_code=401, detail="User no longer exists")
+
+    return user
+
+def require_role(*allowed_roles: str):
+    """
+    Role-based access dependency factory.
+
+    Usage:
+        Depends(require_role("admin"))
+        Depends(require_role("admin", "developer"))
+    """
+    def role_checker(current_user = Depends(get_current_user)):
+        user_role = current_user.get("role")
+        if user_role not in allowed_roles:
+            raise HTTPException(
+                status_code=403,
+                detail="You do not have permission to perform this action"
+            )
+        return current_user
+    return role_checker
+
 # ------------------- Helper: Billing Info Helper -------------------
 def billing_info_helper(current_user: dict) -> dict:
         return current_user.get("billing_info", {}).get("billing_address", {})
@@ -55,7 +80,7 @@ async def convert_currency(amount: float, from_currency: str, to_currency: str) 
 
         async with httpx.AsyncClient() as client:
             response = await client.get(
-                f'https://v6.exchangerate-api.com/v6/076823edd4a018b50683afdf/latest/{from_currency}'
+                f'https://v6.exchangerate-api.com/v6/{EXCHANGE_RATE_KEY}/latest/{from_currency}'
             )
             data = response.json()
 

@@ -97,7 +97,6 @@ class CardDataset(BaseModel):
     expiryDate: str       # frontend sends MM/YY — we convert to MMYY
     cvv: str
     cardHolderName: str
-    user_id: str
     cardScheme: str
 
 

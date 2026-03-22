@@ -2,8 +2,8 @@
 #This file manages: user signup, login with JWT #tokens, and logout
 
 
-from fastapi import APIRouter, Form, HTTPException, Header, Depends
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, Form, HTTPException, Depends, Response, Request
+from fastapi.responses import JSONResponse 
 from pymongo import MongoClient
 from bson import ObjectId
 from pydantic import EmailStr
@@ -20,15 +20,17 @@ import qrcode
 import io
 from qrcode.image.pil import PilImage
 
+from main import limiter
 
+from helpers_routers.helpers import get_current_user
+from databaseConnections.mongoClient import get_collection
+
+users_collection = get_collection("store_users")
 # Create router
 router = APIRouter(prefix="/auth", tags=["authentication"])
 
 # MongoDB connection
-MONGO_URI = cast(str, os.getenv("MONGO_URI"))
-client = MongoClient(MONGO_URI, tls=True, tlsAllowInvalidCertificates=False)
-db = client["kingburgerstore_db"]
-users_collection = db["store_users"]
+
 
 # JWT Settings
 SECRET_KEY = cast(str, os.getenv("SECRET_KEY"))
@@ -48,34 +50,6 @@ def check_user_exists(userName: str, email: str):
         print(f"❌ check_user_exists error: {e}")
         return False
 
-def get_current_user(authorization: str = Header(...)):
-    """
-    Get the currently logged-in user from JWT token
-    This is used as a dependency in protected routes
-    """
-    # Check if header starts with "Bearer "
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Invalid auth header format")
-    
-    # Extract the token
-    token = authorization.split(" ")[1]
-    
-    try:
-        # Decode the JWT token
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id = payload["user_id"]
-        
-        # Find user in database
-        user = users_collection.find_one({"_id": ObjectId(user_id)})
-        if not user:
-            raise HTTPException(status_code=401, detail="User not found")
-        
-        return user
-    
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token expired - please login again")
-    except jwt.PyJWTError:
-        raise HTTPException(status_code=401, detail="Invalid token")
     
 
 def generate_qr(user_id: str):
@@ -191,14 +165,14 @@ async def register_user(
 
 # ==================== LOGOUT USER ====================
 @router.post("/logout")
-async def logout_user():
-    """
-    Logout user
-    """
-    return {
-        "success": True,
-        "message": "Logout successful (token removed from localstorage on client side)"
-    }
+async def logout_user(response: Response):
+    response.delete_cookie(
+        key="access_token",
+        httponly=True,
+        secure=True,
+        samesite="lax"
+    )
+    return {"success": True, "message": "Logged out successfully"}
 
 # ==================== GET CURRENT USER INFO ====================
 @router.get("/me")
@@ -228,15 +202,16 @@ async def get_my_info(user = Depends(get_current_user)):
 
 # ==================== LOGIN STEP ====================
 
-@router.post("/login-step")  # FastAPI endpoint without trailing slash
-def login_step(userName: str = Form(...), password: str = Form(...)):
+@router.post("/login-step")
+@limiter.limit("5/minute")
+
+def login_step(request: Request, userName: str = Form(...), password: str = Form(...)):
     try:
         print(f"🔹 Login attempt for username: {userName}")
         user = users_collection.find_one({"userName": userName})
         if not user:
             print("❌ User not found")
-            #return JSONResponse({"error": "Invalid username or password"}, status_code=401)
-            return JSONResponse({"error": "USER_NOT_FOUND"}, status_code=401)
+            return JSONResponse({"error": "Invalid username or password"}, status_code=401)
         # Verify password
         try:
             password_correct = argon2.verify(password, user.get("password", ""))
@@ -250,7 +225,6 @@ def login_step(userName: str = Form(...), password: str = Form(...)):
         # Generate QR for 2FA
         try:
             result = generate_qr(str(user["_id"]))
-            print(f"🔹 QR generation result: {result}")
             if result["success"] and not result["registered"]:
                 return JSONResponse({
                     "success": True,
@@ -267,11 +241,9 @@ def login_step(userName: str = Form(...), password: str = Form(...)):
                     "message": "2FA already registered, proceed to login"
                 }, status_code=200)
         except Exception as e:
-            print(f"❌ QR generation exception: {e}")
             return JSONResponse({"success": False, "message": f"Error generating QR: {str(e)}"}, status_code=500)
 
     except Exception as error:
-        print(f"❌ Login-step outer exception: {error}")
         return JSONResponse({"error": f"Server error: {str(error)}"}, status_code=500)
 
 
@@ -279,8 +251,7 @@ def login_step(userName: str = Form(...), password: str = Form(...)):
 # ==================== QR STEP ====================
 
 @router.post("/qr-step")
-def qr_step(user_id: str = Form(...),
-    digit_code: str = Form(...)):
+def qr_step(request: Request, user_id: str = Form(...), digit_code: str = Form(...)):
     
     """
     QR code step for 2FA authentication
@@ -321,27 +292,35 @@ def qr_step(user_id: str = Form(...),
                 "exp": datetime.now(UTC) + timedelta(hours=1)
             }
             token = jwt.encode(token_payload, SECRET_KEY, algorithm=ALGORITHM)
-            
-            return JSONResponse({
+
+            json_response = JSONResponse({
                 "success": True,
                 "message": "Login successful",
-                "token": token,
                 "user": {
                     "firstName": user["firstName"],
                     "user_id": str(user["_id"]),
                     "userName": user["userName"]
                 }
             })
+
+            json_response.set_cookie(
+                key="access_token",
+                value=token,
+                httponly=True,
+                secure=True,
+                samesite="lax",
+                max_age=3600
+            )
+
+            return json_response
         
         except Exception as error:
-            print(f"❌ Login error: {error}")
             return JSONResponse(
                 content={"error": f"Server error: {str(error)}"},
                 status_code=500
             )
 
     except Exception as error:
-        print(f"❌ QR step error: {error}")
         return JSONResponse(
             content={"error": f"Server error: {str(error)}"},
             status_code=500

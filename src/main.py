@@ -16,24 +16,28 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from helpers_routers.helpers import get_origin_ip
+
 import ssl
 import logging
 logging.basicConfig(level=logging.INFO)
 
 from cache_middleware import CacheControlMiddleware
 from auth import router as auth_router
-from users import router as users_router
-from products import router as products_router
-from payment import router as payment_router
-from orders import router as orders_router
-from webhook_main import router as webhook_router
-from password_generator import router as password_generator_router
+from routers.users import router as users_router
+from routers.products import router as products_router
+from orderCreation.orders import router as orders_router
+from routers.webhook_main import router as webhook_router
+from routers.password_generator import router as password_generator_router
 from debug_router import debug_router
-from paypal_router import router as paypal_router
 
-from models import Base
-from postgresqlDB import engine
-from postgresqlDB import init_db
+from payment_routers.payment import router as payment_router
+from payment_routers.paypal_router import router as paypal_router
+
+from databaseConnections.postgresqlDB import init_db
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -65,6 +69,11 @@ print("✅ FastAPI app initialized")
 
 
 # Middleware Configuration
+
+limiter = Limiter(key_func=get_origin_ip)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 allowed_origins = [
     "https://kingburger.site",
     "https://api.kingburger.site",

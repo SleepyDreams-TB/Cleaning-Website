@@ -15,38 +15,66 @@ ALGORITHM = cast(str, os.getenv("ALGORITHM", "HS256"))
 router = APIRouter(prefix="/api", tags=["orders"])
 
 # --- Helper Functions ---
-from helpers import get_user_id_from_token
+from helpers_routers.helpers import get_current_user
+from databaseConnections.mongoClient import get_collection
+from bson import ObjectId
+
+products_collection = get_collection("products")
 
 # --- Create Order ---
 @router.post("/orders")
 async def create_order(request: Request, authorization: str = Header(None)):
     """Create a new order from cart data."""
-    user_id = get_user_id_from_token(authorization)
+    user = get_current_user(authorization)
+    user_id = str(user["_id"])
+    
     data = await request.json()
     items = data.get("items", [])
     payment_type = data.get("payment_type", "unknown")
     delivery_info = data.get("delivery_info")
     merchant_reference = data.get("merchant_reference")
+    
     if not items:
         raise HTTPException(status_code=400, detail="No items provided for order")
     if not delivery_info:
         raise HTTPException(status_code=400, detail="Delivery information is required")
     
-    total = sum(item["price"] * item["quantity"] for item in items)
+    total = 0
+    validated_items = []
+    for item in items:
+        try:
+            product = products_collection.find_one({"_id": ObjectId(item["id"])})
+        except Exception:
+            raise HTTPException(status_code=400, detail=f"Invalid product ID: {item.get('id')}")
 
+        if not product:
+            raise HTTPException(status_code=400, detail=f"Product not found: {item.get('id')}")
+
+        quantity = int(item.get("quantity", 1))
+        if quantity < 1 or quantity > 5:
+            raise HTTPException(status_code=400, detail=f"Invalid quantity for {product['name']}")
+
+        real_price = float(product["price"])
+        total += real_price * quantity
+        validated_items.append({
+            "name": product["name"],
+            "price": real_price,
+            "quantity": quantity
+        })
+        
     try:
         with db_session() as db:
             new_order = Order(
                 merchant_reference=merchant_reference,
                 user_id=user_id,
-                total=total,
+                total=round(total, 2),
                 payment_type=payment_type,
                 delivery_info=delivery_info
             )
             db.add(new_order)
             db.flush()
 
-            for item in items:
+            for item in validated_items:
                 order_item = OrderItem(
                     order_id=new_order.id,
                     name=item["name"],
@@ -55,15 +83,12 @@ async def create_order(request: Request, authorization: str = Header(None)):
                 )
                 db.add(order_item)
 
-            response_data = {
-            "success": True,
-            "message": "Order created successfully",
-            "merchant_reference": merchant_reference,
-            "total": total,
-            "status": new_order.status
-        }
-
-        return JSONResponse(response_data)
+        return JSONResponse({
+                "success": True,
+                "merchant_reference": merchant_reference,
+                "calculated_amount": round(total, 2),
+                "status": new_order.status
+            })
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Order creation failed: {str(e)}")
@@ -82,7 +107,8 @@ def get_user_orders(
     page_size: int = Query(10, ge=1, le=100)
 ):
     """Retrieve pages and filterable orders for the authenticated user."""
-    user_id = get_user_id_from_token(authorization)
+    user = get_current_user(authorization)
+    user_id = str(user["_id"])
 
     with db_session() as db:
         query = db.query(Order).options(joinedload(Order.items)).filter(Order.user_id == user_id)

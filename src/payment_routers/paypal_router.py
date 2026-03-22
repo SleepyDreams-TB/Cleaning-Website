@@ -5,8 +5,8 @@ from typing import cast
 import httpx
 
 from models import PayPalOrderRequest, PayPalCaptureRequest
-from loki_logger import push_to_loki
-from helpers import convert_currency
+from logs.loki_logger import push_to_loki
+from helpers_routers.helpers import convert_currency
 from postgresqlDB import db_session
 from models import Order
 

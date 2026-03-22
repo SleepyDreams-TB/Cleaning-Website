@@ -8,10 +8,10 @@ from datetime import datetime, timezone
 from typing import cast
 from urllib.parse import parse_qs
 from models import Order
-from helpers import get_origin_ip, log_event
+from helpers_routers.helpers import get_origin_ip, log_event
 from postgresqlDB import db_session
 import httpx, json, time
-from loki_logger import push_to_loki
+from logs.loki_logger import push_to_loki
 from pymongo import MongoClient
 
 

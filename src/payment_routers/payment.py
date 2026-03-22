@@ -1,33 +1,29 @@
-from fastapi import APIRouter, HTTPException, Header, Depends
-from pydantic import BaseModel
+from fastapi import APIRouter, HTTPException, Depends
 from typing import Optional
 from jose import JWTError, jwt
 import httpx
-from callpayV2_Token import generate_callpay_token
+from helpers_routers.callpayV2_Token import generate_callpay_token
 from dotenv import load_dotenv
 import os
 from typing import cast
 import logging
 logger = logging.getLogger(__name__)
-from auth import get_current_user
+from helpers_routers.helpers import get_current_user
 from models import CreditCardPaymentRequest, EFTPaymentRequest, TokenPaymentRequest, TokenizeCardDataset
-from loki_logger import push_to_loki
+from logs.loki_logger import push_to_loki
 
 
-from pymongo import MongoClient
 from bson import ObjectId
 
 load_dotenv()
 router = APIRouter()
 
-CALLPAY_BASE_URL = "https://services.callpay.com/api/v2"
+CALLPAY_BASE_URL = cast(str, os.getenv("CALLPAY_BASE_URL"))
 SECRET_KEY = cast(str, os.getenv("SECRET_KEY"))
 ALGORITHM = cast(str, os.getenv("ALGORITHM", "HS256"))
 
-MONGO_URI = cast(str, os.getenv("MONGO_URI"))
-client = MongoClient(MONGO_URI, tls=True, tlsAllowInvalidCertificates=False)
-db = client["kingburgerstore_db"]
-users_collection = db["store_users"]
+from databaseConnections.mongoClient import get_collection
+users_collection = get_collection("store_users")
 
 def get_callpay_headers() -> dict:
     creds = generate_callpay_token()
@@ -54,16 +50,6 @@ def save_guid_to_db(user_id: str, guid: str, expiryDate: str = "", lastFour: str
 
     return (f"Saving GUID {guid} for customer {user_id} to the database")
 
-#Decode JWT to get user_id
-def get_id_from_token(jwt_token) -> str:
-    try:
-        payload = jwt.decode(jwt_token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id = payload.get("user_id")
-        if not user_id:
-            raise HTTPException(status_code=401, detail="Invalid token payload")
-        return user_id
-    except JWTError:
-        raise HTTPException(status_code=401, detail="Invalid token")
 
 # ------------------- Helper: Get Card Details from Mongo -------------------  
 @router.get("/api/get-card")
@@ -77,7 +63,7 @@ async def get_card_details(current_user = Depends(get_current_user)) -> dict:
 # ------------------- EFT -------------------
 
 @router.post("/api/create-payment/eft")
-async def create_eft_payment(payment: EFTPaymentRequest):
+async def create_eft_payment(payment: EFTPaymentRequest, current_user = Depends(get_current_user)):
     payload = {
         "payment_type": "eft",
         "amount": f"{payment.amount:.2f}",
@@ -104,7 +90,7 @@ async def create_eft_payment(payment: EFTPaymentRequest):
 
 # ------------------- Credit Card (Server to Server) -------------------
 @router.post("/api/create-payment/credit-card")
-async def create_card_payment(payment: CreditCardPaymentRequest):
+async def create_card_payment(payment: CreditCardPaymentRequest, current_user = Depends(get_current_user)):
     card = payment.cardDataset
     
     # Convert MM/YY → MMYY as Callpay expects
@@ -153,7 +139,7 @@ async def create_card_payment(payment: CreditCardPaymentRequest):
 # ------------------- Token (Saved Card) Payment -------------------
 
 @router.post("/api/create-payment/saved-card")
-async def create_token_payment(payment: TokenPaymentRequest):
+async def create_token_payment(payment: TokenPaymentRequest, current_user = Depends(get_current_user)):
     payload = {
         "amount": f"{payment.amount:.2f}",
         "reference": payment.merchant_reference[:32],  # max 32 chars per Callpay docs
@@ -191,8 +177,9 @@ async def create_token_payment(payment: TokenPaymentRequest):
 # ------------------- Tokenize Card endpoint to get guid -------------------
 
 @router.post("/api/tokenize-card")
-async def tokenize_card(card: TokenizeCardDataset):
+async def tokenize_card(card: TokenizeCardDataset, current_user = Depends(get_current_user)):
     expiry = card.expiryDate.replace("/", "")
+    user_id = str(current_user["_id"])
     payload = {
         "merchant_reference": card.merchant_reference,
         "pan": card.cardNumber,
@@ -212,10 +199,10 @@ async def tokenize_card(card: TokenizeCardDataset):
             )
             data = response.json()
         if data.get("guid"):
-            save_guid_to_db(card.user_id, data["guid"], expiryDate=card.expiryDate, lastFour=card.cardNumber[-4:], cardScheme = card.cardScheme)
+            save_guid_to_db(user_id, data["guid"], expiryDate=card.expiryDate, lastFour=card.cardNumber[-4:], cardScheme = card.cardScheme)
             await push_to_loki("tokenize", "tokenize_card_success", {
                 "merchant_reference": card.merchant_reference,
-                "user_id": card.user_id
+                "user_id": user_id
             })
             return {"status": "success", "response": data}
         else:
@@ -223,7 +210,7 @@ async def tokenize_card(card: TokenizeCardDataset):
     except Exception as e:
         await push_to_loki("tokenize", "tokenize_card_error", {
             "merchant_reference": card.merchant_reference,
-            "user_id": card.user_id,
+            "user_id": user_id,
             "error": str(e)
         })
         raise HTTPException(status_code=500, detail=f"Card tokenization failed: {e}")

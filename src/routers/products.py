@@ -3,13 +3,14 @@ PRODUCTS ROUTER - Handles all cleaning product operations
 This file manages: viewing, creating, updating, and deleting cleaning products
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pymongo import MongoClient
 from bson import ObjectId
-from typing import Optional, List
+from typing import Optional, List, cast
 from datetime import datetime, timezone
 import os
 from models import ProductCreate, ProductUpdate
+from helpers_routers.helpers import require_role
 
 import sys, os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -18,10 +19,8 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 router = APIRouter(prefix="/products", tags=["products"])
 
 # Connect to MongoDB database
-MONGO_URI = os.getenv("MONGO_URI","mongodb+srv://SleepyDreams:saRqSb7xoc1cI1DO@kingburgercluster.ktvavv3.mongodb.net/?retryWrites=true&w=majority")
-client = MongoClient(MONGO_URI, tls=True, tlsAllowInvalidCertificates=False)
-db = client["kingburgerstore_db"]
-products_collection = db["products"]  # This is our products table
+from databaseConnections.mongoClient import get_collection
+products_collection = get_collection("products")
 
 # ==================== HELPER FUNCTION ====================
 def clean_product_data(product):
@@ -93,7 +92,10 @@ async def get_single_product(product_id: str):
 
 # ==================== CREATE NEW PRODUCT ====================
 @router.post("/")
-async def create_new_product(product_data: ProductCreate):
+async def create_new_product(
+    product_data: ProductCreate,
+    current_user = Depends(require_role("admin", "developer"))
+    ):
     """
     Create a brand new product with full details
     
@@ -157,7 +159,10 @@ async def create_new_product(product_data: ProductCreate):
 
 # ==================== Bulk Create NEW PRODUCT ====================
 @router.post("/bulk")
-async def create_bulk_products(products: List[ProductCreate]):
+async def create_bulk_products(
+    products: List[ProductCreate],
+    current_user = Depends(require_role("admin", "developer"))
+    ):
     """
     Create multiple products at once (bulk upload)
     
@@ -228,7 +233,11 @@ async def create_bulk_products(products: List[ProductCreate]):
 
 # ==================== UPDATE PRODUCT ====================
 @router.put("/{product_id}")
-async def update_existing_product(product_id: str, updates: ProductUpdate):
+async def update_existing_product(
+    product_id: str,
+    updates: ProductUpdate,
+    current_user = Depends(require_role("admin", "developer"))
+    ):
     """
     Update an existing product
     You only need to send the fields you want to change
@@ -313,7 +322,10 @@ async def update_existing_product(product_id: str, updates: ProductUpdate):
 
 # ==================== DELETE PRODUCT ====================
 @router.delete("/{product_id}")
-async def delete_product(product_id: str):
+async def delete_product(
+    product_id: str,
+    current_user = Depends(require_role("admin", "developer"))
+    ):
     """
     Delete a product permanently
     

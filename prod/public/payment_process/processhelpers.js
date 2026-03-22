@@ -1,6 +1,9 @@
 //processhelpers.js
 import { getCart, clearCart, notifyUser, getBillingInfoAddress } from "../users/cart.js";
+import { requireAuth } from '/auth/authcheck.js';
 
+const user = await requireAuth();
+if (!user) window.location.href = "/login";
 
 // ----- Generate Unique Merchant Reference -----
 function generateMerchantReference() {

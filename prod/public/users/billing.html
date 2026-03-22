@@ -436,12 +436,17 @@
   </footer>
 
   <script type="module">
-    import { requireAuth } from '/auth/authcheck.js';
+  import { requireAuth } from '/auth/authcheck.js';
+  import { initNavbar } from '/navbar.js';
+
+  async function init() {
     const user = await requireAuth();
     if (!user) return;
-    
-    import { initNavbar } from '/navbar.js';
+
     initNavbar("navbar-container");
+  }
+
+    init();
   </script>
   <script type="module" src="billing.js"></script>
 

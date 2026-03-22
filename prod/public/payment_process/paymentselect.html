@@ -319,10 +319,6 @@
   </div>
 
   <script type="module">
-    import { requireAuth } from '/auth/authcheck.js';
-    const user = await requireAuth();
-    if (!user) return;
-
     import { lookupBin, createPayment, tokenizeCardData, createPaypalPayment } from '../payment_process/processhelpers.js';
 
     // ------------------- Tab Switching -------------------

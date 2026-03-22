@@ -1,5 +1,9 @@
 import { requireAuth } from '/auth/authcheck.js';
 const user = await requireAuth();
+if (!user) {
+  window.location.href = "/login";
+}
+
 
 document.addEventListener("DOMContentLoaded", () => {
   const billingForm = document.getElementById("billingForm");

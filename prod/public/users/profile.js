@@ -1,7 +1,31 @@
 // profile.js
 import { requireAuth } from '/auth/authcheck.js';
+import { initNavbar } from '/navbar.js';
+
 const user = await requireAuth();
-if (!user) return;
+
+if (!user) {
+  // stop execution safely
+  throw new Error("Not authenticated");
+}
+
+// Load navbar
+async function loadNavbar() {
+  const container = document.getElementById("navbar-container");
+
+  try {
+    const response = await fetch("/navbar");
+    container.innerHTML = await response.text();
+
+    initNavbar("navbar-container");
+  } catch (err) {
+    console.error("Failed to load navbar:", err);
+    container.innerHTML = "<p class='text-red-500'>Navbar failed to load</p>";
+  }
+}
+
+loadNavbar();
+
 const userId = user.user_id;
 
 document.addEventListener('DOMContentLoaded', () => {

@@ -5,7 +5,7 @@ from sqlalchemy.orm import joinedload
 from datetime import datetime
 import os
 from typing import cast
-from postgresqlDB import db_session
+from databaseConnections.postgresqlDB import db_session
 
 # --- Configuration ---
 SECRET_KEY = cast(str, os.getenv("SECRET_KEY"))

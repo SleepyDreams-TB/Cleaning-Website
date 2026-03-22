@@ -10,7 +10,6 @@ interactions. (Notably in postgresqlDB.py, models.py, helpers.py & auth.py)
 
 import sys
 import os
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware

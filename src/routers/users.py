@@ -5,7 +5,7 @@ from sqlalchemy.orm import joinedload
 from datetime import datetime
 import os
 from typing import cast
-from postgresqlDB import db_session
+from databaseConnections.postgresqlDB import db_session
 from helpers_routers.helpers import get_current_user
 from databaseConnections.mongoClient import get_collection
 from bson import ObjectId

@@ -31,7 +31,6 @@ from routers.products import router as products_router
 from orderCreation.orders import router as orders_router
 from routers.webhook_main import router as webhook_router
 from routers.password_generator import router as password_generator_router
-from debug_router import debug_router
 
 from payment_routers.payment import router as payment_router
 from payment_routers.paypal_router import router as paypal_router
@@ -120,7 +119,6 @@ app.include_router(payment_router)
 app.include_router(orders_router)
 app.include_router(password_generator_router)
 app.include_router(webhook_router)
-app.include_router(debug_router)
 app.include_router(paypal_router)
 
 print("✅ All routers registered")

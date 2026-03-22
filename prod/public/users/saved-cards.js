@@ -1,6 +1,7 @@
 import { requireAuth } from '/auth/authcheck.js';
+
 const user = await requireAuth();
-if (!user) return;
+if (!user) window.location.href = "/login";
 
 import { getCardDetails, tokenizeCardData } from '/payment_process/processhelpers.js';
 

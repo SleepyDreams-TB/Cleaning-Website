@@ -1,46 +1,66 @@
-from fastapi import APIRouter, Request, HTTPException, Header, Query
+from fastapi import APIRouter, Request, HTTPException, Depends, Query
 from fastapi.responses import JSONResponse
 from models import Order, OrderItem
 from sqlalchemy.orm import joinedload
 from datetime import datetime
 import os
-from typing import cast
 from databaseConnections.postgresqlDB import db_session
-
-# --- Configuration ---
-SECRET_KEY = cast(str, os.getenv("SECRET_KEY"))
-ALGORITHM = cast(str, os.getenv("ALGORITHM", "HS256"))
-
-# --- Router Setup ---
-router = APIRouter(prefix="/api", tags=["orders"])
-
-# --- Helper Functions ---
 from helpers_routers.helpers import get_current_user
 from databaseConnections.mongoClient import get_collection
 from bson import ObjectId
 
+# --- Router Setup ---
+router = APIRouter(prefix="/api", tags=["orders"])
+
+# --- Collections ---
 products_collection = get_collection("products")
+
 
 # --- Create Order ---
 @router.post("/orders")
-async def create_order(request: Request, authorization: str = Header(None)):
+async def create_order(request: Request, current_user=Depends(get_current_user)):
     """Create a new order from cart data."""
-    user = get_current_user(authorization)
-    user_id = str(user["_id"])
-    
+    user_id = str(current_user["_id"])
+
     data = await request.json()
     items = data.get("items", [])
     payment_type = data.get("payment_type", "unknown")
-    delivery_info = data.get("delivery_info")
+    delivery_info = data.get("delivery_info", {})
     merchant_reference = data.get("merchant_reference")
-    
+
     if not items:
         raise HTTPException(status_code=400, detail="No items provided for order")
     if not delivery_info:
         raise HTTPException(status_code=400, detail="Delivery information is required")
-    
+
+    # ── Validate address belongs to this user ──
+    address_type = delivery_info.get("type")
+    if not address_type:
+        raise HTTPException(status_code=400, detail="Address type is required")
+
+    user_addresses = (
+        current_user.get("billing_info", {})
+                    .get("billing_address", {})
+    )
+
+    if address_type not in user_addresses:
+        raise HTTPException(status_code=403, detail="Invalid delivery address")
+
+    # ── Use server-side address — never trust client fields ──
+    verified_address = user_addresses[address_type]
+    verified_delivery_info = {
+        "type": address_type,
+        "street": verified_address.get("street"),
+        "city": verified_address.get("city"),
+        "suburb": verified_address.get("suburb"),
+        "postal_code": verified_address.get("postal_code"),
+        "country": verified_address.get("country")
+    }
+
+    # ── Look up real prices from MongoDB ──
     total = 0
     validated_items = []
+
     for item in items:
         try:
             product = products_collection.find_one({"_id": ObjectId(item["id"])})
@@ -61,7 +81,8 @@ async def create_order(request: Request, authorization: str = Header(None)):
             "price": real_price,
             "quantity": quantity
         })
-        
+
+    # ── Write to PostgreSQL ──
     try:
         with db_session() as db:
             new_order = Order(
@@ -69,21 +90,20 @@ async def create_order(request: Request, authorization: str = Header(None)):
                 user_id=user_id,
                 total=round(total, 2),
                 payment_type=payment_type,
-                delivery_info=delivery_info
+                delivery_info=verified_delivery_info
             )
             db.add(new_order)
             db.flush()
 
             for item in validated_items:
-                order_item = OrderItem(
+                db.add(OrderItem(
                     order_id=new_order.id,
                     name=item["name"],
                     price=item["price"],
                     quantity=item["quantity"]
-                )
-                db.add(order_item)
+                ))
 
-        return JSONResponse({
+            return JSONResponse({
                 "success": True,
                 "merchant_reference": merchant_reference,
                 "calculated_amount": round(total, 2),
@@ -97,7 +117,8 @@ async def create_order(request: Request, authorization: str = Header(None)):
 # --- Get All Orders for the Logged-in User ---
 @router.get("/orders/me")
 def get_user_orders(
-    authorization: str = Header(None),
+    request: Request,
+    current_user=Depends(get_current_user),
     status: str | None = Query(None),
     payment_type: str | None = Query(None),
     merchant_reference: str | None = Query(None),
@@ -106,9 +127,8 @@ def get_user_orders(
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=100)
 ):
-    """Retrieve pages and filterable orders for the authenticated user."""
-    user = get_current_user(authorization)
-    user_id = str(user["_id"])
+    """Retrieve paginated and filterable orders for the authenticated user."""
+    user_id = str(current_user["_id"])
 
     with db_session() as db:
         query = db.query(Order).options(joinedload(Order.items)).filter(Order.user_id == user_id)

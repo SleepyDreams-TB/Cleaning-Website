@@ -1,188 +1,211 @@
-from fastapi import APIRouter, Request, HTTPException, Header, Query
-from fastapi.responses import JSONResponse
-from models import Order, OrderItem
-from sqlalchemy.orm import joinedload
-from datetime import datetime
-import os
-from typing import cast
-from databaseConnections.postgresqlDB import db_session
+"""
+USERS ROUTER - Handles user profile operations
+This file manages: viewing user profiles, updating user info
+"""
+
+from fastapi import APIRouter, HTTPException, Depends, Request, Form
+from bson import ObjectId
+from bson.errors import InvalidId
+from typing import Optional
+from passlib.hash import argon2 as ph
+
 from helpers_routers.helpers import get_current_user
 from databaseConnections.mongoClient import get_collection
-from bson import ObjectId
 
-# --- Configuration ---
-SECRET_KEY = cast(str, os.getenv("SECRET_KEY"))
-ALGORITHM = cast(str, os.getenv("ALGORITHM", "HS256"))
+router = APIRouter(prefix="/users", tags=["users"])
 
-# --- Router Setup ---
-router = APIRouter(prefix="/api", tags=["orders"])
+users_collection = get_collection("store_users")
 
-# --- Collections ---
-products_collection = get_collection("products")
 
-# --- Create Order ---
-@router.post("/orders")
-async def create_order(request: Request, authorization: str = Header(None)):
-    """Create a new order from cart data."""
-    user = get_current_user(authorization)
-    user_id = str(user["_id"])
-
-    data = await request.json()
-    items = data.get("items", [])
-    payment_type = data.get("payment_type", "unknown")
-    delivery_info = data.get("delivery_info", {})
-    merchant_reference = data.get("merchant_reference")
-
-    if not items:
-        raise HTTPException(status_code=400, detail="No items provided for order")
-    if not delivery_info:
-        raise HTTPException(status_code=400, detail="Delivery information is required")
-
-    # ── Validate address type exists and belongs to this user ──
-    address_type = delivery_info.get("type")
-    if not address_type:
-        raise HTTPException(status_code=400, detail="Address type is required")
-
-    user_addresses = (
-        user.get("billing_info", {})
-            .get("billing_address", {})
-    )
-
-    if address_type not in user_addresses:
-        raise HTTPException(
-            status_code=403,
-            detail="Invalid delivery address"
+# ==================== GET DASHBOARD INFO ====================
+@router.get("/dashboard/info")
+async def get_dashboard_info(current_user=Depends(get_current_user)):
+    """
+    Get dashboard information for the logged-in user.
+    Requires: valid httpOnly cookie
+    """
+    return {
+        "success": True,
+        "profileImageUrl": current_user.get("profileImageUrl"),
+        "loggedIn_User": current_user["firstName"],
+        "user_id": str(current_user["_id"]),
+        "userName": current_user.get("userName"),
+        "email": current_user.get("email"),
+        "billing_address": (
+            current_user.get("billing_info", {})
+                        .get("billing_address", {})
         )
-
-    # ── Use server-side address data —
-    verified_address = user_addresses[address_type]
-    verified_delivery_info = {
-        "type": address_type,
-        "street": verified_address.get("street"),
-        "city": verified_address.get("city"),
-        "suburb": verified_address.get("suburb"),
-        "postal_code": verified_address.get("postal_code"),
-        "country": verified_address.get("country")
     }
 
-    # ── Price Look up MongoDB —
-    total = 0
-    validated_items = []
 
-    for item in items:
-        try:
-            product = products_collection.find_one({"_id": ObjectId(item["id"])})
-        except Exception:
-            raise HTTPException(status_code=400, detail=f"Invalid product ID: {item.get('id')}")
-
-        if not product:
-            raise HTTPException(status_code=400, detail=f"Product not found: {item.get('id')}")
-
-        quantity = int(item.get("quantity", 1))
-        if quantity < 1 or quantity > 5:
-            raise HTTPException(status_code=400, detail=f"Invalid quantity for {product['name']}")
-
-        real_price = float(product["price"])
-        total += real_price * quantity
-        validated_items.append({
-            "name": product["name"],
-            "price": real_price,
-            "quantity": quantity
-        })
-
-    # ── Write to PostgreSQL ──
-    try:
-        with db_session() as db:
-            new_order = Order(
-                merchant_reference=merchant_reference,
-                user_id=user_id,
-                total=round(total, 2),
-                payment_type=payment_type,
-                delivery_info=verified_delivery_info  # server-verified address
-            )
-            db.add(new_order)
-            db.flush()
-
-            for item in validated_items:
-                order_item = OrderItem(
-                    order_id=new_order.id,
-                    name=item["name"],
-                    price=item["price"],
-                    quantity=item["quantity"]
-                )
-                db.add(order_item)
-
-            return JSONResponse({
-                "success": True,
-                "merchant_reference": merchant_reference,
-                "calculated_amount": round(total, 2),
-                "status": new_order.status
-            })
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Order creation failed: {str(e)}")
-
-
-# --- Get All Orders for the Logged-in User ---
-@router.get("/orders/me")
-def get_user_orders(
-    authorization: str = Header(None),
-    status: str | None = Query(None),
-    payment_type: str | None = Query(None),
-    merchant_reference: str | None = Query(None),
-    date_from: str | None = Query(None),
-    date_to: str | None = Query(None),
-    page: int = Query(1, ge=1),
-    page_size: int = Query(10, ge=1, le=100)
+# ==================== ADD/UPDATE BILLING ADDRESS ====================
+@router.post("/update/billing/address")
+async def add_or_update_billing_address(
+    request: Request,
+    current_user=Depends(get_current_user)
 ):
-    """Retrieve paginated and filterable orders for the authenticated user."""
-    user = get_current_user(authorization)
-    user_id = str(user["_id"])
+    billing_address = await request.json()
+    address_name = billing_address.get("address_name")
 
-    with db_session() as db:
-        query = db.query(Order).options(joinedload(Order.items)).filter(Order.user_id == user_id)
+    if not address_name:
+        raise HTTPException(status_code=400, detail="Address name is required")
 
-        if status and status.strip():
-            query = query.filter(Order.status.ilike(f"%{status.strip()}%"))
-        if payment_type and payment_type.strip():
-            query = query.filter(Order.payment_type.ilike(f"%{payment_type.strip()}%"))
-        if merchant_reference and merchant_reference.strip():
-            query = query.filter(Order.merchant_reference.ilike(f"%{merchant_reference.strip()}%"))
+    # Remove address_name from the object before storing
+    billing_address.pop("address_name")
 
-        if date_from and date_from.strip():
-            try:
-                date_from_dt = datetime.fromisoformat(date_from.strip())
-                query = query.filter(Order.created_at >= date_from_dt)
-            except ValueError:
-                raise HTTPException(status_code=400, detail="Invalid date_from format")
+    try:
+        update_result = users_collection.update_one(
+            {"_id": ObjectId(current_user["_id"])},
+            {"$set": {f"billing_info.billing_address.{address_name}": billing_address}}
+        )
 
-        if date_to and date_to.strip():
-            try:
-                date_to_dt = datetime.fromisoformat(date_to.strip())
-                query = query.filter(Order.created_at <= date_to_dt)
-            except ValueError:
-                raise HTTPException(status_code=400, detail="Invalid date_to format")
+        if update_result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="User not found")
 
-        total_records = query.count()
-        orders = query.order_by(Order.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
+        return {
+            "success": True,
+            "message": "Billing information updated successfully"
+        }
 
-        result = [
-            {
-                "merchant_reference": o.merchant_reference,
-                "total": o.total,
-                "payment_type": o.payment_type,
-                "status": o.status,
-                "created_at": o.created_at.isoformat(),
-                "delivery_info": o.delivery_info,
-                "items": [{"name": i.name, "price": i.price, "quantity": i.quantity} for i in o.items],
-            }
-            for o in orders
-        ]
+    except Exception as error:
+        print(f"❌ Error updating billing info for user {current_user['_id']}: {error}")
+        raise HTTPException(status_code=500, detail=f"Server error: {str(error)}")
 
-    return JSONResponse({
-        "page": page,
-        "page_size": page_size,
-        "total_records": total_records,
-        "total_pages": (total_records + page_size - 1) // page_size,
-        "orders": result,
-    })
+
+# ==================== GET USER BY ID ====================
+@router.get("/{user_id}")
+async def get_user_profile(user_id: str, current_user=Depends(get_current_user)):
+    """
+    Get a user's profile by their ID.
+    Users can only access their own profile.
+    """
+    # ── Ownership check — users can only fetch their own profile ──
+    if str(current_user["_id"]) != user_id:
+        raise HTTPException(status_code=403, detail="Not authorized to access this profile")
+
+    try:
+        target_user = users_collection.find_one({"_id": ObjectId(user_id)})
+
+        if not target_user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        # Remove sensitive fields before returning
+        target_user.pop("password", None)
+        target_user.pop("2fa_secret", None)
+        target_user["_id"] = str(target_user["_id"])
+
+        return {
+            "success": True,
+            "user": target_user
+        }
+
+    except InvalidId:
+        raise HTTPException(status_code=400, detail="Invalid user ID format")
+
+    except HTTPException:
+        raise
+
+    except Exception as error:
+        print(f"❌ Error fetching user {user_id}: {error}")
+        raise HTTPException(status_code=500, detail=f"Server error: {str(error)}")
+
+
+# ==================== UPDATE USER PROFILE ====================
+@router.put("/{user_id}")
+async def update_user_profile(
+    user_id: str,
+    current_user=Depends(get_current_user),
+    userName: Optional[str] = Form(None),
+    password: Optional[str] = Form(None),
+    firstName: Optional[str] = Form(None),
+    lastName: Optional[str] = Form(None),
+    email: Optional[str] = Form(None),
+    cellNum: Optional[str] = Form(None),
+):
+    """
+    Update a user's profile.
+    Users can only update their own profile.
+    """
+    # ── Ownership check ──
+    if str(current_user["_id"]) != user_id:
+        raise HTTPException(status_code=403, detail="Not authorized to update this profile")
+
+    try:
+        safe_data = {
+            k: v for k, v in {
+                "firstName": firstName,
+                "lastName": lastName,
+                "email": email,
+                "cellNum": cellNum,
+                "userName": userName,
+                "password": password
+            }.items()
+            if v is not None and v.strip() != ""
+        }
+
+        if not safe_data:
+            raise HTTPException(status_code=400, detail="No valid fields to update")
+
+        if "password" in safe_data:
+            safe_data["password"] = ph.hash(safe_data["password"])
+
+        if "userName" in safe_data:
+            existing = users_collection.find_one({"userName": safe_data["userName"]})
+            if existing and str(existing["_id"]) != user_id:
+                raise HTTPException(status_code=400, detail="Username already taken")
+
+        update_result = users_collection.update_one(
+            {"_id": ObjectId(user_id)},
+            {"$set": safe_data}
+        )
+
+        if update_result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        return {
+            "success": True,
+            "message": "User profile updated successfully"
+        }
+
+    except InvalidId:
+        raise HTTPException(status_code=400, detail="Invalid user ID format")
+
+    except HTTPException:
+        raise
+
+    except Exception as error:
+        print(f"❌ Error updating user {user_id}: {error}")
+        raise HTTPException(status_code=500, detail=f"Server error: {str(error)}")
+
+
+# ==================== DELETE USER PROFILE ====================
+@router.delete("/{user_id}")
+async def delete_user_profile(user_id: str, current_user=Depends(get_current_user)):
+    """
+    Delete a user's profile.
+    Users can only delete their own profile.
+    """
+    # ── Ownership check ──
+    if str(current_user["_id"]) != user_id:
+        raise HTTPException(status_code=403, detail="Not authorized to delete this profile")
+
+    try:
+        delete_result = users_collection.delete_one({"_id": ObjectId(user_id)})
+
+        if delete_result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        return {
+            "success": True,
+            "message": "User profile deleted successfully"
+        }
+
+    except InvalidId:
+        raise HTTPException(status_code=400, detail="Invalid user ID format")
+
+    except HTTPException:
+        raise
+
+    except Exception as error:
+        print(f"❌ Error deleting user {user_id}: {error}")
+        raise HTTPException(status_code=500, detail=f"Server error: {str(error)}")

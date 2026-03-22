@@ -1,23 +1,16 @@
 // profile.js
-
+import { requireAuth } from '/auth/authcheck.js';
+const user = await requireAuth();
+if (!user) return;
+const userId = user.user_id;
 
 document.addEventListener('DOMContentLoaded', () => {
-  const JWT = localStorage.getItem("jwt");
-  if (!JWT) return window.location.href = "../index";
-
-  let userId;
-  try {
-    const payload = jwt_decode(JWT);
-    userId = payload.user_id;
-  } catch {
-    return window.location.href = "../index";
-  }
 
   // fetch user and populate form
   async function fetchUser() {
     try {
       const res = await fetch(`https://api.kingburger.site/users/${userId}`, {
-        headers: { 'Authorization': `Bearer ${JWT}` }
+          credentials: "include"
       });
       if (!res.ok) throw new Error("Failed to fetch user");
 
@@ -102,7 +95,8 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const res = await fetch(`https://api.kingburger.site/users/${userId}`, {
         method: 'PUT',
-        headers: { 'Authorization': `Bearer ${JWT}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+        credentials: "include",
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: data.toString()
       });
       if (!res.ok) throw new Error("Failed to update user");

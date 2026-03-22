@@ -384,6 +384,9 @@
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
   <script type="module">
+    import { requireAuth } from '/auth/authcheck.js';
+    const user = await requireAuth();
+    if (!user) return;
 
     async function loadNavbar() {
       const container = document.getElementById("navbar-container");

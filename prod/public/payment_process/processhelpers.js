@@ -41,14 +41,12 @@ export function lookupBin(bin) {
     });
 }
 
-export async function getCardDetails(jwt) {
+export async function getCardDetails() {
   try {
     const res = await fetch(getEndpoint("get-card"), {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + jwt
-      }
+      credentials: "include",
+      headers: { "Content-Type": "application/json" }
     });
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     return await res.json();
@@ -62,14 +60,8 @@ export async function getCardDetails(jwt) {
 async function createBackendOrder(payment_type, merchant_reference, addressType) {
   const cart = getCart();
 
-  const token = localStorage.getItem("jwt");
-  if (!token) {
-    notifyUser("Please log in before placing an order.");
-    return null;
-  }
-
   try {
-    const addresses = await getBillingInfoAddress(token);
+    const addresses = await getBillingInfoAddress();
     if (!addresses) return null;
 
     const deliveryAddress = addresses[addressType];
@@ -80,9 +72,9 @@ async function createBackendOrder(payment_type, merchant_reference, addressType)
 
     const res = await fetch("https://api.kingburger.site/api/orders", {
       method: "POST",
+      credentials: "include",
       headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + token
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
         payment_type,
@@ -99,7 +91,14 @@ async function createBackendOrder(payment_type, merchant_reference, addressType)
       })
     });
 
-    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+    if (!res.ok) {
+      if (res.status === 401) {
+        notifyUser("Your session has expired. Please log in again.");
+        window.location.href = "/login";
+        return null;
+      }
+      throw new Error(`HTTP error ${res.status}`);
+    }
     const data = await res.json();
     return data;
   } catch (err) {
@@ -120,13 +119,14 @@ export async function tokenizeCardData(merchant_reference, cardData) {
       cardHolderName: cardData.cardHolderName,
       expiryDate: cardData.expiry,
       cvv: cardData.cvv,
-      user_id: cardData.user_id,
       cardScheme: cardData.cardScheme
     };
 
     const res = await fetch(getEndpoint("tokenize_card"), {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      headers: { "Content-Type": "application/json"
+      },
       body: JSON.stringify(bodyData)
     });
 
@@ -147,11 +147,10 @@ export async function tokenizeCardData(merchant_reference, cardData) {
 }
 
 // ----- Create Paypal Payment -----
-export async function createPaypalPayment(amount, deliveryAddress) {
+export async function createPaypalPayment(deliveryAddress) {
   const merchant_reference = generateMerchantReference();
 
   const bodyData = {
-    amount,
     merchant_reference: merchant_reference
   };
 
@@ -162,6 +161,7 @@ export async function createPaypalPayment(amount, deliveryAddress) {
   try {
     const res = await fetch(getEndpoint("paypal"), {
       method: "POST",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(bodyData)
     });
@@ -184,7 +184,7 @@ export async function createPaypalPayment(amount, deliveryAddress) {
 }
 
 // ----- Create Payment -----
-export async function createPayment(payment_type, amount, deliveryAddress, saveCardBool, dataObject) {
+export async function createPayment(payment_type, deliveryAddress, saveCardBool, dataObject) {
   const merchant_reference = generateMerchantReference();
 
   if (saveCardBool) {
@@ -194,6 +194,7 @@ export async function createPayment(payment_type, amount, deliveryAddress, saveC
   if (!orderData?.success) {
     return;
   }
+  const verifiedAmount = orderData.calculated_amount;
 
   // ----- Build request body -----
   let bodyData = {};
@@ -203,20 +204,19 @@ export async function createPayment(payment_type, amount, deliveryAddress, saveC
       return;
     }
     bodyData = {
-      amount,
+      amount: verifiedAmount,
       merchant_reference: merchant_reference,
       customer_bank: dataObject.customer_bank
     };
   } else if (payment_type === "credit_card") {
     bodyData = {
-      amount,
+      amount: verifiedAmount,
       merchant_reference: merchant_reference,
       cardDataset: {
         cardNumber: dataObject.pan,
         expiryDate: dataObject.expiry,
         cvv: dataObject.cvv,
         cardHolderName: dataObject.cardHolderName,
-        user_id: dataObject.user_id,
         cardScheme: dataObject.cardScheme
       }
     };
@@ -226,7 +226,7 @@ export async function createPayment(payment_type, amount, deliveryAddress, saveC
       return;
     }
     bodyData = {
-      amount,
+      amount: verifiedAmount,
       merchant_reference: merchant_reference,
       guid: dataObject.guid
     };
@@ -239,6 +239,7 @@ export async function createPayment(payment_type, amount, deliveryAddress, saveC
   try {
     const res = await fetch(getEndpoint(payment_type), {
       method: "POST",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(bodyData)
     });

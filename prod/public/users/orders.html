@@ -8,7 +8,7 @@
   <title>My Orders</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="/styles/orders.css">
+  <link rel="stylesheet" href="/assets/orders.css">
 </head>
 
 <body>
@@ -112,7 +112,9 @@
   </footer>
 
   <script type="module">
-
+    import { requireAuth } from '/auth/authcheck.js';
+    const user = await requireAuth();
+    if (!user) return;
 
     async function loadNavbar() {
       const container = document.getElementById("navbar-container");
@@ -180,11 +182,6 @@
     }
 
     async function fetchOrders(page = 1) {
-      const token = localStorage.getItem('jwt');
-      if (!token) {
-        showError('Unauthorized - please log in.');
-        return;
-      }
 
       clearError();
       ordersBody.innerHTML = `
@@ -212,8 +209,8 @@
       try {
         const response = await fetch(`https://api.kingburger.site/api/orders/me?${params}`, {
           method: 'GET',
+          credentials: "include",
           headers: {
-            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
             'Accept': 'application/json'
           }
@@ -274,7 +271,7 @@
     function updatePagination(data) {
       currentPage = data.page;
       const totalPages = data.total_pages || 1;
-      paginationInfo.textContent = `Page ${data.page} of ${totalPages} (${data.total} total)`;
+      paginationInfo.textContent = `Page ${data.page} of ${totalPages} (${data.total_records} total)`;
       prevPageBtn.disabled = data.page <= 1;
       nextPageBtn.disabled = data.page >= totalPages;
     }

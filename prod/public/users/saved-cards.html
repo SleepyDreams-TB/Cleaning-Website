@@ -322,6 +322,9 @@
   </footer>
 
   <script type="module">
+    import { requireAuth } from '/auth/authcheck.js';
+    const user = await requireAuth();
+    if (!user) return;
     import { initNavbar } from '/navbar.js';
     initNavbar("navbar-container");
   </script>

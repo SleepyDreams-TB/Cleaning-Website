@@ -57,26 +57,30 @@ export function recalcTotal(cart) {
 }
 
 // ----- Fetch Billing Info -----
-export async function getBillingInfoAddress(token) {
-
-  if (!token) {
-    notifyUser("Please log in before placing an order.");
-    return null;
-  }
+export async function getBillingInfoAddress() {
   try {
     const res = await fetch("https://api.kingburger.site/users/dashboard/info", {
-      headers: { "Authorization": `Bearer ${token}` }
+      credentials: "include"
     });
-    if (!res.ok) throw new Error("Invalid token");
+
+    if (!res.ok) {
+      if (res.status === 401) {
+        notifyUser("Your session has expired. Please log in again.");
+        window.location.href = "/login";
+        return null;
+      }
+      throw new Error("Failed to fetch billing info");
+    }
+
     const data = await res.json();
-    const billing_address = data.billing_address
+    const billing_address = data.billing_address;
 
     if (!billing_address) {
       notifyUser('No billing information found. Please add a billing address in the "Billing Section".');
       return null;
     }
 
-    return billing_address
+    return billing_address;
   } catch (err) {
     console.error("Failed to fetch billing info:", err);
     return null;

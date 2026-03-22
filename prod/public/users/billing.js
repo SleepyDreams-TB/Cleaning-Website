@@ -1,4 +1,5 @@
-import { apiFetch } from '/utils.js';
+import { requireAuth } from '/auth/authcheck.js';
+const user = await requireAuth();
 
 document.addEventListener("DOMContentLoaded", () => {
   const billingForm = document.getElementById("billingForm");
@@ -118,83 +119,97 @@ document.addEventListener("DOMContentLoaded", () => {
   // ─── Delete Address ────────────────────────────────────────────────────────
 
   async function deleteAddress(key) {
-    if (!confirm(`Delete address "${key}"?`)) return;
+  if (!confirm(`Delete address "${key}"?`)) return;
 
-    const updatedAddresses = { ...allAddresses };
-    delete updatedAddresses[key];
+  const updatedAddresses = { ...allAddresses };
+  delete updatedAddresses[key];
 
-    const result = await apiFetch("/users/update/billing/address", {
-      method: "POST",
-      body: JSON.stringify({
-        replace_all: true,
-        addresses: updatedAddresses,
-      }),
-    });
+  const res = await fetch("/users/update/billing/address", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    credentials: "include",
+    body: JSON.stringify({
+      replace_all: true,
+      addresses: updatedAddresses,
+    }),
+  });
 
-    if (!result) return; // 401
-
-    const { ok, data } = result;
-
-    if (ok && data?.success) {
-      allAddresses = updatedAddresses;
-      renderAddressList();
-      showMessage("success", `Address "${key}" deleted.`);
-      if (editingKey === key) resetForm();
-    } else {
-      showMessage("error", data?.message || "Failed to delete address.");
-    }
+  let data;
+  try {
+    data = await res.json();
+  } catch {
+    data = null;
   }
+
+  if (res.ok && data?.success) {
+    allAddresses = updatedAddresses;
+    renderAddressList();
+    showMessage("success", `Address "${key}" deleted.`);
+    if (editingKey === key) resetForm();
+  } else {
+    showMessage("error", data?.message || "Failed to delete address.");
+  }
+}
 
   // ─── Fetch Billing Info ────────────────────────────────────────────────────
 
   async function fetchBillingInfo(userId) {
-    const result = await apiFetch(`/users/${userId}`);
-    if (!result) return; // 401
+    const res = await fetch(`/users/${userId}`, {
+      credentials: "include"
+    });
 
-    const { ok, data } = result;
+    let data;
+    try {
+      data = await res.json();
+    } catch {
+      data = null;
+    }
 
-    if (!ok) {
+    if (!res.ok) {
       showMessage("error", "Failed to fetch billing info.");
       return;
     }
 
-    if (data?.success && data.user?.billing_info?.billing_address) {
-      allAddresses = data.user.billing_info.billing_address;
+  if (data?.success && data.user?.billing_info?.billing_address) {
+    allAddresses = data.user.billing_info.billing_address;
+    renderAddressList();
+  } else {
+    showMessage("info", "No billing info configured yet.");
+  }
+}
+
+  // ─── Init ──────────────────────────────────────────────────────────────────
+
+async function init() {
+  const user = await requireAuth();
+  if (!user) return;
+  if (!billingForm) return;
+
+  try {
+    const res = await fetch("https://api.kingburger.site/users/dashboard/info", {
+      credentials: "include"
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      showMessage("error", "Failed to fetch user info.");
+      billingForm.style.display = "none";
+      return;
+    }
+
+    if (data?.billing_address) {
+      allAddresses = data.billing_address;
       renderAddressList();
     } else {
       showMessage("info", "No billing info configured yet.");
     }
+  } catch (err) {
+    console.error(err);
+    showMessage("error", "Failed to load billing info.");
   }
-
-  // ─── Init ──────────────────────────────────────────────────────────────────
-
-  async function init() {
-    if (!localStorage.getItem("jwt")) {
-      window.location.href = "/redirects/401";
-      return;
-    }
-
-    if (!billingForm) return;
-
-    const result = await apiFetch("/users/dashboard/info");
-    if (!result) return; // 401
-
-    const { ok, data } = result;
-
-    if (!ok) {
-      showMessage("error", "Failed to fetch user info.");
-      billingForm.style.display = "none";
-      return;
-    }
-
-    if (data?.success && data.user_id) {
-      await fetchBillingInfo(data.user_id);
-    } else {
-      showMessage("error", "Failed to fetch user info.");
-      billingForm.style.display = "none";
-    }
-  }
-
+}
   // ─── Form Submit ───────────────────────────────────────────────────────────
 
   if (billingForm) {
@@ -220,8 +235,9 @@ document.addEventListener("DOMContentLoaded", () => {
       updatedAddresses[addressName] = newEntry;
 
       try {
-        const result = await apiFetch("/users/update/billing/address", {
+        const result = await fetch("/users/update/billing/address", {
           method: "POST",
+          credentials: "include",
           body: JSON.stringify({
             address_name: addressName,
             ...newEntry,
@@ -230,9 +246,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!result) return;
 
-        const { ok, data } = result;
+        let data;
+        try {
+          data = await result.json();
+        } catch {
+          data = null;
+        }
 
-        if (ok && data?.success) {
+        if (result.ok && data?.success) {
           allAddresses = updatedAddresses;
           renderAddressList();
           showMessage("success", "Address saved successfully.");

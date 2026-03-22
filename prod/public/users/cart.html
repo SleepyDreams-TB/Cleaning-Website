@@ -307,12 +307,15 @@
   </footer>
 
   <script type="module">
+    import { requireAuth } from '/auth/authcheck.js';
+    const user = await requireAuth();
+    if (!user) return;
+
     import { getCart, clearCart, deleteCartItem, recalcTotal, saveCart, getBillingInfoAddress } from "./cart.js";
 
     import { getCardDetails } from "/payment_process/processhelpers.js"
 
     let cart = getCart();
-    const token = localStorage.getItem("jwt");
 
     const cartContainer = document.getElementById("cart-items");
     const totalEl = document.getElementById("total-price");
@@ -436,12 +439,6 @@
     });
 
     confirmBtn.addEventListener("click", async () => {
-      if (!token) {
-        alert("Please log in to proceed with the checkout.");
-        window.location.href = "/login";
-        return;
-      }
-
       if (cart.length === 0) return alert("Your cart is empty!");
 
       orderDetails.innerHTML = "";
@@ -459,7 +456,7 @@
 
       // Only fetch addresses on the first open — if already populated, skip
       if (addressSelect.options.length <= 1) {
-        const addresses = await getBillingInfoAddress(token);
+        const addresses = await getBillingInfoAddress();
         if (addresses) {
           addressSelect.innerHTML = `<option value="" disabled selected>📍 Choose Your Delivery Address</option>`;
           Object.keys(addresses).forEach(addressType => {
@@ -491,32 +488,25 @@
     });
 
     checkoutBtn.addEventListener("click", async () => {
-      if (!token) {
-        alert("Please log in to proceed with the checkout.");
-        window.location.href = "/login";
-        return;
-      }
-
       if (cart.length === 0) return alert("Your cart is empty!");
       if (!selectedAddressType) return alert("Please select a delivery address!");
 
       try {
-        const cardDetails = await getCardDetails(token);
+        const cardDetails = await getCardDetails();
         if (cardDetails.guid) {
-          localStorage.setItem("guid", cardDetails.guid);
-          localStorage.setItem("last4Digits", cardDetails.lastFour);
-          localStorage.setItem("expiryDate", cardDetails.expiryDate);
-          localStorage.setItem("cardScheme", cardDetails.scheme);
+          sessionStorage.setItem("guid", cardDetails.guid);
+          sessionStorage.setItem("last4Digits", cardDetails.lastFour);
+          sessionStorage.setItem("expiryDate", cardDetails.expiryDate);
+          sessionStorage.setItem("cardScheme", cardDetails.scheme);
         } else {
-          localStorage.removeItem("guid");
-          localStorage.removeItem("last4Digits");
+          sessionStorage.removeItem("guid");
+          sessionStorage.removeItem("last4Digits");
         }
       } catch (err) {
         console.error("Failed to fetch card details:", err);
       }
 
-      localStorage.setItem("amount", recalcTotal(cart).toFixed(2));
-      localStorage.setItem("address_type", selectedAddressType);
+      sessionStorage.setItem("address_type", selectedAddressType);
 
       window.location.href = "../payment_process/paymentselect.html";
     });

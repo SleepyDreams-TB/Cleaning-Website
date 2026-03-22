@@ -319,7 +319,11 @@
   </div>
 
   <script type="module">
-    import { lookupBin, createPayment, tokenizeCardData, createPaypalPayment } from '../payment_process/processhelpers.js?v=4';
+    import { requireAuth } from '/auth/authcheck.js';
+    const user = await requireAuth();
+    if (!user) return;
+
+    import { lookupBin, createPayment, tokenizeCardData, createPaypalPayment } from '../payment_process/processhelpers.js';
 
     // ------------------- Tab Switching -------------------
     function selectMethod(method) {
@@ -420,12 +424,11 @@
     });
 
     // ------------------- localStorage -------------------
-    const guid = localStorage.getItem('guid');
-    const last4Digits = localStorage.getItem('last4Digits');
-    const savedExpiryDate = localStorage.getItem('expiryDate');
-    const cartAmount = parseFloat(localStorage.getItem('amount')) || 0;
-    const selectedAddressType = localStorage.getItem('address_type');
-    const savedCardScheme = localStorage.getItem('cardScheme');
+    const guid = sessionStorage.getItem('guid');
+    const last4Digits = sessionStorage.getItem('last4Digits');
+    const savedExpiryDate = sessionStorage.getItem('expiryDate');
+    const selectedAddressType = sessionStorage.getItem('address_type');
+    const savedCardScheme = sessionStorage.getItem('cardScheme');
 
     if (!selectedAddressType) {
       alert('Session expired. Please try again.');
@@ -454,7 +457,7 @@
       eftButton.disabled = true;
       eftButton.textContent = 'Processing...';
       try {
-        await createPayment('eft', cartAmount, selectedAddressType, false, {
+        await createPayment('eft', selectedAddressType, false, {
           customer_bank: bankSelect.value
         });
       } finally {
@@ -474,7 +477,7 @@
       savedCardButton.disabled = true;
       savedCardButton.textContent = 'Processing...';
       try {
-        await createPayment('saved_card', cartAmount, selectedAddressType, false, { guid });
+        await createPayment('saved_card', selectedAddressType, false, { guid });
       } finally {
         savedCardButton.disabled = false;
         savedCardButton.textContent = 'Pay with Saved Card';
@@ -520,13 +523,12 @@
       newCardButton.textContent = 'Processing...';
 
       try {
-        await createPayment('credit_card', cartAmount, selectedAddressType, saveCardBool, {
+        await createPayment('credit_card', selectedAddressType, saveCardBool, {
           pan: cardNumber,
           expiry: expiryDate,
           cvv,
           cardHolderName,
           cardScheme,
-          user_id: localStorage.getItem('user_id')
         });
       } finally {
         newCardButton.disabled = false;
@@ -542,7 +544,7 @@
       paypalBtn.textContent = 'Loading...'
 
       try {
-        await createPaypalPayment(cartAmount, selectedAddressType)
+        await createPaypalPayment(selectedAddressType)
       } finally {
         paypalBtn.disabled = false
         paypalBtn.textContent = 'Continue to PayPal'

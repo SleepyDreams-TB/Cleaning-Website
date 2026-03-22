@@ -1,12 +1,10 @@
+import { requireAuth } from '/auth/authcheck.js';
+const user = await requireAuth();
+if (!user) return;
+
 import { getCardDetails, tokenizeCardData } from '/payment_process/processhelpers.js';
 
 document.addEventListener("DOMContentLoaded", async () => {
-  const jwt = localStorage.getItem("jwt");
-
-  if (!jwt) {
-    window.location.href = "/redirects/401";
-    return;
-  }
 
   const cardsList = document.getElementById("cardsList");
   const addCardBtn = document.getElementById("addCardBtn");
@@ -71,7 +69,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // ─── Load Card ─────────────────────────────────────────────────────────────
 
   async function loadCards() {
-    const result = await getCardDetails(jwt);
+    const result = await getCardDetails();
 
     if (!result) {
       cardsList.innerHTML = `<p class="text-gray-400 text-sm text-center py-4">Failed to load card.</p>`;
@@ -109,9 +107,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       pan: document.getElementById("cardNumber").value.replace(/\s/g, ""),
       cardHolderName: document.getElementById("cardHolderName").value.trim(),
       expiry: document.getElementById("expiryDate").value.trim(),
-      cvv: document.getElementById("cvv").value.trim(),
-      user_id: null,
-    };
+      cvv: document.getElementById("cvv").value.trim()
+      };
 
     try {
       const guid = await tokenizeCardData(merchant_reference, cardData);

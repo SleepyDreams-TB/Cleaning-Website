@@ -20,7 +20,7 @@ import qrcode
 import io
 from qrcode.image.pil import PilImage
 
-from main import limiter
+from limiter import limiter
 
 from helpers_routers.helpers import get_current_user
 from databaseConnections.mongoClient import get_collection

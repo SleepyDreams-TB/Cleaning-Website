@@ -16,10 +16,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from helpers_routers.helpers import get_origin_ip
+from limiter import limiter
+
 
 import ssl
 import logging
@@ -69,8 +69,6 @@ print("✅ FastAPI app initialized")
 
 
 # Middleware Configuration
-
-limiter = Limiter(key_func=get_origin_ip)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 

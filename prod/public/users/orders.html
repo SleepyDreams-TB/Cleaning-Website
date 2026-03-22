@@ -113,8 +113,9 @@
 
   <script type="module">
     import { requireAuth } from '/auth/authcheck.js';
+
     const user = await requireAuth();
-    if (!user) return;
+    if (!user) window.location.href = "/login";
 
     async function loadNavbar() {
       const container = document.getElementById("navbar-container");
@@ -134,7 +135,6 @@
   </script>
 
   <script type="module">
-
 
     const ordersBody = document.getElementById('orders-body');
     const emptyState = document.getElementById('empty-state');

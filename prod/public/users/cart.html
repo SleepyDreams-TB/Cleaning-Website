@@ -307,9 +307,6 @@
   </footer>
 
   <script type="module">
-    import { requireAuth } from '/auth/authcheck.js';
-    const user = await requireAuth();
-    if (!user) return;
 
     import { getCart, clearCart, deleteCartItem, recalcTotal, saveCart, getBillingInfoAddress } from "./cart.js";
 

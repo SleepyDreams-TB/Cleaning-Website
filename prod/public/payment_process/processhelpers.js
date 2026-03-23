@@ -73,7 +73,7 @@ async function createBackendOrder(payment_type, merchant_reference, addressType)
       return null;
     }
 
-    const res = await fetch("https://api.kingburger.site/api/orders", {
+    const res = await fetch("https://api.kingburger.site/api/orders/create-order", {
       method: "POST",
       credentials: "include",
       headers: {
@@ -128,7 +128,8 @@ export async function tokenizeCardData(merchant_reference, cardData) {
     const res = await fetch(getEndpoint("tokenize_card"), {
       method: "POST",
       credentials: "include",
-      headers: { "Content-Type": "application/json"
+      headers: {
+        "Content-Type": "application/json"
       },
       body: JSON.stringify(bodyData)
     });
@@ -153,14 +154,17 @@ export async function tokenizeCardData(merchant_reference, cardData) {
 export async function createPaypalPayment(deliveryAddress) {
   const merchant_reference = generateMerchantReference();
 
-  const bodyData = {
-    merchant_reference: merchant_reference
-  };
-
   const orderData = await createBackendOrder("paypal", merchant_reference, deliveryAddress);
   if (!orderData?.success) {
     return;
   }
+  const verifiedAmount = orderData.calculated_amount;
+
+  const bodyData = {
+    merchant_reference: merchant_reference,
+    amount: verifiedAmount
+  };
+
   try {
     const res = await fetch(getEndpoint("paypal"), {
       method: "POST",

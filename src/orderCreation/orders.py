@@ -17,7 +17,7 @@ products_collection = get_collection("products")
 
 
 # --- Create Order ---
-@router.post("/orders")
+@router.post("/orders/create-order")
 async def create_order(request: Request, current_user=Depends(get_current_user)):
     """Create a new order from cart data."""
     user_id = str(current_user["_id"])
@@ -106,7 +106,7 @@ async def create_order(request: Request, current_user=Depends(get_current_user))
             return JSONResponse({
                 "success": True,
                 "merchant_reference": merchant_reference,
-                "calculated_amount": round(total, 2),
+                "calculated_amount": f"{total:.2f}",
                 "status": new_order.status
             })
 
